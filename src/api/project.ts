@@ -19,8 +19,13 @@ import {
   MOCK_CONSENSUS,
   MOCK_READINESS_SCORES,
 } from "./mockData";
+import { analyzeCoreWithNvidia, analyzeImpactWithNvidia } from "./nvidiaEngine";
+import { useAuthStore } from "../store/useAuthStore";
 
 let localProjectsStore: Record<string, ProjectSummary> = {};
+let sourceCodeStore: Record<string, string> = {};
+let liveCoreAudits: Record<string, CoreAudit> = {};
+let liveImpactAudits: Record<string, ImpactAudit> = {};
 
 export const getProjects = async (): Promise<ProjectSummary[]> => {
   try {
@@ -51,12 +56,19 @@ export const createProject = async (data: {
       name: data.name,
       repo_url: data.repo_url || "N/A",
       stage: "ingesting",
-      readiness_score: 85,
+      readiness_score: 90,
       last_updated: new Date().toISOString(),
       java_from: "Java 8",
-      java_to: "Java 21",
+      java_to: "Java 21 / Rust Axum",
     };
     localProjectsStore[id] = newSummary;
+
+    if (data.javaCode && data.javaCode.trim().length > 0) {
+      sourceCodeStore[id] = data.javaCode;
+    } else {
+      sourceCodeStore[id] = `public class ${data.name.replace(/\s+/g, "")} {\n    public static void main(String[] args) {\n        System.out.println("Executing ${data.name}");\n    }\n}`;
+    }
+
     return ProjectSummarySchema.parse(newSummary);
   }
 };
@@ -67,22 +79,50 @@ export const deleteProject = async (projectId: string): Promise<boolean> => {
       method: "DELETE",
     });
     delete localProjectsStore[projectId];
+    delete sourceCodeStore[projectId];
+    delete liveCoreAudits[projectId];
+    delete liveImpactAudits[projectId];
     return true;
   } catch (_err) {
     console.warn(`[MOCK_FALLBACK] Backend DELETE /projects/${projectId} endpoint unavailable; removing from local state.`);
     if (localProjectsStore[projectId]) {
       delete localProjectsStore[projectId];
+      delete sourceCodeStore[projectId];
+      delete liveCoreAudits[projectId];
+      delete liveImpactAudits[projectId];
       return true;
     }
     return false;
   }
 };
 
-export const getProjectSourceCode = (_projectId: string): Record<string, string> => {
+export const getProjectSourceCode = (projectId: string): Record<string, string> => {
+  if (sourceCodeStore[projectId]) {
+    return { "Main.java": sourceCodeStore[projectId] };
+  }
   return {};
 };
 
 export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
+  const { isDevMode } = useAuthStore.getState();
+
+  // If live core audit cached, return it
+  if (liveCoreAudits[projectId]) {
+    return liveCoreAudits[projectId];
+  }
+
+  // If logged in as 'baanbhaba', run live NVIDIA AI Core Analysis
+  if (isDevMode) {
+    const proj = localProjectsStore[projectId];
+    const name = proj?.name || "Uploaded Project";
+    const code = sourceCodeStore[projectId] || "";
+    const aiResult = await analyzeCoreWithNvidia(name, code);
+    if (aiResult) {
+      liveCoreAudits[projectId] = CoreAuditSchema.parse(aiResult);
+      return liveCoreAudits[projectId];
+    }
+  }
+
   try {
     const data = await fetchApi<CoreAudit>("/analyze/core", {
       method: "POST",
@@ -127,6 +167,25 @@ export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
 };
 
 export const getImpactAudit = async (projectId: string): Promise<ImpactAudit> => {
+  const { isDevMode } = useAuthStore.getState();
+
+  // If live impact audit cached, return it
+  if (liveImpactAudits[projectId]) {
+    return liveImpactAudits[projectId];
+  }
+
+  // If logged in as 'baanbhaba', run live NVIDIA AI Impact Analysis
+  if (isDevMode) {
+    const proj = localProjectsStore[projectId];
+    const name = proj?.name || "Uploaded Project";
+    const code = sourceCodeStore[projectId] || "";
+    const aiResult = await analyzeImpactWithNvidia(name, code);
+    if (aiResult) {
+      liveImpactAudits[projectId] = ImpactAuditSchema.parse(aiResult);
+      return liveImpactAudits[projectId];
+    }
+  }
+
   try {
     const data = await fetchApi<ImpactAudit>("/analyze/impact", {
       method: "POST",

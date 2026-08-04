@@ -18,9 +18,11 @@ import { Badge } from "../components/common/Badge";
 import { Modal } from "../components/common/Modal";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
 import { ErrorState } from "../components/common/ErrorState";
+import { useAuthStore } from "../store/useAuthStore";
 
 export const DashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const { isDevMode } = useAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [repoUrlInput, setRepoUrlInput] = useState("");
@@ -310,12 +312,21 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           <div className="p-3 bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 rounded text-zinc-700 dark:text-zinc-300 space-y-1">
-            <div className="flex items-center space-x-1.5 font-bold text-amber-500">
-              <Cpu className="w-3.5 h-3.5" />
-              <span>Target Engine: Java OOP → Rust Axum</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-1.5 font-bold text-amber-500">
+                <Cpu className="w-3.5 h-3.5" />
+                <span>Target Engine: Java OOP → Rust Axum</span>
+              </div>
+              {isDevMode && (
+                <span className="text-[10px] bg-amber-500 text-black font-bold px-2 py-0.5 rounded">
+                  LIVE NVIDIA NIM AI ACTIVE
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-sans">
-              Tree-sitter parser extracts AST symbols and triggers Rust orchestration service.
+              {isDevMode
+                ? "Live NVIDIA Llama 3.1 70B Instruct model will perform real-time Core Audit, Impact Audit, and Code Transformations."
+                : "Tree-sitter parser extracts AST symbols and triggers Rust orchestration service."}
             </p>
           </div>
         </form>

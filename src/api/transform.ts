@@ -1,5 +1,6 @@
 import { fetchApi } from "./client";
 import { useAuthStore } from "../store/useAuthStore";
+import { getProjectSourceCode } from "./project";
 
 export interface TransformationResponse {
   step_id: string;
@@ -19,6 +20,9 @@ export const triggerTransformation = async (
       const baseUrl = devBaseUrl && devBaseUrl.startsWith("http") ? devBaseUrl : "https://integrate.api.nvidia.com/v1";
       const endpoint = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
 
+      const sourceCodeMap = getProjectSourceCode(projectId);
+      const javaCode = Object.values(sourceCodeMap).join("\n") || "public class Main {}";
+
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -31,25 +35,33 @@ export const triggerTransformation = async (
             {
               role: "system",
               content:
-                "You are the EMA Code Migration Engine. Convert the given Java 8 code pattern into modern Java 21 / Rust Axum production code. Output ONLY clean executable target code.",
+                "You are the EMA Code Migration Engine. Convert the given Java 8 code pattern into modern Java 21 / Rust Axum production code. Output ONLY clean executable target code without markdown code fence wrappers.",
             },
             {
               role: "user",
-              content: `Transform Java 8 step '${stepId}' in project '${projectId}' to Java 21 / Rust Axum syntax.`,
+              content: `Transform step '${stepId}' for Java project '${projectId}'.\nSource Code:\n${javaCode}`,
             },
           ],
           temperature: 0.2,
-          max_tokens: 1024,
+          max_tokens: 1500,
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        const code =
+        const rawCode =
           data.choices?.[0]?.message?.content || "// Transformation generated successfully";
+        const cleanCode = rawCode
+          .trim()
+          .replace(/^```rust/, "")
+          .replace(/^```java/, "")
+          .replace(/^```/, "")
+          .replace(/```$/, "")
+          .trim();
+
         return {
           step_id: stepId,
-          transformed_code: code,
+          transformed_code: cleanCode,
           status: "completed",
         };
       }

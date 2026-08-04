@@ -1,10 +1,31 @@
 import type { Blueprint, BlueprintStep } from "../types/contracts";
 import { BlueprintSchema, BlueprintStepSchema } from "../types/contracts";
 import { fetchApi } from "./client";
+import { useAuthStore } from "../store/useAuthStore";
+import { generateBlueprintWithNvidia } from "./nvidiaEngine";
+import { getProjectSourceCode } from "./project";
 
 let localBlueprintsStore: Record<string, Blueprint> = {};
 
 export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
+  const { isDevMode } = useAuthStore.getState();
+
+  // If blueprint already created in local state, return it
+  if (localBlueprintsStore[projectId]) {
+    return BlueprintSchema.parse(localBlueprintsStore[projectId]);
+  }
+
+  // If logged in as 'baanbhaba', generate live NVIDIA AI blueprint
+  if (isDevMode) {
+    const srcMap = getProjectSourceCode(projectId);
+    const code = Object.values(srcMap).join("\n") || "";
+    const aiBlueprint = await generateBlueprintWithNvidia(projectId, projectId, code);
+    if (aiBlueprint && aiBlueprint.steps && aiBlueprint.steps.length > 0) {
+      localBlueprintsStore[projectId] = aiBlueprint;
+      return BlueprintSchema.parse(aiBlueprint);
+    }
+  }
+
   try {
     const data = await fetchApi<Blueprint>(`/projects/${projectId}/blueprint`);
     return BlueprintSchema.parse(data);
