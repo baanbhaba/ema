@@ -10,8 +10,9 @@ import {
   Server,
   Code,
   Cpu,
+  Trash2,
 } from "lucide-react";
-import { getProjects, createProject } from "../api/client";
+import { getProjects, createProject, deleteProject } from "../api/client";
 import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
 import { Modal } from "../components/common/Modal";
@@ -44,6 +45,13 @@ export const DashboardPage: React.FC = () => {
       setNameInput("");
       setRepoUrlInput("");
       setJavaCodeInput("");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
 
@@ -148,6 +156,23 @@ export const DashboardPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (confirm(`Remove project "${project.name}"?`)) {
+                        deleteMutation.mutate(project.id);
+                      }
+                    }}
+                    disabled={deleteMutation.isPending}
+                    className="p-1.5 rounded bg-zinc-100 hover:bg-red-500/10 dark:bg-zinc-800 text-zinc-400 hover:text-red-500 border border-zinc-200 dark:border-zinc-700 transition-colors"
+                    title="Remove Project"
+                    aria-label={`Remove project ${project.name}`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800 text-xs">

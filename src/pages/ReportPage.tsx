@@ -60,18 +60,36 @@ export const ReportPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-3 flex items-center space-x-4 shrink-0 text-xs">
-          <div>
-            <span className="text-zinc-400 uppercase text-[10px] block">Units Migrated</span>
-            <span className="text-base font-bold text-zinc-900 dark:text-zinc-100">{totalUnits}</span>
+        <div className="flex items-center space-x-3 shrink-0">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-3 flex items-center space-x-4 text-xs">
+            <div>
+              <span className="text-zinc-400 uppercase text-[10px] block">Units Migrated</span>
+              <span className="text-base font-bold text-zinc-900 dark:text-zinc-100">{totalUnits}</span>
+            </div>
+
+            <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800"></div>
+
+            <div>
+              <span className="text-zinc-400 uppercase text-[10px] block">Docker Sandbox</span>
+              <span className="font-bold text-zinc-900 dark:text-zinc-100">JDK 8 vs 21</span>
+            </div>
           </div>
 
-          <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800"></div>
-
-          <div>
-            <span className="text-zinc-400 uppercase text-[10px] block">Docker Sandbox</span>
-            <span className="font-bold text-zinc-900 dark:text-zinc-100">JDK 8 vs 21</span>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(report, null, 2));
+              const downloadAnchor = document.createElement("a");
+              downloadAnchor.setAttribute("href", dataStr);
+              downloadAnchor.setAttribute("download", `migration-report-${id}.json`);
+              document.body.appendChild(downloadAnchor);
+              downloadAnchor.click();
+              downloadAnchor.remove();
+            }}
+            className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded text-xs transition-colors"
+          >
+            Export JSON Report
+          </button>
         </div>
       </div>
 

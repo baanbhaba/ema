@@ -142,6 +142,17 @@ export const getProjectSourceCode = (projectId: string): Record<string, string> 
   return proj ? proj.javaCodeMap : {};
 };
 
+export const deleteProject = async (projectId: string): Promise<boolean> => {
+  if (simulateErrorsGlobal) {
+    throw new Error("Simulated Backend API Error: 503 Service Unavailable");
+  }
+  if (projectsStore[projectId]) {
+    delete projectsStore[projectId];
+    return true;
+  }
+  return false;
+};
+
 export const createProject = async (data: { name: string; repo_url: string; javaCode?: string }): Promise<ProjectSummary> => {
   if (simulateErrorsGlobal) {
     throw new Error("Simulated Backend API Error: 503 Service Unavailable");
