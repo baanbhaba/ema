@@ -23,14 +23,12 @@ interface UiState {
   toggleSimulateApiError: () => void;
 
   // API & LLM Settings
-  deepseekApiKey: string;
-  openaiApiKey: string;
-  anthropicApiKey: string;
   nvidiaApiKey: string;
   nvidiaBaseUrl: string;
   selectedAnalysisModel: string;
   selectedTransformationModel: string;
-  setApiKey: (keyName: "deepseek" | "openai" | "anthropic" | "nvidia", value: string) => void;
+  setNvidiaApiKey: (value: string) => void;
+  setApiKey: (keyName: string, value: string) => void;
   setNvidiaBaseUrl: (baseUrl: string) => void;
   setSelectedModel: (type: "analysis" | "transformation", model: string) => void;
 }
@@ -100,19 +98,13 @@ export const useUiStore = create<UiState>((set) => ({
   toggleSimulateApiError: () =>
     set((state) => ({ isSimulatingApiError: !state.isSimulatingApiError })),
 
-  deepseekApiKey: "[REDACTED]",
-  openaiApiKey: "",
-  anthropicApiKey: "",
   nvidiaApiKey: "[REDACTED]",
   nvidiaBaseUrl: "https://integrate.api.nvidia.com/v1",
   selectedAnalysisModel: "meta/llama-3.3-70b-instruct",
   selectedTransformationModel: "meta/llama-3.3-70b-instruct",
 
-  setApiKey: (keyName, value) =>
-    set((state) => ({
-      ...state,
-      [`${keyName}ApiKey`]: value,
-    })),
+  setNvidiaApiKey: (value) => set({ nvidiaApiKey: value }),
+  setApiKey: (_keyName, value) => set({ nvidiaApiKey: value }),
 
   setNvidiaBaseUrl: (baseUrl) =>
     set({ nvidiaBaseUrl: baseUrl }),

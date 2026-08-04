@@ -5,19 +5,15 @@ import { useUiStore } from "../store/useUiStore";
 
 export const SettingsPage: React.FC = () => {
   const {
-    deepseekApiKey,
-    openaiApiKey,
     nvidiaApiKey,
     nvidiaBaseUrl,
     selectedAnalysisModel,
     selectedTransformationModel,
-    setApiKey,
+    setNvidiaApiKey,
     setNvidiaBaseUrl,
     setSelectedModel,
   } = useUiStore();
 
-  const [showDeepseek, setShowDeepseek] = useState(false);
-  const [showOpenai, setShowOpenai] = useState(false);
   const [showNvidia, setShowNvidia] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -33,45 +29,45 @@ export const SettingsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200 dark:border-zinc-800">
         <div>
           <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2">
-            <span>API Keys & Model Benchmarks</span>
+            <span>NVIDIA NIM API & Model Benchmarks</span>
             <span className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded">
-              Spec Section 5.8
+              Active Provider: NVIDIA API
             </span>
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-sans">
-            Configure LLM providers (NVIDIA Integrated API, DeepSeek, OpenAI) and compare model benchmarks for Java 8→21 transformations.
+            Configure NVIDIA Integrated API credentials and select models for Java 8→21 transformations and analysis.
           </p>
         </div>
 
         {savedSuccess && (
           <div className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded text-xs flex items-center space-x-1.5">
             <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
-            <span>API Configuration Saved</span>
+            <span>NVIDIA API Configuration Saved</span>
           </div>
         )}
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* LLM Provider API Keys */}
+        {/* NVIDIA API Credentials */}
         <Card
           title={
             <div className="flex items-center space-x-2">
               <Key className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-              <span>LLM Provider API Credentials</span>
+              <span>NVIDIA API Credentials</span>
             </div>
           }
-          subtitle="Encrypted keys used for multi-agent reasoning and per-file code transformations"
+          subtitle="API Key and Base URL used for all multi-agent reasoning and code transformations"
         >
           <div className="space-y-4 text-xs">
             <div>
               <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                NVIDIA API Key (Integrated NIM / Cloud)
+                NVIDIA API Key
               </label>
               <div className="flex items-center space-x-2">
                 <input
                   type={showNvidia ? "text" : "password"}
                   value={nvidiaApiKey}
-                  onChange={(e) => setApiKey("nvidia", e.target.value)}
+                  onChange={(e) => setNvidiaApiKey(e.target.value)}
                   placeholder="nvapi-..."
                   className="flex-1 px-3 py-1.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-amber-500"
                 />
@@ -98,56 +94,12 @@ export const SettingsPage: React.FC = () => {
               />
             </div>
 
-            <div>
-              <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                DeepSeek API Key (Transformation Agent)
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type={showDeepseek ? "text" : "password"}
-                  value={deepseekApiKey}
-                  onChange={(e) => setApiKey("deepseek", e.target.value)}
-                  placeholder="sk-ds-..."
-                  className="flex-1 px-3 py-1.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-amber-500"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowDeepseek(!showDeepseek)}
-                  className="px-2.5 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded border border-zinc-200 dark:border-zinc-700 text-xs"
-                >
-                  {showDeepseek ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                OpenAI API Key (GPT-4o / GPT-4o-mini)
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type={showOpenai ? "text" : "password"}
-                  value={openaiApiKey}
-                  onChange={(e) => setApiKey("openai", e.target.value)}
-                  placeholder="sk-proj-..."
-                  className="flex-1 px-3 py-1.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-amber-500"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowOpenai(!showOpenai)}
-                  className="px-2.5 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded border border-zinc-200 dark:border-zinc-700 text-xs"
-                >
-                  {showOpenai ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-
             <div className="pt-2 flex justify-end">
               <button
                 type="submit"
                 className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded text-xs transition-colors"
               >
-                Save Credentials
+                Save NVIDIA Credentials
               </button>
             </div>
           </div>
@@ -159,10 +111,10 @@ export const SettingsPage: React.FC = () => {
             title={
               <div className="flex items-center space-x-2">
                 <Cpu className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                <span>Analysis Stage Model (Section 5.2 / 5.3)</span>
+                <span>Analysis Stage Model</span>
               </div>
             }
-            subtitle="Requires high reasoning & structured JSON output precision"
+            subtitle="Requires high reasoning & structured output precision"
           >
             <select
               value={selectedAnalysisModel}
@@ -171,10 +123,7 @@ export const SettingsPage: React.FC = () => {
             >
               <option value="meta/llama-3.3-70b-instruct">NVIDIA Llama 3.3 70B Instruct (Active)</option>
               <option value="nvidia/llama-3.1-nemotron-70b-instruct">NVIDIA Nemotron 70B</option>
-              <option value="deepseek-ai/deepseek-r1">NVIDIA DeepSeek R1</option>
-              <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
-              <option value="gpt-4o">OpenAI GPT-4o</option>
-              <option value="deepseek-reasoner">DeepSeek R1 / Reasoner</option>
+              <option value="deepseek-ai/deepseek-r1">NVIDIA DeepSeek R1 NIM</option>
             </select>
           </Card>
 
@@ -182,7 +131,7 @@ export const SettingsPage: React.FC = () => {
             title={
               <div className="flex items-center space-x-2">
                 <Zap className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                <span>Transformation Stage Model (Section 5.8)</span>
+                <span>Transformation Stage Model</span>
               </div>
             }
             subtitle="Per-file code conversion engine"
@@ -193,10 +142,8 @@ export const SettingsPage: React.FC = () => {
               className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-amber-500"
             >
               <option value="meta/llama-3.3-70b-instruct">NVIDIA Llama 3.3 70B Instruct (Active)</option>
-              <option value="mistralai/codestral-22b-instruct-v0.1">NVIDIA Codestral 22B</option>
-              <option value="deepseek-coder-v2">DeepSeek-Coder V2</option>
-              <option value="gpt-4o-mini">OpenAI GPT-4o-mini</option>
-              <option value="claude-3-5-haiku">Claude 3.5 Haiku</option>
+              <option value="nvidia/llama-3.1-nemotron-70b-instruct">NVIDIA Nemotron 70B</option>
+              <option value="mistralai/codestral-22b-instruct-v0.1">NVIDIA Codestral 22B NIM</option>
             </select>
           </Card>
         </div>

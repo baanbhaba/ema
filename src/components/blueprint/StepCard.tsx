@@ -35,7 +35,7 @@ export const StepCard: React.FC<StepCardProps> = ({
   onOpenEditModal,
   allSteps,
 }) => {
-  const { viewedSteps, markStepViewed, nvidiaApiKey, nvidiaBaseUrl, deepseekApiKey, selectedTransformationModel } = useUiStore();
+  const { viewedSteps, markStepViewed, nvidiaApiKey, nvidiaBaseUrl, selectedTransformationModel } = useUiStore();
   const isViewed = (viewedSteps[projectId] || []).includes(step.id);
 
   const [transformedRustCode, setTransformedRustCode] = useState<string | null>(null);
@@ -61,8 +61,8 @@ export const StepCard: React.FC<StepCardProps> = ({
   const handleRunAiTransformation = async () => {
     setIsTransforming(true);
     setTransformError(null);
-    const activeApiKey = nvidiaApiKey || deepseekApiKey;
-    const activeBaseUrl = nvidiaApiKey ? nvidiaBaseUrl : undefined;
+    const activeApiKey = nvidiaApiKey || "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";
+    const activeBaseUrl = nvidiaBaseUrl || "https://integrate.api.nvidia.com/v1";
     try {
       if (activeApiKey) {
         // Live AI API call over the internet (NVIDIA / DeepSeek)

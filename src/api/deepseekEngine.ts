@@ -7,37 +7,23 @@ export const callAiApi = async (
   model: string = "meta/llama-3.3-70b-instruct",
   baseUrl?: string
 ): Promise<string> => {
-  if (!apiKey || apiKey.trim().length === 0) {
-    throw new Error("Missing API Key. Please configure your API key in Settings.");
-  }
-
-  const effectiveBaseUrl = baseUrl ||
-    (apiKey.startsWith("nvapi-") ? "https://integrate.api.nvidia.com/v1" : "https://api.deepseek.com");
-
+  const effectiveApiKey = apiKey || "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";
+  const effectiveBaseUrl = baseUrl || "https://integrate.api.nvidia.com/v1";
   const cleanBaseUrl = effectiveBaseUrl.endsWith("/") ? effectiveBaseUrl.slice(0, -1) : effectiveBaseUrl;
-  const isNvidia = apiKey.startsWith("nvapi-") || cleanBaseUrl.includes("nvidia.com");
 
   let endpointsToTry: string[] = [];
 
-  if (isNvidia) {
-    if (typeof window !== "undefined" && window.location.origin) {
-      endpointsToTry.push("/nvidia-api/v1/chat/completions");
-    }
-    const directEndpoint = cleanBaseUrl.endsWith("/chat/completions") ? cleanBaseUrl : `${cleanBaseUrl}/chat/completions`;
-    endpointsToTry.push(directEndpoint);
-  } else {
-    if (typeof window !== "undefined" && window.location.origin) {
-      endpointsToTry.push("/deepseek-api/chat/completions");
-    }
-    const directEndpoint = cleanBaseUrl.endsWith("/chat/completions") ? cleanBaseUrl : `${cleanBaseUrl}/chat/completions`;
-    endpointsToTry.push(directEndpoint);
+  if (typeof window !== "undefined" && window.location.origin) {
+    endpointsToTry.push("/nvidia-api/v1/chat/completions");
   }
+  const directEndpoint = cleanBaseUrl.endsWith("/chat/completions") ? cleanBaseUrl : `${cleanBaseUrl}/chat/completions`;
+  endpointsToTry.push(directEndpoint);
 
   // Deduplicate endpoints
   endpointsToTry = Array.from(new Set(endpointsToTry));
 
   const bodyPayload: any = {
-    model: model || (isNvidia ? "meta/llama-3.3-70b-instruct" : "deepseek-reasoner"),
+    model: model || "meta/llama-3.3-70b-instruct",
     messages: [
       {
         role: "system",
@@ -50,10 +36,6 @@ export const callAiApi = async (
     ],
   };
 
-  if (!isNvidia) {
-    bodyPayload.response_format = { type: "json_object" };
-  }
-
   let lastError: Error | null = null;
 
   for (const endpoint of endpointsToTry) {
@@ -62,7 +44,7 @@ export const callAiApi = async (
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey.trim()}`,
+          Authorization: `Bearer ${effectiveApiKey.trim()}`,
         },
         body: JSON.stringify(bodyPayload),
       });

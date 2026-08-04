@@ -66,12 +66,6 @@ const getStoredApiConfig = (): ApiConfig => {
           model: state.selectedAnalysisModel || "meta/llama-3.3-70b-instruct",
         };
       }
-      if (state.deepseekApiKey && !state.deepseekApiKey.includes("****")) {
-        return {
-          apiKey: state.deepseekApiKey,
-          model: state.selectedAnalysisModel || "deepseek-reasoner",
-        };
-      }
     }
   } catch {
     // Ignore localStorage read errors
