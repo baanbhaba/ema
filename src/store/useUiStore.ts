@@ -100,8 +100,8 @@ export const useUiStore = create<UiState>((set) => ({
 
   nvidiaApiKey: "[REDACTED]",
   nvidiaBaseUrl: "https://integrate.api.nvidia.com/v1",
-  selectedAnalysisModel: "meta/llama-3.3-70b-instruct",
-  selectedTransformationModel: "meta/llama-3.3-70b-instruct",
+  selectedAnalysisModel: "meta/llama-3.1-70b-instruct",
+  selectedTransformationModel: "meta/llama-3.1-70b-instruct",
 
   setNvidiaApiKey: (value) => set({ nvidiaApiKey: value }),
   setApiKey: (_keyName, value) => set({ nvidiaApiKey: value }),

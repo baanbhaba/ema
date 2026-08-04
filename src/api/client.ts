@@ -36,8 +36,50 @@ interface StoredProject {
   report?: MigrationReport;
 }
 
-// Production Barebones Store: 0 Projects on initial boot
-let projectsStore: Record<string, StoredProject> = {};
+// Production Store initialized with default sample project for seamless testing
+let projectsStore: Record<string, StoredProject> = {
+  "proj-sample": {
+    summary: {
+      id: "proj-sample",
+      name: "Java 8 Legacy Math & User Service",
+      repo_url: "https://github.com/acme/legacy-math-service",
+      stage: "awaiting_approval",
+      readiness_score: 85,
+      last_updated: new Date().toISOString(),
+      java_from: "Java 8 Source",
+      java_to: "Rust Axum Target",
+    },
+    javaCodeMap: {
+      "SimpleMethodExample.java": `public class SimpleMethodExample {
+    public static int addNumbers(int a, int b) {
+        return a + b;
+    }
+
+    public static void main(String[] args) {
+        int result = addNumbers(5, 7);
+        System.out.println("The sum is: " + result);
+    }
+}`,
+      "UserController.java": `package com.acme.controller;
+
+import org.springframework.web.bind.annotation.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/users")
+public class UserController {
+    @GetMapping
+    public List<String> getUsers() {
+        List<String> users = new ArrayList<>();
+        users.add("Alice");
+        users.add("Bob");
+        return users;
+    }
+}`
+    }
+  }
+};
 
 let simulateErrorsGlobal = false;
 

@@ -121,9 +121,10 @@ export const SettingsPage: React.FC = () => {
               onChange={(e) => setSelectedModel("analysis", e.target.value)}
               className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-amber-500"
             >
-              <option value="meta/llama-3.3-70b-instruct">NVIDIA Llama 3.3 70B Instruct (Active)</option>
-              <option value="nvidia/llama-3.1-nemotron-70b-instruct">NVIDIA Nemotron 70B</option>
-              <option value="deepseek-ai/deepseek-r1">NVIDIA DeepSeek R1 NIM</option>
+              <option value="meta/llama-3.1-70b-instruct">NVIDIA Llama 3.1 70B Instruct (Recommended)</option>
+              <option value="meta/llama-3.3-70b-instruct">NVIDIA Llama 3.3 70B Instruct</option>
+              <option value="meta/llama-3.1-8b-instruct">NVIDIA Llama 3.1 8B (Fast)</option>
+              <option value="deepseek-ai/deepseek-v4-flash">NVIDIA DeepSeek V4 Flash</option>
             </select>
           </Card>
 
@@ -141,9 +142,10 @@ export const SettingsPage: React.FC = () => {
               onChange={(e) => setSelectedModel("transformation", e.target.value)}
               className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-amber-500"
             >
-              <option value="meta/llama-3.3-70b-instruct">NVIDIA Llama 3.3 70B Instruct (Active)</option>
-              <option value="nvidia/llama-3.1-nemotron-70b-instruct">NVIDIA Nemotron 70B</option>
-              <option value="mistralai/codestral-22b-instruct-v0.1">NVIDIA Codestral 22B NIM</option>
+              <option value="meta/llama-3.1-70b-instruct">NVIDIA Llama 3.1 70B Instruct (Recommended)</option>
+              <option value="meta/llama-3.3-70b-instruct">NVIDIA Llama 3.3 70B Instruct</option>
+              <option value="meta/llama-3.1-8b-instruct">NVIDIA Llama 3.1 8B (Fast)</option>
+              <option value="deepseek-ai/deepseek-v4-flash">NVIDIA DeepSeek V4 Flash</option>
             </select>
           </Card>
         </div>

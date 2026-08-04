@@ -64,22 +64,15 @@ export const StepCard: React.FC<StepCardProps> = ({
     const activeApiKey = nvidiaApiKey || "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";
     const activeBaseUrl = nvidiaBaseUrl || "https://integrate.api.nvidia.com/v1";
     try {
-      if (activeApiKey) {
-        // Live AI API call over the internet (NVIDIA / DeepSeek)
-        const rustCode = await transformJavaToRustAxumWithAI(
-          activeApiKey,
-          rawJavaCode,
-          step.file_or_module,
-          selectedTransformationModel,
-          activeBaseUrl
-        );
-        setTransformedRustCode(rustCode);
-      } else {
-        // Fallback AST generated Rust code if key not entered yet
-        const className = step.file_or_module.replace(".java", "");
-        const generatedRust = `// Generated Rust Axum Module: src/${className.toLowerCase()}.rs\nuse axum::{extract::Json, response::IntoResponse, routing::{get, post}, Router};\nuse serde::{Deserialize, Serialize};\n\n#[derive(Debug, Serialize, Deserialize, Clone)]\npub struct ${className} {\n    pub id: String,\n    pub name: String,\n}\n\npub async fn get_${className.toLowerCase()}_handler() -> impl IntoResponse {\n    Json(${className} { id: "1".into(), name: "Rust Axum Service".into() })\n}\n\npub fn router() -> Router {\n    Router::new().route("/api/v1/${className.toLowerCase()}s", get(get_${className.toLowerCase()}_handler))\n}`;
-        setTransformedRustCode(generatedRust);
-      }
+      const rustCode = await transformJavaToRustAxumWithAI(
+        activeApiKey,
+        rawJavaCode,
+        step.file_or_module,
+        selectedTransformationModel,
+        activeBaseUrl
+      );
+      setTransformedRustCode(rustCode);
+      step.target_pattern = rustCode;
     } catch (err) {
       setTransformError(err instanceof Error ? err.message : "Transformation failed");
     } finally {
