@@ -1,0 +1,85 @@
+{
+  "name": "ema-human-review-ui",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Human Review UI for Engineering Migration Assistant (Java 8 to 21)",
+  "homepage": "https://acme.com/ema",
+  "author": {
+    "name": "EMA Team",
+    "email": "dev@acme.com"
+  },
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "test": "vitest run",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "npm run build && electron-builder",
+    "electron:build:linux": "rm -rf dist-desktop && npm run build && electron-builder --linux AppImage tar.gz",
+    "electron:build:win": "rm -rf dist-desktop && npm run build && electron-builder --win nsis portable"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.101.4",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.28.0",
+    "mermaid": "^11.16.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.2",
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "concurrently": "^9.2.0",
+    "cross-env": "^7.0.3",
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8",
+    "jsdom": "^30.0.1",
+    "oxlint": "^1.75.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0",
+    "vitest": "^4.1.10",
+    "wait-on": "^8.0.3"
+  },
+  "build": {
+    "appId": "com.acme.ema",
+    "productName": "EMA Engineering Migration Assistant",
+    "executableName": "ema-human-review-ui",
+    "directories": {
+      "output": "dist-desktop"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "linux": {
+      "executableName": "ema-human-review-ui",
+      "target": [
+        "AppImage",
+        "tar.gz"
+      ],
+      "maintainer": "dev@acme.com",
+      "category": "Development"
+    },
+    "win": {
+      "executableName": "ema-human-review-ui",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    }
+  }
+}
