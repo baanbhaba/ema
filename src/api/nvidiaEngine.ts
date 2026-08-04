@@ -41,7 +41,7 @@ export const analyzeCoreWithNvidia = async (
         messages: [
           {
             role: "system",
-            content: `You are the EMA Core Analysis Agent. Analyze the provided Java 8 code and return ONLY valid JSON matching this schema:
+            content: `You are the EMA Core Analysis Agent. Analyze the provided Java code and return ONLY valid JSON matching this schema:
 {
   "architecture_summary": "string",
   "detected_stack": [{"technology": "string", "version": "string", "status": "eol|deprecated|current"}],
@@ -56,8 +56,8 @@ export const analyzeCoreWithNvidia = async (
             content: `Project Name: ${projectName}\nSource Code:\n${javaCode || "public class App { public static void main(String[] args) {} }"}`
           },
         ],
-        temperature: 0.2,
-        max_tokens: 1500,
+        temperature: 0.1,
+        max_tokens: 800,
       }),
     });
 
@@ -91,7 +91,7 @@ export const analyzeImpactWithNvidia = async (
         messages: [
           {
             role: "system",
-            content: `You are the EMA Impact Analysis Agent. Analyze the breaking changes for migrating this Java code to Java 21 / Rust Axum and return ONLY valid JSON matching this schema:
+            content: `You are the EMA Impact Analysis Agent. Analyze breaking changes for migrating this Java code to Java 21 / Rust Axum and return ONLY valid JSON matching this schema:
 {
   "api_surface": [{"endpoint_or_interface": "string", "consumers": ["string"], "breaking_change_risk": "low|medium|high"}],
   "database_impacts": [{"component": "string", "risk": "low|medium|high", "notes": "string"}],
@@ -106,8 +106,8 @@ export const analyzeImpactWithNvidia = async (
             content: `Project Name: ${projectName}\nSource Code:\n${javaCode || "public class App {}"}`
           },
         ],
-        temperature: 0.2,
-        max_tokens: 1500,
+        temperature: 0.1,
+        max_tokens: 800,
       }),
     });
 
@@ -142,7 +142,7 @@ export const generateBlueprintWithNvidia = async (
         messages: [
           {
             role: "system",
-            content: `You are the EMA Blueprint Agent. Create a 3-step migration blueprint for migrating this project from Java 8 to Java 21 / Rust Axum based on the provided Java source code. Return ONLY valid JSON matching this schema:
+            content: `You are the EMA Blueprint Agent. Create a concise 3-step migration blueprint for migrating this project to Java 21 / Rust Axum. Return ONLY valid JSON:
 {
   "project_id": "${projectId}",
   "steps": [
@@ -151,8 +151,8 @@ export const generateBlueprintWithNvidia = async (
       "file_or_module": "string",
       "what_changes": "string",
       "why": "string",
-      "target_pattern": "string (actual Rust Axum or Java 21 target code snippet)",
-      "risk_level": "low|medium|high",
+      "target_pattern": "string",
+      "risk_level": "medium",
       "depends_on": [],
       "status": "pending"
     }
@@ -164,8 +164,8 @@ export const generateBlueprintWithNvidia = async (
             content: `Project ID: ${projectId}\nProject Name: ${projectName}\nSource Code:\n${javaCode || "public class App {}"}`
           },
         ],
-        temperature: 0.2,
-        max_tokens: 1500,
+        temperature: 0.1,
+        max_tokens: 600,
       }),
     });
 
@@ -173,7 +173,21 @@ export const generateBlueprintWithNvidia = async (
     const data = await response.json();
     const rawContent = data.choices?.[0]?.message?.content || "";
     const cleanJson = extractJsonBlock(rawContent);
-    return JSON.parse(cleanJson) as Blueprint;
+    const parsed = JSON.parse(cleanJson) as Blueprint;
+    parsed.project_id = projectId;
+    if (parsed.steps) {
+      parsed.steps = parsed.steps.map((s, idx) => ({
+        id: s.id || `step-${idx + 1}`,
+        file_or_module: s.file_or_module || "src/Main.java",
+        what_changes: s.what_changes || "Migrate Java code",
+        why: s.why || "Modernization",
+        target_pattern: s.target_pattern || "// Transformed target code",
+        risk_level: ["low", "medium", "high"].includes(s.risk_level) ? s.risk_level : "medium",
+        depends_on: Array.isArray(s.depends_on) ? s.depends_on : [],
+        status: "pending",
+      }));
+    }
+    return parsed;
   } catch (err) {
     console.warn("NVIDIA Blueprint generation error:", err);
     return null;
