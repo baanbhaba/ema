@@ -16,11 +16,14 @@ export const triggerTransformation = async (
 
   // If logged in as developer user 'baanbhaba' with custom NVIDIA key, execute live AI call
   if (isDevMode && devApiKey && devApiKey.trim().length > 0) {
+    const rawBaseUrl = devBaseUrl && devBaseUrl.startsWith("http") ? devBaseUrl : "https://integrate.api.nvidia.com/v1";
+    const directEndpoint = `${rawBaseUrl.replace(/\/$/, "")}/chat/completions`;
+
+    // Try direct endpoint first, then proxy endpoint
     const endpointsToTry = [
+      directEndpoint,
       "/nvidia-api/chat/completions",
-      devBaseUrl && devBaseUrl.startsWith("http") ? `${devBaseUrl.replace(/\/$/, "")}/chat/completions` : null,
-      "https://integrate.api.nvidia.com/v1/chat/completions",
-    ].filter(Boolean) as string[];
+    ];
 
     const sourceCodeMap = getProjectSourceCode(projectId);
     const javaCode = Object.values(sourceCodeMap).join("\n") || "public class Main {}";
@@ -34,6 +37,7 @@ export const triggerTransformation = async (
           headers: {
             Authorization: `Bearer ${devApiKey.trim()}`,
             "Content-Type": "application/json",
+            Accept: "application/json",
           },
           body: JSON.stringify({
             model: "meta/llama-3.1-70b-instruct",
@@ -45,17 +49,17 @@ export const triggerTransformation = async (
               },
               {
                 role: "user",
-                content: `Transform step '${stepId}' for Java project '${projectId}'.\nSource Code:\n${javaCode}`,
+                content: `Transform Java code step '${stepId}' into Rust Axum target syntax:\n\n${javaCode}`,
               },
             ],
             temperature: 0.2,
-            max_tokens: 1500,
+            max_tokens: 1200,
           }),
         });
 
         if (response.ok) {
           const data = await response.json();
-          const rawCode = data.choices?.[0]?.message?.content || "// Transformation generated successfully";
+          const rawCode = data.choices?.[0]?.message?.content || "// Code transformation completed successfully";
           const cleanCode = rawCode
             .trim()
             .replace(/^```rust/, "")
@@ -71,7 +75,7 @@ export const triggerTransformation = async (
           };
         } else {
           const errText = await response.text().catch(() => "");
-          lastError = new Error(`NVIDIA API HTTP ${response.status}: ${errText || response.statusText}`);
+          lastError = new Error(`HTTP ${response.status}: ${errText || response.statusText}`);
         }
       } catch (err) {
         lastError = err;
@@ -79,7 +83,7 @@ export const triggerTransformation = async (
     }
 
     if (lastError) {
-      throw new Error(`[NVIDIA AI API Error]: ${lastError.message || "Failed to reach NVIDIA endpoint"}`);
+      throw new Error(`NVIDIA API Network Error (${lastError.message || "Failed to fetch"}). Please check your internet connection.`);
     }
   }
 
@@ -89,7 +93,7 @@ export const triggerTransformation = async (
       { method: "POST" }
     );
   } catch (err) {
-    throw new Error(`[Transformation Failed]: ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(`Transformation Failed: ${err instanceof Error ? err.message : String(err)}`);
   }
 };
 

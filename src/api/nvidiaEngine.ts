@@ -4,11 +4,12 @@ import type { CoreAudit, ImpactAudit, Blueprint } from "../types/contracts";
 const getDevEndpoints = () => {
   const { isDevMode, devApiKey, devBaseUrl } = useAuthStore.getState();
   if (isDevMode && devApiKey && devApiKey.trim().length > 0) {
+    const rawBaseUrl = devBaseUrl && devBaseUrl.startsWith("http") ? devBaseUrl : "https://integrate.api.nvidia.com/v1";
+    const directEndpoint = `${rawBaseUrl.replace(/\/$/, "")}/chat/completions`;
     const endpoints = [
-      devBaseUrl && devBaseUrl.startsWith("http") ? `${devBaseUrl.replace(/\/$/, "")}/chat/completions` : null,
+      directEndpoint,
       "/nvidia-api/chat/completions",
-      "https://integrate.api.nvidia.com/v1/chat/completions",
-    ].filter(Boolean) as string[];
+    ];
     return { apiKey: devApiKey.trim(), endpoints };
   }
   return null;
@@ -37,6 +38,7 @@ export const analyzeCoreWithNvidia = async (
         headers: {
           Authorization: `Bearer ${creds.apiKey}`,
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({
           model: "meta/llama-3.1-70b-instruct",
@@ -89,6 +91,7 @@ export const analyzeImpactWithNvidia = async (
         headers: {
           Authorization: `Bearer ${creds.apiKey}`,
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({
           model: "meta/llama-3.1-70b-instruct",
@@ -142,6 +145,7 @@ export const generateBlueprintWithNvidia = async (
         headers: {
           Authorization: `Bearer ${creds.apiKey}`,
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({
           model: "meta/llama-3.1-70b-instruct",
