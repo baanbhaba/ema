@@ -1,19 +1,32 @@
 import React, { useState } from "react";
-import { Server, CheckCircle2, ShieldCheck, Cpu } from "lucide-react";
+import { Server, CheckCircle2, ShieldCheck, Cpu, Key, Terminal, Code2 } from "lucide-react";
 import { Card } from "../components/common/Card";
-
 import { useUiStore } from "../store/useUiStore";
+import { useAuthStore } from "../store/useAuthStore";
 
 export const SettingsPage: React.FC = () => {
   const [backendUrl, setBackendUrl] = useState("http://localhost:8080/api/v1");
   const [savedSuccess, setSavedSuccess] = useState(false);
   const { notifyBackendRequired } = useUiStore();
+  const { isDevMode, devApiKey, devBaseUrl, setDevApiConfig } = useAuthStore();
+
+  const [inputDevKey, setInputDevKey] = useState(devApiKey);
+  const [inputDevUrl, setInputDevUrl] = useState(devBaseUrl);
+  const [devSavedSuccess, setDevSavedSuccess] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setSavedSuccess(true);
     notifyBackendRequired("Backend REST API Endpoint Verification");
     setTimeout(() => setSavedSuccess(false), 3000);
+  };
+
+  const handleDevSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    setDevApiConfig(inputDevKey, inputDevUrl);
+    setDevSavedSuccess(true);
+    notifyBackendRequired("Custom Developer API Key & Base Endpoint Registered");
+    setTimeout(() => setDevSavedSuccess(false), 3000);
   };
 
   return (
@@ -39,6 +52,74 @@ export const SettingsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Secret Developer Testing Console (Only visible when logged in as "baanbhaba") */}
+      {isDevMode && (
+        <Card
+          title={
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center space-x-2">
+                <Key className="w-4 h-4 text-amber-500" />
+                <span className="text-amber-500 font-bold">Baanbhaba Developer API Sandbox</span>
+              </div>
+              <span className="text-[10px] bg-amber-500 text-black font-bold px-2 py-0.5 rounded">
+                SECRET DEV PORTAL UNLOCKED
+              </span>
+            </div>
+          }
+          subtitle="Private developer sandbox for custom API Key and custom endpoint testing"
+        >
+          <form onSubmit={handleDevSave} className="space-y-4 text-xs">
+            <div>
+              <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                Custom API Key / Secret Token
+              </label>
+              <div className="relative">
+                <Terminal className="w-3.5 h-3.5 text-amber-500 absolute left-3 top-2.5" />
+                <input
+                  type="password"
+                  value={inputDevKey}
+                  onChange={(e) => setInputDevKey(e.target.value)}
+                  placeholder="Enter private API Key for custom endpoint testing..."
+                  className="w-full pl-9 pr-3 py-1.5 bg-zinc-900 border border-amber-500/50 rounded text-amber-400 font-mono focus:outline-none focus:border-amber-400"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                Custom Backend Base URL / Direct Endpoint Link
+              </label>
+              <div className="relative">
+                <Code2 className="w-3.5 h-3.5 text-amber-500 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  value={inputDevUrl}
+                  onChange={(e) => setInputDevUrl(e.target.value)}
+                  placeholder="http://localhost:8080/api/v1"
+                  className="w-full pl-9 pr-3 py-1.5 bg-zinc-900 border border-amber-500/50 rounded text-amber-400 font-mono focus:outline-none focus:border-amber-400"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-[11px] text-zinc-400">
+                {devSavedSuccess ? (
+                  <span className="text-amber-500 font-bold">Custom API Config Registered!</span>
+                ) : (
+                  "Private configuration loaded into active developer session."
+                )}
+              </span>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded text-xs transition-colors"
+              >
+                Save Developer Key & Link
+              </button>
+            </div>
+          </form>
+        </Card>
+      )}
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Backend API Configuration */}

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Lock, ShieldCheck, AlertCircle, User, ArrowRight, Sun, Moon } from "lucide-react";
+import { Lock, ShieldCheck, AlertCircle, User, ArrowRight, Sun, Moon, Database } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useUiStore } from "../store/useUiStore";
 
@@ -11,17 +11,25 @@ export const LoginPage: React.FC = () => {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setIsSubmitting(true);
 
-    const success = login(username, password);
-    if (success) {
-      navigate("/");
-    } else {
-      setErrorMsg("Invalid credentials. Alpha Access: Username 'admin' / Password 'admin'");
+    try {
+      const success = await login(username, password);
+      if (success) {
+        navigate("/");
+      } else {
+        setErrorMsg("Authentication failed. Invalid username or password.");
+      }
+    } catch (_err) {
+      setErrorMsg("Error connecting to backend database authentication service.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -62,10 +70,11 @@ export const LoginPage: React.FC = () => {
           <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800 text-xs">
             <span className="font-bold text-zinc-800 dark:text-zinc-300 flex items-center space-x-1.5">
               <Lock className="w-3.5 h-3.5 text-amber-500" />
-              <span>ALPHA ACCESS PORTAL</span>
+              <span>ENTERPRISE AUTHENTICATION</span>
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold">
-              v1.0.0 PROD
+            <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold flex items-center space-x-1">
+              <Database className="w-3 h-3 text-amber-500" />
+              <span>Backend Auth</span>
             </span>
           </div>
 
@@ -86,7 +95,7 @@ export const LoginPage: React.FC = () => {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="admin"
+                  placeholder="e.g. admin"
                   className="w-full pl-9 pr-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-amber-500"
                 />
               </div>
@@ -109,21 +118,23 @@ export const LoginPage: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded text-xs transition-colors flex items-center justify-center space-x-2"
+              disabled={isSubmitting}
+              className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded text-xs transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
             >
-              <span>Authenticate & Enter Engine</span>
+              <span>{isSubmitting ? "Verifying Credentials..." : "Authenticate & Enter Engine"}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          {/* Alpha Credentials Note */}
+          {/* Database Integration Note */}
           <div className="p-3 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-[11px] text-zinc-600 dark:text-zinc-400 space-y-1 font-sans">
             <div className="flex items-center space-x-1.5 font-bold font-mono text-zinc-800 dark:text-zinc-300">
               <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
-              <span>Alpha Credentials:</span>
+              <span>Database Backend Authentication</span>
             </div>
-            <p>Username: <code className="text-amber-600 dark:text-amber-400 font-mono">admin</code></p>
-            <p>Password: <code className="text-amber-600 dark:text-amber-400 font-mono">admin</code></p>
+            <p className="leading-relaxed">
+              Authenticates against backend endpoint <code className="text-amber-600 dark:text-amber-400 font-mono">/api/v1/auth/login</code>.
+            </p>
           </div>
         </div>
 
