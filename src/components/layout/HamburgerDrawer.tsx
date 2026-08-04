@@ -8,6 +8,9 @@ import {
   BarChart3,
   GitPullRequest,
   FileCheck2,
+  Settings,
+  User,
+  Plug,
   Sun,
   Moon,
   ShieldCheck,
@@ -28,6 +31,9 @@ export const HamburgerDrawer: React.FC = () => {
 
   const primaryNavItems = [
     { label: "Projects Dashboard", path: "/", icon: LayoutDashboard },
+    { label: "API Settings", path: "/settings", icon: Settings },
+    { label: "Account & Team", path: "/account", icon: User },
+    { label: "Integrations & Sandbox", path: "/integrations", icon: Plug },
   ];
 
   const projectNavItems = projectId
