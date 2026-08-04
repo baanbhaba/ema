@@ -1,4 +1,5 @@
 import { fetchApi } from "./client";
+import { useAuthStore } from "../store/useAuthStore";
 
 export interface TransformationResponse {
   step_id: string;
@@ -10,6 +11,53 @@ export const triggerTransformation = async (
   projectId: string,
   stepId: string
 ): Promise<TransformationResponse> => {
+  const { isDevMode, devApiKey, devBaseUrl } = useAuthStore.getState();
+
+  // If logged in as developer user 'baanbhaba' with custom NVIDIA key, execute live AI call
+  if (isDevMode && devApiKey && devApiKey.trim().length > 0) {
+    try {
+      const baseUrl = devBaseUrl && devBaseUrl.startsWith("http") ? devBaseUrl : "https://integrate.api.nvidia.com/v1";
+      const endpoint = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${devApiKey.trim()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "meta/llama-3.1-70b-instruct",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are the EMA Code Migration Engine. Convert the given Java 8 code pattern into modern Java 21 / Rust Axum production code. Output ONLY clean executable target code.",
+            },
+            {
+              role: "user",
+              content: `Transform Java 8 step '${stepId}' in project '${projectId}' to Java 21 / Rust Axum syntax.`,
+            },
+          ],
+          temperature: 0.2,
+          max_tokens: 1024,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const code =
+          data.choices?.[0]?.message?.content || "// Transformation generated successfully";
+        return {
+          step_id: stepId,
+          transformed_code: code,
+          status: "completed",
+        };
+      }
+    } catch (e) {
+      console.warn("NVIDIA NIM API direct call failed, falling back to backend route", e);
+    }
+  }
+
   try {
     return await fetchApi<TransformationResponse>(
       `/projects/${projectId}/steps/${stepId}/transform`,

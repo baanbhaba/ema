@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useUiStore } from "../../store/useUiStore";
+import { useAuthStore } from "../../store/useAuthStore";
 import { triggerTransformation } from "../../api/transform";
 import { getProjectSourceCode } from "../../api/project";
 
@@ -36,6 +37,7 @@ export const StepCard: React.FC<StepCardProps> = ({
   allSteps,
 }) => {
   const { viewedSteps, markStepViewed, notifyBackendRequired } = useUiStore();
+  const { isDevMode } = useAuthStore();
   const isViewed = (viewedSteps[projectId] || []).includes(step.id);
 
   const [transformedRustCode, setTransformedRustCode] = useState<string | null>(null);
@@ -63,7 +65,9 @@ export const StepCard: React.FC<StepCardProps> = ({
   const handleRunTransformation = async () => {
     setIsTransforming(true);
     setTransformError(null);
-    notifyBackendRequired("Live Code Transformation Engine");
+    if (!isDevMode) {
+      notifyBackendRequired("Live Code Transformation Engine");
+    }
     try {
       const res = await triggerTransformation(projectId, step.id);
       setTransformedRustCode(res.transformed_code);
