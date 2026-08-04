@@ -51,17 +51,17 @@ export const LoginPage: React.FC = () => {
       <div className="w-full max-w-md space-y-6 text-center">
         <div className="flex items-center justify-center space-x-3">
           <div className="w-10 h-10 bg-amber-500 rounded flex items-center justify-center font-bold text-black text-xl shadow-lg">
-            E
+            A
           </div>
-          <span className="font-bold text-2xl tracking-wider text-zinc-900 dark:text-white">EMA</span>
+          <span className="font-bold text-2xl tracking-wider text-zinc-900 dark:text-white">ALCHEMI</span>
         </div>
 
         <div>
           <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest">
-            Engineering Migration Assistant
+            Automated Legacy Code Transformation Engine
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 font-sans">
-            Production Legacy Code Migration Engine (Java 8 → Rust Axum)
+            AI Code Evolution Platform (Legacy Java 8 → Rust Axum / Java 21)
           </p>
         </div>
 

@@ -1,6 +1,7 @@
 import { fetchApi } from "./client";
 import { useAuthStore } from "../store/useAuthStore";
 import { getProjectSourceCode } from "./project";
+import { sanitizeRustCode } from "../utils/exportRustCode";
 
 export interface TransformationResponse {
   step_id: string;
@@ -17,18 +18,6 @@ const formatNvidiaEndpoint = (baseUrl: string): string => {
     clean = `${clean}/v1`;
   }
   return `${clean}/chat/completions`;
-};
-
-const cleanLLmCodeOutput = (rawContent: string): string => {
-  let text = rawContent.trim();
-  text = text
-    .replace(/^```rust/i, "")
-    .replace(/^```java/i, "")
-    .replace(/^```json/i, "")
-    .replace(/^```/g, "")
-    .replace(/```$/g, "")
-    .trim();
-  return text;
 };
 
 export const triggerTransformation = async (
@@ -66,22 +55,22 @@ export const triggerTransformation = async (
               {
                 role: "system",
                 content:
-                  "You are the EMA Code Migration Engine. Convert the given Java code into modern Rust Axum production code. Output modern Rust code.",
+                  "You are the EMA Code Migration Engine. Convert the given Java code into modern, production-ready Rust code.\n\nSTRICT MIGRATION & DOMAIN MODELING RULES:\n1. Output ONLY pure, compilable Rust source code.\n2. DO NOT include markdown code blocks or fences (no ```rust or ```).\n3. DO NOT include any introductory text, explanation, summary, or commentary.\n4. DO NOT include ANY comments (no //, /* */, ///, or //! comments) in the code body.\n5. DO NOT emit non-existent macro calls such as 'import_axum_prelude!()'.\n6. SEMANTIC & DOMAIN PRESERVATION:\n   - If migrating a Console/CLI application or class without HTTP web annotations: preserve exact CLI behavior (`struct`, `fn main`, `println!`), instantiating objects and exiting immediately WITHOUT creating HTTP routers or TCP listeners.\n   - If migrating a REST Controller / Web Service to Axum: model all Java domain classes/structs (e.g. `struct Bike;`) and execute object instantiations inside the async request handler before returning responses.\n7. Use modern Axum 0.7 syntax (`tokio::net::TcpListener::bind` + `axum::serve`) if Axum is used.\n8. Use clean 4-space indentation for all code block bodies.",
               },
               {
                 role: "user",
-                content: `Transform Java code step '${stepId}' into Rust Axum target syntax:\n\n${javaCode}`,
+                content: `Transform Java code step '${stepId}' into semantically accurate Rust target syntax:\n\n${javaCode}`,
               },
             ],
-            temperature: 0.2,
+            temperature: 0.1,
             max_tokens: 1200,
           }),
         });
 
         if (response.ok) {
           const data = await response.json();
-          const rawCode = data.choices?.[0]?.message?.content || "// Code transformation completed successfully";
-          const cleanCode = cleanLLmCodeOutput(rawCode);
+          const rawCode = data.choices?.[0]?.message?.content || "";
+          const cleanCode = sanitizeRustCode(rawCode);
 
           return {
             step_id: stepId,

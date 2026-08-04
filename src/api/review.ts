@@ -8,21 +8,6 @@ import { getProjectSourceCode } from "./project";
 let localBlueprintsStore: Record<string, Blueprint> = {};
 
 export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
-  const { isDevMode } = useAuthStore.getState();
-
-  // If logged in as 'baanbhaba', ALWAYS generate live NVIDIA AI blueprint steps from uploaded code
-  if (isDevMode) {
-    if (!localBlueprintsStore[projectId] || !localBlueprintsStore[projectId].steps || localBlueprintsStore[projectId].steps[0]?.file_or_module === "pom.xml / build.gradle") {
-      const srcMap = getProjectSourceCode(projectId);
-      const code = Object.values(srcMap).join("\n") || "public class Main { public static void main(String[] args) {} }";
-      const aiBlueprint = await generateBlueprintWithNvidia(projectId, projectId, code);
-      if (aiBlueprint && aiBlueprint.steps && aiBlueprint.steps.length > 0) {
-        localBlueprintsStore[projectId] = aiBlueprint;
-        return BlueprintSchema.parse(aiBlueprint);
-      }
-    }
-  }
-
   // Return cached blueprint if available
   if (localBlueprintsStore[projectId]) {
     return BlueprintSchema.parse(localBlueprintsStore[projectId]);
@@ -33,37 +18,53 @@ export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
     localBlueprintsStore[projectId] = data;
     return BlueprintSchema.parse(data);
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/blueprint endpoint unavailable; initializing blueprint.`);
     const srcMap = getProjectSourceCode(projectId);
     const codeFiles = Object.keys(srcMap);
-    const primaryFile = codeFiles[0] || "src/main/java/com/acme/service/MainController.java";
+    const primaryFile = codeFiles[0] || "src/Main.java";
+
+    const steps: BlueprintStep[] = codeFiles.length > 0
+      ? codeFiles.map((filename, idx) => ({
+          id: `step-${idx + 1}`,
+          file_or_module: filename,
+          what_changes: `Migrate ${filename} to Java 21 / Rust Axum architecture`,
+          why: `Modernize ${filename} for high concurrency and performance`,
+          target_pattern: "// Click 'Transform Step' to execute Live NVIDIA AI",
+          risk_level: idx === 0 ? "high" : "medium",
+          depends_on: idx === 0 ? [] : [`step-${idx}`],
+          status: "pending",
+        }))
+      : [
+          {
+            id: "step-1",
+            file_or_module: primaryFile,
+            what_changes: "Migrate REST Controller and legacy packages to Java 21 / Rust Axum handlers",
+            why: "Convert legacy Java OOP controller to high-performance Rust Axum service",
+            target_pattern: "// Click 'Transform Step' to execute Live NVIDIA AI",
+            risk_level: "high",
+            depends_on: [],
+            status: "pending",
+          },
+        ];
 
     localBlueprintsStore[projectId] = {
       project_id: projectId,
-      steps: [
-        {
-          id: "step-1",
-          file_or_module: primaryFile,
-          what_changes: "Migrate REST Controller and javax.* packages to Java 21 / Rust Axum handlers",
-          why: "Convert legacy Java OOP controller to high-performance Rust Axum service",
-          target_pattern: "// Live NVIDIA AI Rewriting Target",
-          risk_level: "high",
-          depends_on: [],
-          status: "pending",
-        },
-      ],
+      steps,
     };
     return BlueprintSchema.parse(localBlueprintsStore[projectId]);
   }
 };
 
 export const regenerateBlueprintWithNvidiaAI = async (projectId: string): Promise<Blueprint> => {
+  const { isDevMode } = useAuthStore.getState();
   const srcMap = getProjectSourceCode(projectId);
   const code = Object.values(srcMap).join("\n") || "public class Main { public static void main(String[] args) {} }";
-  const aiBlueprint = await generateBlueprintWithNvidia(projectId, projectId, code);
-  if (aiBlueprint && aiBlueprint.steps && aiBlueprint.steps.length > 0) {
-    localBlueprintsStore[projectId] = aiBlueprint;
-    return BlueprintSchema.parse(aiBlueprint);
+
+  if (isDevMode) {
+    const aiBlueprint = await generateBlueprintWithNvidia(projectId, projectId, code);
+    if (aiBlueprint && aiBlueprint.steps && aiBlueprint.steps.length > 0) {
+      localBlueprintsStore[projectId] = aiBlueprint;
+      return BlueprintSchema.parse(aiBlueprint);
+    }
   }
   return getBlueprint(projectId);
 };
@@ -79,7 +80,6 @@ export const approveBlueprintStep = async (
     );
     return BlueprintStepSchema.parse(data);
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend step approval endpoint unavailable; updating step ${stepId} in local state.`);
     const blueprint = await getBlueprint(projectId);
     const step = blueprint.steps.find((s) => s.id === stepId);
     if (!step) throw new Error(`Step '${stepId}' not found`);
@@ -111,7 +111,6 @@ export const rejectBlueprintStep = async (
     );
     return BlueprintStepSchema.parse(data);
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend step rejection endpoint unavailable; rejecting step ${stepId} in local state.`);
     const blueprint = await getBlueprint(projectId);
     const step = blueprint.steps.find((s) => s.id === stepId);
     if (!step) throw new Error(`Step '${stepId}' not found`);
@@ -140,7 +139,6 @@ export const updateBlueprintStep = async (
     );
     return BlueprintStepSchema.parse(data);
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend step update endpoint unavailable; updating step ${stepId} in local state.`);
     const blueprint = await getBlueprint(projectId);
     const stepIndex = blueprint.steps.findIndex((s) => s.id === stepId);
     if (stepIndex === -1) throw new Error(`Step '${stepId}' not found`);
@@ -159,7 +157,6 @@ export const approveAllBlueprintSteps = async (projectId: string): Promise<Bluep
     });
     return BlueprintSchema.parse(data);
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend approve-all endpoint unavailable; approving all steps in local blueprint for ${projectId}.`);
     const blueprint = await getBlueprint(projectId);
     blueprint.steps = blueprint.steps.map((s) => ({
       ...s,

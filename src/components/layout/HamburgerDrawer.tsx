@@ -58,10 +58,10 @@ export const HamburgerDrawer: React.FC = () => {
           <div className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-amber-500 rounded flex items-center justify-center font-bold text-black text-xs">
-                E
+                A
               </div>
               <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100 tracking-wider">
-                EMA CONTROL PANEL
+                ALCHEMI CONTROL PANEL
               </span>
             </div>
 

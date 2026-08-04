@@ -19,15 +19,15 @@ export const Header: React.FC = () => {
         <div className="flex items-center space-x-4">
           <Link to="/" className="flex items-center space-x-2.5">
             <div className="w-7 h-7 bg-amber-500 rounded flex items-center justify-center font-bold text-black text-sm shadow-xs">
-              E
+              A
             </div>
-            <span className="font-bold text-base tracking-wider text-zinc-900 dark:text-white">EMA</span>
+            <span className="font-bold text-base tracking-wider text-zinc-900 dark:text-white">ALCHEMI</span>
           </Link>
 
           <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-800 hidden sm:block"></div>
 
           <div className="hidden sm:flex items-center space-x-2 text-xs text-zinc-600 dark:text-zinc-400">
-            <span>Java → Rust Axum Production Pipeline</span>
+            <span>Automated Legacy Code Transformation Engine (Java → Rust)</span>
             {currentProjectId && (
               <>
                 <span className="text-zinc-400 dark:text-zinc-600">/</span>
@@ -57,7 +57,7 @@ export const Header: React.FC = () => {
           <button
             onClick={logout}
             className="p-2 bg-zinc-200 dark:bg-zinc-900 hover:bg-zinc-300 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-800 rounded transition-colors"
-            title="Logout Admin Session"
+            title="Logout Session"
           >
             <LogOut className="w-4 h-4 text-zinc-400" />
           </button>

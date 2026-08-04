@@ -12,8 +12,10 @@ import {
   Settings2,
   CheckCircle2,
   AlertTriangle,
+  Download,
 } from "lucide-react";
 import { getMigrationReport } from "../api/report";
+import { downloadCombinedRustProject, downloadCargoToml } from "../utils/exportRustCode";
 import { Card } from "../components/common/Card";
 import { DiffViewer } from "../components/report/DiffViewer";
 import { ValidationBadge } from "../components/report/ValidationBadge";
@@ -85,22 +87,42 @@ export const ReportPage: React.FC = () => {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              const dataStr =
-                "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(report, null, 2));
-              const downloadAnchor = document.createElement("a");
-              downloadAnchor.setAttribute("href", dataStr);
-              downloadAnchor.setAttribute("download", `migration-report-${id}.json`);
-              document.body.appendChild(downloadAnchor);
-              downloadAnchor.click();
-              downloadAnchor.remove();
-            }}
-            className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded text-xs transition-colors"
-          >
-            Export JSON Report
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => downloadCombinedRustProject(id || "migrated_service", report.blueprint?.steps || [])}
+              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-xs transition-colors flex items-center space-x-1.5"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download Rust Code (.rs)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => downloadCargoToml(id || "migrated_service")}
+              className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold rounded text-xs transition-colors flex items-center space-x-1.5"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Cargo.toml</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const dataStr =
+                  "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(report, null, 2));
+                const downloadAnchor = document.createElement("a");
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", `migration-report-${id}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+              }}
+              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded text-xs transition-colors"
+            >
+              Export JSON Report
+            </button>
+          </div>
         </div>
       </div>
 
