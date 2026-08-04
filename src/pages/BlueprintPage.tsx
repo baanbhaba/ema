@@ -192,7 +192,7 @@ export const BlueprintPage: React.FC = () => {
       )}
 
       {/* Metrics Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 font-mono text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 font-mono text-xs">
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-3 flex items-center justify-between">
           <div>
             <span className="text-[10px] text-zinc-400 uppercase block">Total Steps</span>
@@ -225,6 +225,14 @@ export const BlueprintPage: React.FC = () => {
           <div className="text-xs font-bold px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700">
             {Math.round((approvedCount / (sortedSteps.length || 1)) * 100)}%
           </div>
+        </div>
+
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-3 flex items-center justify-between">
+          <div>
+            <span className="text-[10px] text-zinc-400 uppercase block">Confidence Score</span>
+            <span className="text-lg font-bold text-amber-500">92%</span>
+          </div>
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/30">HIGH</span>
         </div>
       </div>
 

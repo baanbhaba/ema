@@ -11,8 +11,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useUiStore } from "../../store/useUiStore";
-import { transformJavaToRustAxumWithAI } from "../../api/deepseekEngine";
-import { getProjectSourceCode } from "../../api/client";
+import { triggerTransformation } from "../../api/transform";
+import { getProjectSourceCode } from "../../api/project";
 
 interface StepCardProps {
   step: BlueprintStep;
@@ -35,7 +35,7 @@ export const StepCard: React.FC<StepCardProps> = ({
   onOpenEditModal,
   allSteps,
 }) => {
-  const { viewedSteps, markStepViewed, nvidiaApiKey, nvidiaBaseUrl, selectedTransformationModel } = useUiStore();
+  const { viewedSteps, markStepViewed } = useUiStore();
   const isViewed = (viewedSteps[projectId] || []).includes(step.id);
 
   const [transformedRustCode, setTransformedRustCode] = useState<string | null>(null);
@@ -43,7 +43,9 @@ export const StepCard: React.FC<StepCardProps> = ({
   const [transformError, setTransformError] = useState<string | null>(null);
 
   const sourceCodeMap = getProjectSourceCode(projectId);
-  const rawJavaCode = sourceCodeMap[step.file_or_module] || `// Java Source: ${step.file_or_module}\npublic class ${step.file_or_module.replace(".java", "")} {\n  // Legacy Java 8 implementation\n}`;
+  const rawJavaCode =
+    sourceCodeMap[step.file_or_module] ||
+    `// Legacy Source: ${step.file_or_module}\n// Target Java 21 / Rust Axum Migration`;
 
   useEffect(() => {
     if (isExpanded && !isViewed) {
@@ -58,21 +60,13 @@ export const StepCard: React.FC<StepCardProps> = ({
     onToggleExpand();
   };
 
-  const handleRunAiTransformation = async () => {
+  const handleRunTransformation = async () => {
     setIsTransforming(true);
     setTransformError(null);
-    const activeApiKey = nvidiaApiKey || "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";
-    const activeBaseUrl = nvidiaBaseUrl || "https://integrate.api.nvidia.com/v1";
     try {
-      const rustCode = await transformJavaToRustAxumWithAI(
-        activeApiKey,
-        rawJavaCode,
-        step.file_or_module,
-        selectedTransformationModel,
-        activeBaseUrl
-      );
-      setTransformedRustCode(rustCode);
-      step.target_pattern = rustCode;
+      const res = await triggerTransformation(projectId, step.id);
+      setTransformedRustCode(res.transformed_code);
+      step.target_pattern = res.transformed_code;
     } catch (err) {
       setTransformError(err instanceof Error ? err.message : "Transformation failed");
     } finally {
@@ -190,7 +184,7 @@ export const StepCard: React.FC<StepCardProps> = ({
         </div>
       </div>
 
-      {/* Expanded Details: Code Diff & AI Transformation */}
+      {/* Expanded Details */}
       {isExpanded && (
         <div className="px-5 pb-5 pt-3 border-t border-zinc-200 dark:border-zinc-800 space-y-4 bg-zinc-50/50 dark:bg-zinc-950/50">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -211,20 +205,20 @@ export const StepCard: React.FC<StepCardProps> = ({
             </div>
 
             <button
-              onClick={handleRunAiTransformation}
+              onClick={handleRunTransformation}
               disabled={isTransforming}
               className="inline-flex items-center space-x-1.5 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-black rounded text-xs font-bold transition-colors disabled:opacity-50"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{isTransforming ? "Generating Rust Code..." : "Transform with DeepSeek AI"}</span>
+              <span>{isTransforming ? "Transforming..." : "Transform Step"}</span>
             </button>
           </div>
 
-          {/* Java Source vs Rust Axum Code Diff */}
+          {/* Java Source vs Target Code Diff */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">
-                Before: Java Source ({step.file_or_module})
+                Before: Legacy Source ({step.file_or_module})
               </span>
               <pre className="p-3 bg-zinc-900 text-zinc-200 rounded text-[11px] font-mono overflow-x-auto whitespace-pre border border-zinc-800 max-h-60">
                 {rawJavaCode}
@@ -233,10 +227,10 @@ export const StepCard: React.FC<StepCardProps> = ({
 
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500 block mb-1">
-                After: Rust Axum Target Code
+                After: Migration Target Code
               </span>
               <pre className="p-3 bg-zinc-950 text-amber-400 rounded text-[11px] font-mono overflow-x-auto whitespace-pre border border-amber-500/30 max-h-60">
-                {transformedRustCode || step.target_pattern || "// Click 'Transform with DeepSeek AI' to generate live Rust Axum code"}
+                {transformedRustCode || step.target_pattern || "// Click 'Transform Step' to trigger backend transformation"}
               </pre>
             </div>
           </div>

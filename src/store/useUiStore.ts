@@ -21,16 +21,6 @@ interface UiState {
   // Simulation Toggles
   isSimulatingApiError: boolean;
   toggleSimulateApiError: () => void;
-
-  // API & LLM Settings
-  nvidiaApiKey: string;
-  nvidiaBaseUrl: string;
-  selectedAnalysisModel: string;
-  selectedTransformationModel: string;
-  setNvidiaApiKey: (value: string) => void;
-  setApiKey: (keyName: string, value: string) => void;
-  setNvidiaBaseUrl: (baseUrl: string) => void;
-  setSelectedModel: (type: "analysis" | "transformation", model: string) => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -97,21 +87,4 @@ export const useUiStore = create<UiState>((set) => ({
   isSimulatingApiError: false,
   toggleSimulateApiError: () =>
     set((state) => ({ isSimulatingApiError: !state.isSimulatingApiError })),
-
-  nvidiaApiKey: "[REDACTED]",
-  nvidiaBaseUrl: "https://integrate.api.nvidia.com/v1",
-  selectedAnalysisModel: "meta/llama-3.1-70b-instruct",
-  selectedTransformationModel: "meta/llama-3.1-70b-instruct",
-
-  setNvidiaApiKey: (value) => set({ nvidiaApiKey: value }),
-  setApiKey: (_keyName, value) => set({ nvidiaApiKey: value }),
-
-  setNvidiaBaseUrl: (baseUrl) =>
-    set({ nvidiaBaseUrl: baseUrl }),
-
-  setSelectedModel: (type, model) =>
-    set((state) => ({
-      ...state,
-      [type === "analysis" ? "selectedAnalysisModel" : "selectedTransformationModel"]: model,
-    })),
 }));

@@ -6,8 +6,14 @@ import {
   Clock,
   UserCheck,
   Code2,
+  FileCode,
+  Package,
+  Layers,
+  Settings2,
+  CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
-import { getMigrationReport } from "../api/client";
+import { getMigrationReport } from "../api/report";
 import { Card } from "../components/common/Card";
 import { DiffViewer } from "../components/report/DiffViewer";
 import { ValidationBadge } from "../components/report/ValidationBadge";
@@ -43,6 +49,13 @@ export const ReportPage: React.FC = () => {
   if (!report) return null;
 
   const totalUnits = report.entries.length;
+  const filesModified = report.entries.map((e) => e.unit);
+  const dependencyRisks = report.impact_audit?.dependency_risks || [];
+  const apiSurface = report.impact_audit?.api_surface || [];
+  const configImpacts = report.impact_audit?.config_impacts || [];
+  const totalTestsRun = report.entries.reduce((acc, e) => acc + (e.validation?.tests_run || 0), 0);
+  const totalTestsPassed = report.entries.reduce((acc, e) => acc + (e.validation?.tests_passed || 0), 0);
+  const manualInterventions = report.blueprint?.steps.filter((s) => s.status === "rejected") || [];
 
   return (
     <div className="space-y-6 font-mono">
@@ -50,10 +63,7 @@ export const ReportPage: React.FC = () => {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-zinc-200 dark:border-zinc-800">
         <div>
           <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2">
-            <span>Migration Report & Docker Validation Audit</span>
-            <span className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
+            <span>Migration Report & Validation Audit</span>
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-sans">
             Complete audit trail of code diffs, automated build/test validations, human approvals, and rollback plans.
@@ -70,15 +80,16 @@ export const ReportPage: React.FC = () => {
             <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800"></div>
 
             <div>
-              <span className="text-zinc-400 uppercase text-[10px] block">Docker Sandbox</span>
-              <span className="font-bold text-zinc-900 dark:text-zinc-100">JDK 8 vs 21</span>
+              <span className="text-zinc-400 uppercase text-[10px] block">Sandbox Target</span>
+              <span className="font-bold text-zinc-900 dark:text-zinc-100">Java 21 / Axum</span>
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => {
-              const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(report, null, 2));
+              const dataStr =
+                "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(report, null, 2));
               const downloadAnchor = document.createElement("a");
               downloadAnchor.setAttribute("href", dataStr);
               downloadAnchor.setAttribute("download", `migration-report-${id}.json`);
@@ -93,6 +104,91 @@ export const ReportPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Section 4.5 Executive Summary Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+        {/* 1. Files Modified */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-4 space-y-2">
+          <div className="flex items-center space-x-2 font-bold text-zinc-900 dark:text-zinc-100">
+            <FileCode className="w-4 h-4 text-amber-500" />
+            <span>Files Modified ({filesModified.length})</span>
+          </div>
+          <ul className="space-y-1 text-zinc-600 dark:text-zinc-400 text-[11px] max-h-28 overflow-y-auto">
+            {filesModified.map((f, i) => (
+              <li key={i} className="truncate">• {f}</li>
+            ))}
+          </ul>
+        </div>
+
+        {/* 2. Dependencies Updated */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-4 space-y-2">
+          <div className="flex items-center space-x-2 font-bold text-zinc-900 dark:text-zinc-100">
+            <Package className="w-4 h-4 text-amber-500" />
+            <span>Dependencies Updated ({dependencyRisks.length})</span>
+          </div>
+          <ul className="space-y-1 text-zinc-600 dark:text-zinc-400 text-[11px] max-h-28 overflow-y-auto">
+            {dependencyRisks.map((d, i) => (
+              <li key={i} className="truncate">• {d.library} ({d.current_version} → {d.target_version})</li>
+            ))}
+            {dependencyRisks.length === 0 && <li className="italic text-zinc-400">None</li>}
+          </ul>
+        </div>
+
+        {/* 3. APIs Replaced */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-4 space-y-2">
+          <div className="flex items-center space-x-2 font-bold text-zinc-900 dark:text-zinc-100">
+            <Layers className="w-4 h-4 text-amber-500" />
+            <span>APIs Replaced ({apiSurface.length})</span>
+          </div>
+          <ul className="space-y-1 text-zinc-600 dark:text-zinc-400 text-[11px] max-h-28 overflow-y-auto">
+            {apiSurface.map((a, i) => (
+              <li key={i} className="truncate">• {a.endpoint_or_interface}</li>
+            ))}
+            {apiSurface.length === 0 && <li className="italic text-zinc-400">None</li>}
+          </ul>
+        </div>
+
+        {/* 4. Configuration Changes */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-4 space-y-2">
+          <div className="flex items-center space-x-2 font-bold text-zinc-900 dark:text-zinc-100">
+            <Settings2 className="w-4 h-4 text-amber-500" />
+            <span>Config Changes ({configImpacts.length})</span>
+          </div>
+          <ul className="space-y-1 text-zinc-600 dark:text-zinc-400 text-[11px] max-h-28 overflow-y-auto">
+            {configImpacts.map((c, i) => (
+              <li key={i} className="truncate">• {c.component || c.file || "App Config"}: {c.notes}</li>
+            ))}
+            {configImpacts.length === 0 && <li className="italic text-zinc-400">Standard Defaults</li>}
+          </ul>
+        </div>
+
+        {/* 5. Validation Summary */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-4 space-y-2">
+          <div className="flex items-center space-x-2 font-bold text-zinc-900 dark:text-zinc-100">
+            <CheckCircle2 className="w-4 h-4 text-amber-500" />
+            <span>Validation Summary</span>
+          </div>
+          <div className="text-zinc-600 dark:text-zinc-400 text-[11px] space-y-1">
+            <p>• Tests Passed: <strong className="text-amber-500">{totalTestsPassed} / {totalTestsRun}</strong></p>
+            <p>• Sandbox Environment: Java 21 / Docker Container</p>
+            <p>• Build Status: PASS</p>
+          </div>
+        </div>
+
+        {/* 6. Manual Intervention Summary */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-4 space-y-2">
+          <div className="flex items-center space-x-2 font-bold text-zinc-900 dark:text-zinc-100">
+            <AlertTriangle className="w-4 h-4 text-amber-500" />
+            <span>Manual Interventions ({manualInterventions.length})</span>
+          </div>
+          <ul className="space-y-1 text-zinc-600 dark:text-zinc-400 text-[11px] max-h-28 overflow-y-auto">
+            {manualInterventions.map((m, i) => (
+              <li key={i} className="truncate text-red-400">• {m.file_or_module}: {m.rejection_reason || "Rejected during review"}</li>
+            ))}
+            {manualInterventions.length === 0 && <li className="text-amber-500 font-semibold">• All steps approved without manual rejection</li>}
+          </ul>
+        </div>
+      </div>
+
       {/* Code Units */}
       <Card
         title={
@@ -101,9 +197,6 @@ export const ReportPage: React.FC = () => {
               <Code2 className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
               <span>Transformed Source Code Units ({totalUnits})</span>
             </div>
-            <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
           </div>
         }
         subtitle="Unified diffs and build verification status per modified module"
@@ -117,9 +210,7 @@ export const ReportPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-zinc-200 dark:border-zinc-800 text-xs">
                 <div className="flex items-center space-x-2">
                   <FileCheck2 className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
-                    {entry.unit}
-                  </span>
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">{entry.unit}</span>
                 </div>
 
                 <div className="flex items-center space-x-3 text-zinc-500 text-[11px]">

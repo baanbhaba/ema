@@ -8,17 +8,10 @@ export default defineConfig({
   base: "./", // Use relative base path for desktop file:// protocol loading in Electron
   server: {
     proxy: {
-      "/nvidia-api": {
-        target: "https://integrate.api.nvidia.com",
+      "/api": {
+        target: "http://localhost:8080",
         changeOrigin: true,
-        secure: true,
-        rewrite: (path: string) => path.replace(/^\/nvidia-api/, ""),
-      },
-      "/deepseek-api": {
-        target: "https://api.deepseek.com",
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path: string) => path.replace(/^\/deepseek-api/, ""),
+        secure: false,
       },
     },
   },

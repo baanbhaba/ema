@@ -106,6 +106,30 @@ export const DashboardPage: React.FC = () => {
         </button>
       </div>
 
+      {/* Migration Pipeline Flow Banner (Section 4.3 Narrative) */}
+      <div className="p-4 bg-zinc-900 border border-amber-500/30 rounded-lg text-xs font-mono space-y-2">
+        <div className="text-[10px] uppercase font-bold text-amber-500 tracking-wider">
+          EMA Codebase Migration Pipeline Narrative
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 text-zinc-300 text-[11px]">
+          <span className="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/30 font-bold">1. Upload Project</span>
+          <span className="text-zinc-500">→</span>
+          <span className="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded">2. Core Analysis</span>
+          <span className="text-zinc-500">→</span>
+          <span className="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded">3. Impact Analysis</span>
+          <span className="text-zinc-500">→</span>
+          <span className="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded">4. Migration Blueprint</span>
+          <span className="text-zinc-500">→</span>
+          <span className="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded">5. Human Review</span>
+          <span className="text-zinc-500">→</span>
+          <span className="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded">6. Transformation</span>
+          <span className="text-zinc-500">→</span>
+          <span className="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded">7. Validation</span>
+          <span className="text-zinc-500">→</span>
+          <span className="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/30 font-bold">8. Migration Report</span>
+        </div>
+      </div>
+
       {isLoading && <LoadingSkeleton rows={3} />}
 
       {isError && (
