@@ -10,27 +10,32 @@ let localBlueprintsStore: Record<string, Blueprint> = {};
 export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
   const { isDevMode } = useAuthStore.getState();
 
+  // If logged in as 'baanbhaba', generate live NVIDIA AI blueprint dynamically
+  if (isDevMode) {
+    const existing = localBlueprintsStore[projectId];
+    const isMock = !existing || (existing.steps[0] && existing.steps[0].file_or_module.includes("pom.xml"));
+
+    if (isMock) {
+      const srcMap = getProjectSourceCode(projectId);
+      const code = Object.values(srcMap).join("\n") || "";
+      const aiBlueprint = await generateBlueprintWithNvidia(projectId, projectId, code);
+      if (aiBlueprint && aiBlueprint.steps && aiBlueprint.steps.length > 0) {
+        localBlueprintsStore[projectId] = aiBlueprint;
+        return BlueprintSchema.parse(aiBlueprint);
+      }
+    }
+  }
+
   // If blueprint already created in local state, return it
   if (localBlueprintsStore[projectId]) {
     return BlueprintSchema.parse(localBlueprintsStore[projectId]);
-  }
-
-  // If logged in as 'baanbhaba', generate live NVIDIA AI blueprint
-  if (isDevMode) {
-    const srcMap = getProjectSourceCode(projectId);
-    const code = Object.values(srcMap).join("\n") || "";
-    const aiBlueprint = await generateBlueprintWithNvidia(projectId, projectId, code);
-    if (aiBlueprint && aiBlueprint.steps && aiBlueprint.steps.length > 0) {
-      localBlueprintsStore[projectId] = aiBlueprint;
-      return BlueprintSchema.parse(aiBlueprint);
-    }
   }
 
   try {
     const data = await fetchApi<Blueprint>(`/projects/${projectId}/blueprint`);
     return BlueprintSchema.parse(data);
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/blueprint endpoint unavailable; generating blueprint.`);
+    console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/blueprint endpoint unavailable; generating initial blueprint.`);
     if (!localBlueprintsStore[projectId]) {
       localBlueprintsStore[projectId] = {
         project_id: projectId,
@@ -40,7 +45,7 @@ export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
             file_or_module: "pom.xml / build.gradle",
             what_changes: "Upgrade Java target version to 21 and Spring Boot to 3.2.2",
             why: "Baseline migration step for bytecode compatibility",
-            target_pattern: "<java.version>21</java.version>",
+            target_pattern: "// Click 'Transform Step with Live NVIDIA AI' above to execute live code migration",
             risk_level: "high",
             depends_on: [],
             status: "pending",
@@ -48,9 +53,9 @@ export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
           {
             id: "step-2",
             file_or_module: "src/main/java/com/acme/service/MainController.java",
-            what_changes: "Migrate javax.persistence.* and javax.servlet.* to jakarta.* namespaces",
-            why: "Jakarta EE 10 compliance for Java 21",
-            target_pattern: "import jakarta.persistence.*;\nimport jakarta.servlet.*;",
+            what_changes: "Migrate javax.persistence.* and javax.servlet.* to jakarta.* / Rust Axum handlers",
+            why: "Jakarta EE 10 compliance & Rust web framework rewrite",
+            target_pattern: "// Click 'Transform Step with Live NVIDIA AI' above to execute live code migration",
             risk_level: "medium",
             depends_on: ["step-1"],
             status: "pending",
@@ -58,9 +63,9 @@ export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
           {
             id: "step-3",
             file_or_module: "src/main/java/com/acme/service/TaskExecutor.java",
-            what_changes: "Migrate thread pools to Java 21 Virtual Threads (Executors.newVirtualThreadPerTaskExecutor())",
-            why: "Leverage Java 21 Virtual Threads concurrency",
-            target_pattern: "Executors.newVirtualThreadPerTaskExecutor()",
+            what_changes: "Migrate thread pools to Java 21 Virtual Threads / Tokio async tasks",
+            why: "Leverage Java 21 / Rust Tokio concurrency",
+            target_pattern: "// Click 'Transform Step with Live NVIDIA AI' above to execute live code migration",
             risk_level: "low",
             depends_on: ["step-2"],
             status: "pending",

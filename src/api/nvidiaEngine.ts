@@ -13,6 +13,15 @@ const getDevCredentials = () => {
   return null;
 };
 
+const extractJsonBlock = (rawText: string): string => {
+  let text = rawText.trim();
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    return jsonMatch[0];
+  }
+  return text;
+};
+
 export const analyzeCoreWithNvidia = async (
   projectName: string,
   javaCode: string
@@ -55,13 +64,7 @@ export const analyzeCoreWithNvidia = async (
     if (!response.ok) return null;
     const data = await response.json();
     const rawContent = data.choices?.[0]?.message?.content || "";
-    const cleanJson = rawContent
-      .trim()
-      .replace(/^```json/, "")
-      .replace(/^```/, "")
-      .replace(/```$/, "")
-      .trim();
-
+    const cleanJson = extractJsonBlock(rawContent);
     return JSON.parse(cleanJson) as CoreAudit;
   } catch (err) {
     console.warn("NVIDIA Core Analysis error:", err);
@@ -111,13 +114,7 @@ export const analyzeImpactWithNvidia = async (
     if (!response.ok) return null;
     const data = await response.json();
     const rawContent = data.choices?.[0]?.message?.content || "";
-    const cleanJson = rawContent
-      .trim()
-      .replace(/^```json/, "")
-      .replace(/^```/, "")
-      .replace(/```$/, "")
-      .trim();
-
+    const cleanJson = extractJsonBlock(rawContent);
     return JSON.parse(cleanJson) as ImpactAudit;
   } catch (err) {
     console.warn("NVIDIA Impact Analysis error:", err);
@@ -145,7 +142,7 @@ export const generateBlueprintWithNvidia = async (
         messages: [
           {
             role: "system",
-            content: `You are the EMA Blueprint Agent. Create a 3-step migration blueprint for migrating this project from Java 8 to Java 21 / Rust Axum. Return ONLY valid JSON matching this schema:
+            content: `You are the EMA Blueprint Agent. Create a 3-step migration blueprint for migrating this project from Java 8 to Java 21 / Rust Axum based on the provided Java source code. Return ONLY valid JSON matching this schema:
 {
   "project_id": "${projectId}",
   "steps": [
@@ -154,7 +151,7 @@ export const generateBlueprintWithNvidia = async (
       "file_or_module": "string",
       "what_changes": "string",
       "why": "string",
-      "target_pattern": "string",
+      "target_pattern": "string (actual Rust Axum or Java 21 target code snippet)",
       "risk_level": "low|medium|high",
       "depends_on": [],
       "status": "pending"
@@ -175,13 +172,7 @@ export const generateBlueprintWithNvidia = async (
     if (!response.ok) return null;
     const data = await response.json();
     const rawContent = data.choices?.[0]?.message?.content || "";
-    const cleanJson = rawContent
-      .trim()
-      .replace(/^```json/, "")
-      .replace(/^```/, "")
-      .replace(/```$/, "")
-      .trim();
-
+    const cleanJson = extractJsonBlock(rawContent);
     return JSON.parse(cleanJson) as Blueprint;
   } catch (err) {
     console.warn("NVIDIA Blueprint generation error:", err);

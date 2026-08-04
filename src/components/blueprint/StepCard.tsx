@@ -53,7 +53,10 @@ export const StepCard: React.FC<StepCardProps> = ({
     if (isExpanded && !isViewed) {
       markStepViewed(projectId, step.id);
     }
-  }, [isExpanded, isViewed, markStepViewed, projectId, step.id]);
+    if (isExpanded && isDevMode && !transformedRustCode && !isTransforming) {
+      handleRunTransformation();
+    }
+  }, [isExpanded, isViewed, markStepViewed, projectId, step.id, isDevMode, transformedRustCode, isTransforming]);
 
   const handleCardClick = () => {
     if (!isViewed) {
@@ -212,10 +215,16 @@ export const StepCard: React.FC<StepCardProps> = ({
             <button
               onClick={handleRunTransformation}
               disabled={isTransforming}
-              className="inline-flex items-center space-x-1.5 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-black rounded text-xs font-bold transition-colors disabled:opacity-50"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black rounded text-xs font-bold transition-colors disabled:opacity-50 shadow-md"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{isTransforming ? "Transforming..." : "Transform Step"}</span>
+              <Sparkles className="w-4 h-4 animate-pulse" />
+              <span>
+                {isTransforming
+                  ? "NVIDIA Llama 3.1 70B Rewriting..."
+                  : isDevMode
+                  ? "Transform Step with Live NVIDIA AI"
+                  : "Transform Step"}
+              </span>
             </button>
           </div>
 
@@ -231,11 +240,18 @@ export const StepCard: React.FC<StepCardProps> = ({
             </div>
 
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500 block mb-1">
-                After: Migration Target Code
-              </span>
-              <pre className="p-3 bg-zinc-950 text-amber-400 rounded text-[11px] font-mono overflow-x-auto whitespace-pre border border-amber-500/30 max-h-60">
-                {transformedRustCode || step.target_pattern || "// Click 'Transform Step' to trigger backend transformation"}
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">
+                  After: Migration Target Code
+                </span>
+                {isDevMode && transformedRustCode && (
+                  <span className="text-[9px] bg-amber-500 text-black px-1.5 py-0.2 rounded font-bold">
+                    LIVE NVIDIA 70B AI OUTPUT
+                  </span>
+                )}
+              </div>
+              <pre className="p-3 bg-zinc-900 text-amber-400 rounded text-[11px] font-mono overflow-x-auto whitespace-pre border border-amber-500/30 max-h-60">
+                {transformedRustCode || step.target_pattern || "// Click 'Transform Step with Live NVIDIA AI' above to execute rewrite"}
               </pre>
             </div>
           </div>
