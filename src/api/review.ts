@@ -14,15 +14,11 @@ export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
   if (isDevMode) {
     if (!localBlueprintsStore[projectId] || !localBlueprintsStore[projectId].steps || localBlueprintsStore[projectId].steps[0]?.file_or_module === "pom.xml / build.gradle") {
       const srcMap = getProjectSourceCode(projectId);
-      const code = Object.values(srcMap).join("\n") || "public class App {}";
-      try {
-        const aiBlueprint = await generateBlueprintWithNvidia(projectId, projectId, code);
-        if (aiBlueprint && aiBlueprint.steps && aiBlueprint.steps.length > 0) {
-          localBlueprintsStore[projectId] = aiBlueprint;
-          return BlueprintSchema.parse(aiBlueprint);
-        }
-      } catch (err) {
-        console.warn("Failed to generate live NVIDIA AI blueprint:", err);
+      const code = Object.values(srcMap).join("\n") || "public class Main { public static void main(String[] args) {} }";
+      const aiBlueprint = await generateBlueprintWithNvidia(projectId, projectId, code);
+      if (aiBlueprint && aiBlueprint.steps && aiBlueprint.steps.length > 0) {
+        localBlueprintsStore[projectId] = aiBlueprint;
+        return BlueprintSchema.parse(aiBlueprint);
       }
     }
   }
@@ -63,7 +59,7 @@ export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
 
 export const regenerateBlueprintWithNvidiaAI = async (projectId: string): Promise<Blueprint> => {
   const srcMap = getProjectSourceCode(projectId);
-  const code = Object.values(srcMap).join("\n") || "public class App {}";
+  const code = Object.values(srcMap).join("\n") || "public class Main { public static void main(String[] args) {} }";
   const aiBlueprint = await generateBlueprintWithNvidia(projectId, projectId, code);
   if (aiBlueprint && aiBlueprint.steps && aiBlueprint.steps.length > 0) {
     localBlueprintsStore[projectId] = aiBlueprint;

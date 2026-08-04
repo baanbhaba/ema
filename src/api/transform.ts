@@ -8,6 +8,19 @@ export interface TransformationResponse {
   status: "completed" | "failed" | "in_progress";
 }
 
+const cleanLLmCodeOutput = (rawContent: string): string => {
+  let text = rawContent.trim();
+  // Strip markdown fences if present
+  text = text
+    .replace(/^```rust/i, "")
+    .replace(/^```java/i, "")
+    .replace(/^```json/i, "")
+    .replace(/^```/g, "")
+    .replace(/```$/g, "")
+    .trim();
+  return text;
+};
+
 export const triggerTransformation = async (
   projectId: string,
   stepId: string
@@ -19,7 +32,6 @@ export const triggerTransformation = async (
     const rawBaseUrl = devBaseUrl && devBaseUrl.startsWith("http") ? devBaseUrl : "https://integrate.api.nvidia.com/v1";
     const directEndpoint = `${rawBaseUrl.replace(/\/$/, "")}/chat/completions`;
 
-    // Try direct endpoint first, then proxy endpoint
     const endpointsToTry = [
       directEndpoint,
       "/nvidia-api/chat/completions",
@@ -45,7 +57,7 @@ export const triggerTransformation = async (
               {
                 role: "system",
                 content:
-                  "You are the EMA Code Migration Engine. Convert the given Java code pattern into modern Java 21 / Rust Axum production code. Output ONLY clean executable target code without markdown code fence wrappers.",
+                  "You are the EMA Code Migration Engine. Convert the given Java code into modern Rust Axum production code. Output modern Rust code.",
               },
               {
                 role: "user",
@@ -60,13 +72,7 @@ export const triggerTransformation = async (
         if (response.ok) {
           const data = await response.json();
           const rawCode = data.choices?.[0]?.message?.content || "// Code transformation completed successfully";
-          const cleanCode = rawCode
-            .trim()
-            .replace(/^```rust/, "")
-            .replace(/^```java/, "")
-            .replace(/^```/, "")
-            .replace(/```$/, "")
-            .trim();
+          const cleanCode = cleanLLmCodeOutput(rawCode);
 
           return {
             step_id: stepId,
@@ -83,7 +89,7 @@ export const triggerTransformation = async (
     }
 
     if (lastError) {
-      throw new Error(`NVIDIA API Network Error (${lastError.message || "Failed to fetch"}). Please check your internet connection.`);
+      throw new Error(`[NVIDIA AI API Error]: ${lastError.message || "Failed to fetch"}`);
     }
   }
 

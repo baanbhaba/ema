@@ -45,9 +45,15 @@ export const StepCard: React.FC<StepCardProps> = ({
   const [transformError, setTransformError] = useState<string | null>(null);
 
   const sourceCodeMap = getProjectSourceCode(projectId);
-  const rawJavaCode =
-    sourceCodeMap[step.file_or_module] ||
-    `// Legacy Source: ${step.file_or_module}\n// Target Java 21 / Rust Axum Migration`;
+  const codeEntries = Object.entries(sourceCodeMap);
+  let rawJavaCode = sourceCodeMap[step.file_or_module];
+  if (!rawJavaCode && codeEntries.length > 0) {
+    const match = codeEntries.find(([k]) => k.toLowerCase().includes(step.file_or_module.toLowerCase()) || step.file_or_module.toLowerCase().includes(k.toLowerCase()));
+    rawJavaCode = match ? match[1] : codeEntries.map(([_, v]) => v).join("\n\n");
+  }
+  if (!rawJavaCode) {
+    rawJavaCode = `// Legacy Source: ${step.file_or_module}\n// Target Java 21 / Rust Axum Migration`;
+  }
 
   useEffect(() => {
     if (isExpanded && !isViewed) {
