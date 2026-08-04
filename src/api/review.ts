@@ -8,73 +8,69 @@ import { getProjectSourceCode } from "./project";
 let localBlueprintsStore: Record<string, Blueprint> = {};
 
 export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
-  const { isDevMode } = useAuthStore.getState();
-
-  // If logged in as 'baanbhaba', generate live NVIDIA AI blueprint dynamically
-  if (isDevMode) {
-    const existing = localBlueprintsStore[projectId];
-    const isMock = !existing || (existing.steps[0] && existing.steps[0].file_or_module.includes("pom.xml"));
-
-    if (isMock) {
-      const srcMap = getProjectSourceCode(projectId);
-      const code = Object.values(srcMap).join("\n") || "";
-      const aiBlueprint = await generateBlueprintWithNvidia(projectId, projectId, code);
-      if (aiBlueprint && aiBlueprint.steps && aiBlueprint.steps.length > 0) {
-        localBlueprintsStore[projectId] = aiBlueprint;
-        return BlueprintSchema.parse(aiBlueprint);
-      }
-    }
-  }
-
-  // If blueprint already created in local state, return it
+  // Return cached blueprint if available
   if (localBlueprintsStore[projectId]) {
     return BlueprintSchema.parse(localBlueprintsStore[projectId]);
   }
 
   try {
     const data = await fetchApi<Blueprint>(`/projects/${projectId}/blueprint`);
+    localBlueprintsStore[projectId] = data;
     return BlueprintSchema.parse(data);
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/blueprint endpoint unavailable; generating initial blueprint.`);
-    if (!localBlueprintsStore[projectId]) {
-      localBlueprintsStore[projectId] = {
-        project_id: projectId,
-        steps: [
-          {
-            id: "step-1",
-            file_or_module: "pom.xml / build.gradle",
-            what_changes: "Upgrade Java target version to 21 and Spring Boot to 3.2.2",
-            why: "Baseline migration step for bytecode compatibility",
-            target_pattern: "// Click 'Transform Step with Live NVIDIA AI' above to execute live code migration",
-            risk_level: "high",
-            depends_on: [],
-            status: "pending",
-          },
-          {
-            id: "step-2",
-            file_or_module: "src/main/java/com/acme/service/MainController.java",
-            what_changes: "Migrate javax.persistence.* and javax.servlet.* to jakarta.* / Rust Axum handlers",
-            why: "Jakarta EE 10 compliance & Rust web framework rewrite",
-            target_pattern: "// Click 'Transform Step with Live NVIDIA AI' above to execute live code migration",
-            risk_level: "medium",
-            depends_on: ["step-1"],
-            status: "pending",
-          },
-          {
-            id: "step-3",
-            file_or_module: "src/main/java/com/acme/service/TaskExecutor.java",
-            what_changes: "Migrate thread pools to Java 21 Virtual Threads / Tokio async tasks",
-            why: "Leverage Java 21 / Rust Tokio concurrency",
-            target_pattern: "// Click 'Transform Step with Live NVIDIA AI' above to execute live code migration",
-            risk_level: "low",
-            depends_on: ["step-2"],
-            status: "pending",
-          },
-        ],
-      };
-    }
+    console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/blueprint endpoint unavailable; initializing blueprint.`);
+    const srcMap = getProjectSourceCode(projectId);
+    const codeFiles = Object.keys(srcMap);
+    const primaryFile = codeFiles[0] || "src/main/java/com/acme/service/MainController.java";
+
+    localBlueprintsStore[projectId] = {
+      project_id: projectId,
+      steps: [
+        {
+          id: "step-1",
+          file_or_module: "pom.xml / build.gradle",
+          what_changes: "Upgrade Java target version to 21 and Spring Boot to 3.2.2",
+          why: "Baseline migration step for bytecode and dependency compatibility",
+          target_pattern: "// Click 'Transform Step with Live NVIDIA AI' to execute live code rewrite",
+          risk_level: "high",
+          depends_on: [],
+          status: "pending",
+        },
+        {
+          id: "step-2",
+          file_or_module: primaryFile,
+          what_changes: "Migrate REST Controller and javax.* packages to Java 21 / Rust Axum handlers",
+          why: "Convert legacy Java OOP controller to high-performance Rust Axum service",
+          target_pattern: "// Click 'Transform Step with Live NVIDIA AI' to execute live code rewrite",
+          risk_level: "medium",
+          depends_on: ["step-1"],
+          status: "pending",
+        },
+        {
+          id: "step-3",
+          file_or_module: "src/main/java/com/acme/service/TaskExecutor.java",
+          what_changes: "Migrate thread pools to Java 21 Virtual Threads / Tokio async tasks",
+          why: "Leverage modern async non-blocking concurrency",
+          target_pattern: "// Click 'Transform Step with Live NVIDIA AI' to execute live code rewrite",
+          risk_level: "low",
+          depends_on: ["step-2"],
+          status: "pending",
+        },
+      ],
+    };
     return BlueprintSchema.parse(localBlueprintsStore[projectId]);
   }
+};
+
+export const regenerateBlueprintWithNvidiaAI = async (projectId: string): Promise<Blueprint> => {
+  const srcMap = getProjectSourceCode(projectId);
+  const code = Object.values(srcMap).join("\n") || "";
+  const aiBlueprint = await generateBlueprintWithNvidia(projectId, projectId, code);
+  if (aiBlueprint && aiBlueprint.steps && aiBlueprint.steps.length > 0) {
+    localBlueprintsStore[projectId] = aiBlueprint;
+    return BlueprintSchema.parse(aiBlueprint);
+  }
+  return getBlueprint(projectId);
 };
 
 export const approveBlueprintStep = async (

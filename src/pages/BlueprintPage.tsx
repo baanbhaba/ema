@@ -10,14 +10,17 @@ import {
   ArrowRight,
   Eye,
   Info,
+  Sparkles,
 } from "lucide-react";
 import {
   getBlueprint,
+  regenerateBlueprintWithNvidiaAI,
   approveBlueprintStep,
   rejectBlueprintStep,
   updateBlueprintStep,
   approveAllBlueprintSteps,
 } from "../api/client";
+import { useAuthStore } from "../store/useAuthStore";
 import type { BlueprintStep } from "../types/contracts";
 import { Card } from "../components/common/Card";
 import { StepCard } from "../components/blueprint/StepCard";
@@ -29,6 +32,7 @@ import { ErrorState } from "../components/common/ErrorState";
 import { useUiStore } from "../store/useUiStore";
 
 export const BlueprintPage: React.FC = () => {
+  const { isDevMode } = useAuthStore();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -58,6 +62,11 @@ export const BlueprintPage: React.FC = () => {
     queryKey: ["blueprint", id],
     queryFn: () => getBlueprint(id || ""),
     enabled: !!id,
+  });
+
+  const regenerateMutation = useMutation({
+    mutationFn: () => regenerateBlueprintWithNvidiaAI(id || ""),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["blueprint", id] }),
   });
 
   const approveMutation = useMutation({
@@ -159,6 +168,21 @@ export const BlueprintPage: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 font-mono">
+          {isDevMode && (
+            <button
+              onClick={() => regenerateMutation.mutate()}
+              disabled={regenerateMutation.isPending}
+              className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs rounded shadow-sm flex items-center space-x-1.5 disabled:opacity-50"
+            >
+              <Sparkles className="w-4 h-4 animate-pulse" />
+              <span>
+                {regenerateMutation.isPending
+                  ? "Generating Live AI Steps..."
+                  : "Generate AI Blueprint (NVIDIA 70B)"}
+              </span>
+            </button>
+          )}
+
           {!allViewed && (
             <button
               onClick={handleMarkAllAsViewed}
