@@ -2,18 +2,22 @@ import React from "react";
 import { Plug, GitBranch, Terminal, ShieldCheck, CheckCircle2, Copy } from "lucide-react";
 import { Card } from "../components/common/Card";
 
+import { useUiStore } from "../store/useUiStore";
+
 export const IntegrationsPage: React.FC = () => {
   const [copiedIndex, setCopiedIndex] = React.useState<number | null>(null);
+  const { notifyBackendRequired } = useUiStore();
 
   const webhooks = [
-    { name: "GitHub Actions Workflow", url: "N/A (Configure in repository webhooks)", event: "push / PR merged" },
-    { name: "GitLab CI Pipeline", url: "N/A (Configure in CI settings)", event: "pipeline_success" },
-    { name: "Jenkins Enterprise Trigger", url: "N/A (Configure in Jenkins build job)", event: "build_complete" },
+    { name: "GitHub Actions Workflow", url: "http://localhost:8080/api/v1/webhooks/github", event: "push / PR merged" },
+    { name: "GitLab CI Pipeline", url: "http://localhost:8080/api/v1/webhooks/gitlab", event: "pipeline_success" },
+    { name: "Jenkins Enterprise Trigger", url: "http://localhost:8080/api/v1/webhooks/jenkins", event: "build_complete" },
   ];
 
   const handleCopy = (url: string, idx: number) => {
     navigator.clipboard.writeText(url);
     setCopiedIndex(idx);
+    notifyBackendRequired("CI/CD Webhook Trigger Endpoint");
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 

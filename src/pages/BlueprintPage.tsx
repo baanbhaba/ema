@@ -40,6 +40,7 @@ export const BlueprintPage: React.FC = () => {
     expandAllSteps,
     collapseAllSteps,
     markAllStepsViewed,
+    notifyBackendRequired,
   } = useUiStore();
 
   const [rejectModalStepId, setRejectModalStepId] = useState<string | null>(null);
@@ -88,7 +89,10 @@ export const BlueprintPage: React.FC = () => {
   });
 
   const bulkApproveMutation = useMutation({
-    mutationFn: () => approveAllBlueprintSteps(id || ""),
+    mutationFn: async () => {
+      notifyBackendRequired("Bulk Code Transformation Dispatch");
+      return approveAllBlueprintSteps(id || "");
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blueprint", id] });
       setIsConfirmBulkOpen(false);

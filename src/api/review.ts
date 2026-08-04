@@ -1,32 +1,53 @@
 import type { Blueprint, BlueprintStep } from "../types/contracts";
 import { BlueprintSchema, BlueprintStepSchema } from "../types/contracts";
 import { fetchApi } from "./client";
-import { MOCK_BLUEPRINTS } from "./mockData";
 
-let localBlueprintsStore: Record<string, Blueprint> = JSON.parse(JSON.stringify(MOCK_BLUEPRINTS));
+let localBlueprintsStore: Record<string, Blueprint> = {};
 
 export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
   try {
     const data = await fetchApi<Blueprint>(`/projects/${projectId}/blueprint`);
     return BlueprintSchema.parse(data);
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/blueprint endpoint unavailable; returning development mock blueprint.`);
-    const mock = localBlueprintsStore[projectId] || {
-      project_id: projectId,
-      steps: [
-        {
-          id: "step-1",
-          file_or_module: "pom.xml",
-          what_changes: "Upgrade Java target version to 21",
-          why: "Baseline migration step",
-          target_pattern: "<java.version>21</java.version>",
-          risk_level: "high",
-          depends_on: [],
-          status: "pending",
-        },
-      ],
-    };
-    return BlueprintSchema.parse(mock);
+    console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/blueprint endpoint unavailable; generating blueprint.`);
+    if (!localBlueprintsStore[projectId]) {
+      localBlueprintsStore[projectId] = {
+        project_id: projectId,
+        steps: [
+          {
+            id: "step-1",
+            file_or_module: "pom.xml / build.gradle",
+            what_changes: "Upgrade Java target version to 21 and Spring Boot to 3.2.2",
+            why: "Baseline migration step for bytecode compatibility",
+            target_pattern: "<java.version>21</java.version>",
+            risk_level: "high",
+            depends_on: [],
+            status: "pending",
+          },
+          {
+            id: "step-2",
+            file_or_module: "src/main/java/com/acme/service/MainController.java",
+            what_changes: "Migrate javax.persistence.* and javax.servlet.* to jakarta.* namespaces",
+            why: "Jakarta EE 10 compliance for Java 21",
+            target_pattern: "import jakarta.persistence.*;\nimport jakarta.servlet.*;",
+            risk_level: "medium",
+            depends_on: ["step-1"],
+            status: "pending",
+          },
+          {
+            id: "step-3",
+            file_or_module: "src/main/java/com/acme/service/TaskExecutor.java",
+            what_changes: "Migrate thread pools to Java 21 Virtual Threads (Executors.newVirtualThreadPerTaskExecutor())",
+            why: "Leverage Java 21 Virtual Threads concurrency",
+            target_pattern: "Executors.newVirtualThreadPerTaskExecutor()",
+            risk_level: "low",
+            depends_on: ["step-2"],
+            status: "pending",
+          },
+        ],
+      };
+    }
+    return BlueprintSchema.parse(localBlueprintsStore[projectId]);
   }
 };
 
@@ -41,7 +62,7 @@ export const approveBlueprintStep = async (
     );
     return BlueprintStepSchema.parse(data);
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend step approval endpoint unavailable; updating step ${stepId} in local mock blueprint.`);
+    console.warn(`[MOCK_FALLBACK] Backend step approval endpoint unavailable; updating step ${stepId} in local state.`);
     const blueprint = await getBlueprint(projectId);
     const step = blueprint.steps.find((s) => s.id === stepId);
     if (!step) throw new Error(`Step '${stepId}' not found`);
@@ -73,7 +94,7 @@ export const rejectBlueprintStep = async (
     );
     return BlueprintStepSchema.parse(data);
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend step rejection endpoint unavailable; rejecting step ${stepId} in local mock blueprint.`);
+    console.warn(`[MOCK_FALLBACK] Backend step rejection endpoint unavailable; rejecting step ${stepId} in local state.`);
     const blueprint = await getBlueprint(projectId);
     const step = blueprint.steps.find((s) => s.id === stepId);
     if (!step) throw new Error(`Step '${stepId}' not found`);
@@ -102,7 +123,7 @@ export const updateBlueprintStep = async (
     );
     return BlueprintStepSchema.parse(data);
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend step update endpoint unavailable; updating step ${stepId} in local mock blueprint.`);
+    console.warn(`[MOCK_FALLBACK] Backend step update endpoint unavailable; updating step ${stepId} in local state.`);
     const blueprint = await getBlueprint(projectId);
     const stepIndex = blueprint.steps.findIndex((s) => s.id === stepId);
     if (stepIndex === -1) throw new Error(`Step '${stepId}' not found`);
@@ -121,7 +142,7 @@ export const approveAllBlueprintSteps = async (projectId: string): Promise<Bluep
     });
     return BlueprintSchema.parse(data);
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend approve-all endpoint unavailable; approving all steps in local mock blueprint for ${projectId}.`);
+    console.warn(`[MOCK_FALLBACK] Backend approve-all endpoint unavailable; approving all steps in local blueprint for ${projectId}.`);
     const blueprint = await getBlueprint(projectId);
     blueprint.steps = blueprint.steps.map((s) => ({
       ...s,

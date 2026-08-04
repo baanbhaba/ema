@@ -35,7 +35,7 @@ export const StepCard: React.FC<StepCardProps> = ({
   onOpenEditModal,
   allSteps,
 }) => {
-  const { viewedSteps, markStepViewed } = useUiStore();
+  const { viewedSteps, markStepViewed, notifyBackendRequired } = useUiStore();
   const isViewed = (viewedSteps[projectId] || []).includes(step.id);
 
   const [transformedRustCode, setTransformedRustCode] = useState<string | null>(null);
@@ -63,6 +63,7 @@ export const StepCard: React.FC<StepCardProps> = ({
   const handleRunTransformation = async () => {
     setIsTransforming(true);
     setTransformError(null);
+    notifyBackendRequired("Live Code Transformation Engine");
     try {
       const res = await triggerTransformation(projectId, step.id);
       setTransformedRustCode(res.transformed_code);

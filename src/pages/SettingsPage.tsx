@@ -2,13 +2,17 @@ import React, { useState } from "react";
 import { Server, CheckCircle2, ShieldCheck, Cpu } from "lucide-react";
 import { Card } from "../components/common/Card";
 
+import { useUiStore } from "../store/useUiStore";
+
 export const SettingsPage: React.FC = () => {
   const [backendUrl, setBackendUrl] = useState("http://localhost:8080/api/v1");
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const { notifyBackendRequired } = useUiStore();
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setSavedSuccess(true);
+    notifyBackendRequired("Backend REST API Endpoint Verification");
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 

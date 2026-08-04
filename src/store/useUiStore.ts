@@ -1,5 +1,11 @@
 import { create } from "zustand";
 
+export interface ToastNotification {
+  id: string;
+  message: string;
+  type: "info" | "warning" | "success";
+}
+
 interface UiState {
   // Theme & Drawers
   isDarkMode: boolean;
@@ -21,9 +27,15 @@ interface UiState {
   // Simulation Toggles
   isSimulatingApiError: boolean;
   toggleSimulateApiError: () => void;
+
+  // Notification / Toast System
+  notifications: ToastNotification[];
+  addNotification: (message: string, type?: "info" | "warning" | "success") => void;
+  removeNotification: (id: string) => void;
+  notifyBackendRequired: (featureName: string) => void;
 }
 
-export const useUiStore = create<UiState>((set) => ({
+export const useUiStore = create<UiState>((set, get) => ({
   isDarkMode: true,
   isHamburgerOpen: false,
   toggleDarkMode: () =>
@@ -87,4 +99,22 @@ export const useUiStore = create<UiState>((set) => ({
   isSimulatingApiError: false,
   toggleSimulateApiError: () =>
     set((state) => ({ isSimulatingApiError: !state.isSimulatingApiError })),
+
+  notifications: [],
+  addNotification: (message, type = "warning") => {
+    const id = Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
+    set((state) => ({
+      notifications: [...state.notifications, { id, message, type }],
+    }));
+    setTimeout(() => {
+      get().removeNotification(id);
+    }, 4000);
+  },
+  removeNotification: (id) =>
+    set((state) => ({
+      notifications: state.notifications.filter((n) => n.id !== id),
+    })),
+  notifyBackendRequired: (featureName) => {
+    get().addNotification(`Backend Required: ${featureName}`, "warning");
+  },
 }));

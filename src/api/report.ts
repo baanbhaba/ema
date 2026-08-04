@@ -3,17 +3,13 @@ import { MigrationReportSchema } from "../types/contracts";
 import { fetchApi } from "./client";
 import { getCoreAudit, getImpactAudit } from "./project";
 import { getBlueprint } from "./review";
-import { MOCK_REPORTS } from "./mockData";
 
 export const getMigrationReport = async (projectId: string): Promise<MigrationReport> => {
   try {
     const data = await fetchApi<MigrationReport>(`/projects/${projectId}/report`);
     return MigrationReportSchema.parse(data);
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/report endpoint unavailable; building report from domain APIs and fallback data.`);
-    if (MOCK_REPORTS[projectId]) {
-      return MigrationReportSchema.parse(MOCK_REPORTS[projectId]);
-    }
+    console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/report endpoint unavailable; building report from domain APIs.`);
 
     const coreAudit = await getCoreAudit(projectId);
     const impactAudit = await getImpactAudit(projectId);
