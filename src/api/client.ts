@@ -73,7 +73,7 @@ const getStoredApiConfig = (): ApiConfig => {
         };
       }
     }
-  } catch (_e) {
+  } catch {
     // Ignore localStorage read errors
   }
 
@@ -176,7 +176,7 @@ export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
       projectObj.coreAudit = data;
       return CoreAuditSchema.parse(data);
     }
-  } catch (_e) {
+  } catch {
     // Fallback parsing
   }
 

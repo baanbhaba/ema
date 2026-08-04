@@ -50,7 +50,7 @@ export const parseJavaCode = (fileName: string, rawCode: string): ParsedJavaFile
   const annotations = Array.from(new Set(annotationMatches.map((m) => m[1])));
 
   // Method matching (heuristic regex for Java methods)
-  const methodRegex = /(?:public|protected|private)\s+(?:static\s+)?([\w<>?,.\[\]]+)\s+(\w+)\s*\(([^)]*)\)\s*\{/g;
+  const methodRegex = /(?:public|protected|private)\s+(?:static\s+)?([\w<>?,.[\]]+)\s+(\w+)\s*\(([^)]*)\)\s*\{/g;
   const methodMatches = Array.from(rawCode.matchAll(methodRegex));
   const methods = methodMatches.map((m) => ({
     name: m[2],
@@ -60,7 +60,7 @@ export const parseJavaCode = (fileName: string, rawCode: string): ParsedJavaFile
   }));
 
   // Fields matching
-  const fieldRegex = /(?:private|protected|public)\s+([\w<>?,.\[\]]+)\s+(\w+);/g;
+  const fieldRegex = /(?:private|protected|public)\s+([\w<>?,.[\]]+)\s+(\w+);/g;
   const fieldMatches = Array.from(rawCode.matchAll(fieldRegex));
   const fields = fieldMatches.map((m) => ({
     name: m[2],
