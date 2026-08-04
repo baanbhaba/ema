@@ -27,6 +27,31 @@ let sourceCodeStore: Record<string, string> = {};
 let liveCoreAudits: Record<string, CoreAudit> = {};
 let liveImpactAudits: Record<string, ImpactAudit> = {};
 
+const getPersistedSourceCode = (projectId: string): string => {
+  if (sourceCodeStore[projectId]) return sourceCodeStore[projectId];
+  try {
+    const raw = sessionStorage.getItem("ema_source_code_store");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed[projectId]) {
+        sourceCodeStore[projectId] = parsed[projectId];
+        return parsed[projectId];
+      }
+    }
+  } catch (_e) {}
+  return "";
+};
+
+const savePersistedSourceCode = (projectId: string, code: string) => {
+  sourceCodeStore[projectId] = code;
+  try {
+    const raw = sessionStorage.getItem("ema_source_code_store") || "{}";
+    const parsed = JSON.parse(raw);
+    parsed[projectId] = code;
+    sessionStorage.setItem("ema_source_code_store", JSON.stringify(parsed));
+  } catch (_e) {}
+};
+
 export const getProjects = async (): Promise<ProjectSummary[]> => {
   try {
     const data = await fetchApi<ProjectSummary[]>("/projects");
@@ -63,12 +88,11 @@ export const createProject = async (data: {
     };
     localProjectsStore[id] = newSummary;
 
-    if (data.javaCode && data.javaCode.trim().length > 0) {
-      sourceCodeStore[id] = data.javaCode;
-    } else {
-      sourceCodeStore[id] = `public class ${data.name.replace(/\s+/g, "")} {\n    public static void main(String[] args) {\n        System.out.println("Executing ${data.name}");\n    }\n}`;
-    }
+    const codeToSave = (data.javaCode && data.javaCode.trim().length > 0)
+      ? data.javaCode
+      : `public class ${data.name.replace(/\s+/g, "")} {\n    public static void main(String[] args) {\n        System.out.println("Executing ${data.name}");\n    }\n}`;
 
+    savePersistedSourceCode(id, codeToSave);
     return ProjectSummarySchema.parse(newSummary);
   }
 };
@@ -97,8 +121,9 @@ export const deleteProject = async (projectId: string): Promise<boolean> => {
 };
 
 export const getProjectSourceCode = (projectId: string): Record<string, string> => {
-  if (sourceCodeStore[projectId]) {
-    return { "Main.java": sourceCodeStore[projectId] };
+  const code = getPersistedSourceCode(projectId);
+  if (code) {
+    return { "Main.java": code };
   }
   return {};
 };
@@ -115,7 +140,7 @@ export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
   if (isDevMode) {
     const proj = localProjectsStore[projectId];
     const name = proj?.name || "Uploaded Project";
-    const code = sourceCodeStore[projectId] || "";
+    const code = getPersistedSourceCode(projectId);
     const aiResult = await analyzeCoreWithNvidia(name, code);
     if (aiResult) {
       liveCoreAudits[projectId] = CoreAuditSchema.parse(aiResult);
@@ -178,7 +203,7 @@ export const getImpactAudit = async (projectId: string): Promise<ImpactAudit> =>
   if (isDevMode) {
     const proj = localProjectsStore[projectId];
     const name = proj?.name || "Uploaded Project";
-    const code = sourceCodeStore[projectId] || "";
+    const code = getPersistedSourceCode(projectId);
     const aiResult = await analyzeImpactWithNvidia(name, code);
     if (aiResult) {
       liveImpactAudits[projectId] = ImpactAuditSchema.parse(aiResult);

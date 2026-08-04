@@ -251,15 +251,15 @@ export const StepCard: React.FC<StepCardProps> = ({
                 )}
               </div>
               <pre className="p-3 bg-zinc-900 text-amber-400 rounded text-[11px] font-mono overflow-x-auto whitespace-pre border border-amber-500/30 max-h-60">
-                {transformedRustCode || step.target_pattern || "// Click 'Transform Step with Live NVIDIA AI' above to execute rewrite"}
+                {transformedRustCode || (transformError ? `[Error]: ${transformError}` : (step.target_pattern && !step.target_pattern.includes("ModuleHandler") ? step.target_pattern : "// Click 'Transform Step with Live NVIDIA AI' above to execute live AI rewrite"))}
               </pre>
             </div>
           </div>
 
           {transformError && (
-            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-400 space-y-1">
-              <span className="font-bold block">Transformation Warning</span>
-              <p className="font-sans text-[11px]">{transformError}</p>
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-400 font-mono">
+              <span className="font-bold block mb-1">Transformation Error Details:</span>
+              <span>{transformError}</span>
             </div>
           )}
 

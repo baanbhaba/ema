@@ -13,6 +13,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      "/nvidia-api": {
+        target: "https://integrate.api.nvidia.com/v1",
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path: string) => path.replace(/^\/nvidia-api/, ""),
+      },
     },
   },
   test: {
