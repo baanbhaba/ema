@@ -1,11 +1,21 @@
 import { useAuthStore } from "../store/useAuthStore";
 import type { CoreAudit, ImpactAudit, Blueprint } from "../types/contracts";
 
+const formatNvidiaEndpoint = (baseUrl: string): string => {
+  let clean = (baseUrl || "").trim().replace(/\/$/, "");
+  if (!clean.startsWith("http")) {
+    clean = "https://integrate.api.nvidia.com/v1";
+  }
+  if (!clean.endsWith("/v1")) {
+    clean = `${clean}/v1`;
+  }
+  return `${clean}/chat/completions`;
+};
+
 const getDevEndpoints = () => {
   const { isDevMode, devApiKey, devBaseUrl } = useAuthStore.getState();
   if (isDevMode && devApiKey && devApiKey.trim().length > 0) {
-    const rawBaseUrl = devBaseUrl && devBaseUrl.startsWith("http") ? devBaseUrl : "https://integrate.api.nvidia.com/v1";
-    const directEndpoint = `${rawBaseUrl.replace(/\/$/, "")}/chat/completions`;
+    const directEndpoint = formatNvidiaEndpoint(devBaseUrl);
     const endpoints = [
       directEndpoint,
       "/nvidia-api/chat/completions",

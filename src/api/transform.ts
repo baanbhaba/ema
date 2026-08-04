@@ -8,9 +8,19 @@ export interface TransformationResponse {
   status: "completed" | "failed" | "in_progress";
 }
 
+const formatNvidiaEndpoint = (baseUrl: string): string => {
+  let clean = (baseUrl || "").trim().replace(/\/$/, "");
+  if (!clean.startsWith("http")) {
+    clean = "https://integrate.api.nvidia.com/v1";
+  }
+  if (!clean.endsWith("/v1")) {
+    clean = `${clean}/v1`;
+  }
+  return `${clean}/chat/completions`;
+};
+
 const cleanLLmCodeOutput = (rawContent: string): string => {
   let text = rawContent.trim();
-  // Strip markdown fences if present
   text = text
     .replace(/^```rust/i, "")
     .replace(/^```java/i, "")
@@ -29,8 +39,7 @@ export const triggerTransformation = async (
 
   // If logged in as developer user 'baanbhaba' with custom NVIDIA key, execute live AI call
   if (isDevMode && devApiKey && devApiKey.trim().length > 0) {
-    const rawBaseUrl = devBaseUrl && devBaseUrl.startsWith("http") ? devBaseUrl : "https://integrate.api.nvidia.com/v1";
-    const directEndpoint = `${rawBaseUrl.replace(/\/$/, "")}/chat/completions`;
+    const directEndpoint = formatNvidiaEndpoint(devBaseUrl);
 
     const endpointsToTry = [
       directEndpoint,

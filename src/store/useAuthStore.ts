@@ -88,7 +88,7 @@ export const useAuthStore = create<AuthState>()(
       setDevApiConfig: (apiKey, baseUrl) =>
         set({
           devApiKey: apiKey,
-          devBaseUrl: baseUrl,
+          devBaseUrl: baseUrl || BAANBHABA_NVIDIA_BASE_URL,
         }),
     }),
     {
