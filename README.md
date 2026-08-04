@@ -4,7 +4,7 @@
 
 ---
 
-## 🚀 Key Features
+# 🚀 Key Features
 
 - **Core & Impact Auditing**: Automated static and dynamic AST analysis identifying architectural bottlenecks, memory patterns, and dependency risks.
 - **Transformation Blueprinting**: Interactive human-in-the-loop review interface allowing developers to inspect, modify, and bulk-approve generated Rust code transformations.
