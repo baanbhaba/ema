@@ -50,7 +50,7 @@ async fn main() {
         .expect("PORT must be a number");
 
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
-    println!("🚀 EMA Rust Backend running on http://{}", addr);
+    println!("🚀 ALCHEMI Rust Backend running on http://{}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
@@ -59,7 +59,7 @@ async fn main() {
 async fn health_check() -> Json<HealthResponse> {
     Json(HealthResponse {
         status: "ok".to_string(),
-        service: "EMA Rust Orchestration Engine".to_string(),
+        service: "ALCHEMI Rust Orchestration Engine".to_string(),
         version: "1.0.0".to_string(),
     })
 }

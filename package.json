@@ -1,12 +1,12 @@
 {
-  "name": "ema-human-review-ui",
+  "name": "alchemi-transformation-engine",
   "private": true,
   "version": "1.0.0",
-  "description": "Human Review UI for Engineering Migration Assistant (Java 8 to 21)",
-  "homepage": "https://acme.com/ema",
+  "description": "ALCHEMI — Automated Legacy Code Transformation Engine (Java to Rust)",
+  "homepage": "https://acme.com/alchemi",
   "author": {
-    "name": "EMA Team",
-    "email": "dev@acme.com"
+    "name": "ALCHEMI Team",
+    "email": "dev@alchemi.ai"
   },
   "type": "module",
   "main": "electron/main.cjs",
@@ -55,9 +55,9 @@
     "wait-on": "^8.0.3"
   },
   "build": {
-    "appId": "com.acme.ema",
-    "productName": "EMA Engineering Migration Assistant",
-    "executableName": "ema-human-review-ui",
+    "appId": "com.alchemi.transformation",
+    "productName": "ALCHEMI Legacy Code Transformation Engine",
+    "executableName": "alchemi-ui",
     "directories": {
       "output": "dist-desktop"
     },
@@ -66,16 +66,16 @@
       "electron/**/*"
     ],
     "linux": {
-      "executableName": "ema-human-review-ui",
+      "executableName": "alchemi-ui",
       "target": [
         "AppImage",
         "tar.gz"
       ],
-      "maintainer": "dev@acme.com",
+      "maintainer": "dev@alchemi.ai",
       "category": "Development"
     },
     "win": {
-      "executableName": "ema-human-review-ui",
+      "executableName": "alchemi-ui",
       "target": [
         "nsis",
         "portable"

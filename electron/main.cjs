@@ -7,7 +7,7 @@ function createWindow() {
     height: 868,
     minWidth: 1024,
     minHeight: 700,
-    title: "EMA — Engineering Migration Assistant",
+    title: "ALCHEMI — Automated Legacy Code Transformation Engine",
     backgroundColor: "#09090b",
     autoHideMenuBar: true,
     webPreferences: {
