@@ -21,8 +21,8 @@ target
 
 
 # ── Config files that contain secrets ─────────────────────────────────────────
-prisma.config.ts
-src/lib/prisma.ts
+# (.env files are ignored above)
+
 
 # ── Logs ───────────────────────────────────────────────────────────────────────
 logs
