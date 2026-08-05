@@ -1,4 +1,6 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/aiml-api/:path*",
@@ -9,7 +11,43 @@
       "destination": "https://integrate.api.nvidia.com/v1/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/api/v1/projects/:id/blueprint/steps/:stepId/approve",
+      "destination": "/api/projects/:id/blueprint/steps/:stepId?action=approve"
+    },
+    {
+      "source": "/api/v1/projects/:id/blueprint/steps/:stepId/reject",
+      "destination": "/api/projects/:id/blueprint/steps/:stepId?action=reject"
+    },
+    {
+      "source": "/api/v1/projects/:id/blueprint/steps/:stepId",
+      "destination": "/api/projects/:id/blueprint/steps/:stepId"
+    },
+    {
+      "source": "/api/v1/projects/:id/blueprint/approve-all",
+      "destination": "/api/projects/:id/blueprint"
+    },
+    {
+      "source": "/api/v1/projects/:id/blueprint",
+      "destination": "/api/projects/:id/blueprint"
+    },
+    {
+      "source": "/api/v1/projects/:id/audit",
+      "destination": "/api/projects/:id/audit"
+    },
+    {
+      "source": "/api/v1/projects/:id/transform",
+      "destination": "/api/projects/:id/transform"
+    },
+    {
+      "source": "/api/v1/projects/:id",
+      "destination": "/api/projects/:id"
+    },
+    {
+      "source": "/api/v1/projects",
+      "destination": "/api/projects"
+    },
+    {
+      "source": "/((?!api/|assets/|favicon.ico).*)",
       "destination": "/index.html"
     }
   ]

@@ -1,9 +1,9 @@
-datasource db {
-  provider = "postgresql"
-}
-
 generator client {
   provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
 }
 
 model User {
@@ -15,8 +15,8 @@ model User {
   devApiKey    String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
-  projects     Project[]
   auditHistory AuditHistory[]
+  projects     Project[]
 
   @@map("users")
 }
@@ -28,18 +28,18 @@ model Project {
   stage               String               @default("core_audit")
   readinessScore      Int                  @default(0)
   userId              String?
-  user                User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
-  uploadedSources     UploadedSource[]
+  auditHistory        AuditHistory[]
+  blueprint           Blueprint?
   coreAudit           CoreAudit?
   impactAudit         ImpactAudit?
-  readinessAssessment ReadinessAssessment?
-  blueprint           Blueprint?
   migrationReport     MigrationReport?
-  transformations     Transformation[]
+  user                User?                @relation(fields: [userId], references: [id])
+  readinessAssessment ReadinessAssessment?
   rustExports         RustExport[]
-  auditHistory        AuditHistory[]
+  transformations     Transformation[]
+  uploadedSources     UploadedSource[]
 
   @@map("projects")
 }
@@ -47,13 +47,13 @@ model Project {
 model UploadedSource {
   id        String   @id @default(uuid())
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   fileName  String
-  rawCode   String   @db.Text
+  rawCode   String
   language  String   @default("java")
   astData   Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("uploaded_sources")
 }
@@ -61,8 +61,7 @@ model UploadedSource {
 model CoreAudit {
   id                  String   @id @default(uuid())
   projectId           String   @unique
-  project             Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  architectureSummary String   @db.Text
+  architectureSummary String
   detectedStack       Json
   deprecatedUsages    Json
   dependencyGraph     Json
@@ -70,6 +69,7 @@ model CoreAudit {
   confidence          Float    @default(0.9)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+  project             Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("core_audits")
 }
@@ -77,7 +77,6 @@ model CoreAudit {
 model ImpactAudit {
   id              String   @id @default(uuid())
   projectId       String   @unique
-  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   apiSurface      Json
   databaseImpacts Json
   configImpacts   Json
@@ -86,6 +85,7 @@ model ImpactAudit {
   confidence      Float    @default(0.9)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("impact_audits")
 }
@@ -93,7 +93,6 @@ model ImpactAudit {
 model ReadinessAssessment {
   id                 String   @id @default(uuid())
   projectId          String   @unique
-  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   overallScore       Int      @default(0)
   breakdown          Json
   consensusIteration Int      @default(1)
@@ -102,6 +101,7 @@ model ReadinessAssessment {
   shouldIterateAgain Boolean  @default(false)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("readiness_assessments")
 }
@@ -109,11 +109,11 @@ model ReadinessAssessment {
 model Blueprint {
   id        String          @id @default(uuid())
   projectId String          @unique
-  project   Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   version   Int             @default(1)
-  steps     BlueprintStep[]
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
+  steps     BlueprintStep[]
+  project   Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("blueprints")
 }
@@ -121,19 +121,19 @@ model Blueprint {
 model BlueprintStep {
   id              String           @id @default(uuid())
   blueprintId     String
-  blueprint       Blueprint        @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
   stepNumber      Int              @default(1)
   fileOrModule    String
-  whatChanges     String           @db.Text
-  why             String           @db.Text
-  targetPattern   String           @db.Text
+  whatChanges     String
+  why             String
+  targetPattern   String
   riskLevel       String           @default("medium")
   dependsOn       String[]         @default([])
   status          String           @default("pending")
-  rejectionReason String?          @db.Text
-  transformations Transformation[]
+  rejectionReason String?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  blueprint       Blueprint        @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  transformations Transformation[]
 
   @@map("blueprint_steps")
 }
@@ -141,31 +141,31 @@ model BlueprintStep {
 model Transformation {
   id                  String         @id @default(uuid())
   projectId           String
-  project             Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   stepId              String?
-  step                BlueprintStep? @relation(fields: [stepId], references: [id], onDelete: SetNull)
   status              String         @default("completed")
-  rawJavaCode         String         @db.Text
-  transformedRustCode String         @db.Text
-  errorDetail         String?        @db.Text
+  rawJavaCode         String
+  transformedRustCode String
+  errorDetail         String?
   modelUsed           String         @default("meta/llama-3.1-70b-instruct")
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
+  project             Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  step                BlueprintStep? @relation(fields: [stepId], references: [id])
 
   @@map("transformations")
 }
 
 model MigrationReport {
-  id           String   @id @default(uuid())
-  projectId    String   @unique
-  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  totalUnits   Int      @default(0)
+  id            String   @id @default(uuid())
+  projectId     String   @unique
+  totalUnits    Int      @default(0)
   filesModified String[] @default([])
-  summaryStats Json
-  diffEntries  Json
-  rollbackPlan String   @db.Text
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  summaryStats  Json
+  diffEntries   Json
+  rollbackPlan  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("migration_reports")
 }
@@ -173,11 +173,11 @@ model MigrationReport {
 model RustExport {
   id               String   @id @default(uuid())
   projectId        String
-  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   exportName       String
-  combinedRustCode String   @db.Text
-  cargoTomlContent String   @db.Text
+  combinedRustCode String
+  cargoTomlContent String
   createdAt        DateTime @default(now())
+  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("rust_exports")
 }
@@ -185,12 +185,12 @@ model RustExport {
 model AuditHistory {
   id        String   @id @default(uuid())
   userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   projectId String?
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   action    String
   metadata  Json
   createdAt DateTime @default(now())
+  project   Project? @relation(fields: [projectId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@map("audit_history")
 }

@@ -56,7 +56,7 @@ describe("Empirical Live NVIDIA NIM AI Model Verification", () => {
     console.log("=== LIVE NVIDIA AI CORE AUDIT RESPONSE ===");
     console.log(content);
     expect(content).toBeDefined();
-  }, 35000);
+  }, 60000);
 
   it("Executes live Java 8 -> Rust Axum code transformation using NVIDIA Llama 3.1 70B Instruct", async () => {
     const response = await fetch(ENDPOINT, {
@@ -89,5 +89,5 @@ describe("Empirical Live NVIDIA NIM AI Model Verification", () => {
     console.log(content);
     expect(content).toBeDefined();
     expect(content.toLowerCase()).toContain("axum");
-  }, 35000);
+  }, 60000);
 });
