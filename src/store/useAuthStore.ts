@@ -2,9 +2,8 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { fetchApi } from "../api/client";
 
-const DEFAULT_NVIDIA_KEY = import.meta.env.VITE_NVIDIA_API_KEY || "";
 const DEFAULT_NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1";
-export const AIMLAPI_KEY = import.meta.env.VITE_AIML_API_KEY || "";
+// AIML_API_KEY is now server-side only (no VITE_ prefix, not in the browser bundle)
 export const AIMLAPI_BASE_URL = "https://api.aimlapi.com/v1";
 
 interface AuthState {
@@ -40,7 +39,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             username: "baanbhaba",
             isDevMode: true,
-            devApiKey: DEFAULT_NVIDIA_KEY,
+            devApiKey: "",
             devBaseUrl: DEFAULT_NVIDIA_BASE_URL,
             token: "baanbhaba-dev-session-active",
           });

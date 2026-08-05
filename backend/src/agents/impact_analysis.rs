@@ -1,4 +1,4 @@
-use crate::models::contracts::{ApiSurfaceItem, BlastRadiusItem, DependencyRisk, ImpactAudit, ImpactItem};
+use crate::models::contracts::{ApiSurfaceItem, BlastRadiusItem, DependencyRisk, ImpactAudit};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
