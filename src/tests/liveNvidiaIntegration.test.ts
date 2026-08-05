@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-const NVIDIA_KEY = "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";
+const NVIDIA_KEY = (import.meta as any).env?.VITE_NVIDIA_API_KEY || "";
 const ENDPOINT = "https://integrate.api.nvidia.com/v1/chat/completions";
 
 const sampleJavaCode = `

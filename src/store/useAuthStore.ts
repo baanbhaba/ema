@@ -2,9 +2,9 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { fetchApi } from "../api/client";
 
-const BAANBHABA_NVIDIA_KEY = "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";
-const BAANBHABA_NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1";
-export const AIMLAPI_KEY = "a89e74ba7f517327fd7481a118053119";
+const DEFAULT_NVIDIA_KEY = import.meta.env.VITE_NVIDIA_API_KEY || "";
+const DEFAULT_NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1";
+export const AIMLAPI_KEY = import.meta.env.VITE_AIML_API_KEY || "";
 export const AIMLAPI_BASE_URL = "https://api.aimlapi.com/v1";
 
 interface AuthState {
@@ -27,7 +27,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isDevMode: false,
       devApiKey: "",
-      devBaseUrl: BAANBHABA_NVIDIA_BASE_URL,
+      devBaseUrl: DEFAULT_NVIDIA_BASE_URL,
       login: async (u: string, p: string) => {
         const cleanUser = u.trim();
         const cleanPass = p.trim();
@@ -40,8 +40,8 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             username: "baanbhaba",
             isDevMode: true,
-            devApiKey: BAANBHABA_NVIDIA_KEY,
-            devBaseUrl: BAANBHABA_NVIDIA_BASE_URL,
+            devApiKey: DEFAULT_NVIDIA_KEY,
+            devBaseUrl: DEFAULT_NVIDIA_BASE_URL,
             token: "baanbhaba-dev-session-active",
           });
           return true;
@@ -85,12 +85,12 @@ export const useAuthStore = create<AuthState>()(
           token: null,
           isDevMode: false,
           devApiKey: "",
-          devBaseUrl: BAANBHABA_NVIDIA_BASE_URL,
+          devBaseUrl: DEFAULT_NVIDIA_BASE_URL,
         }),
       setDevApiConfig: (apiKey, baseUrl) =>
         set({
           devApiKey: apiKey,
-          devBaseUrl: baseUrl || BAANBHABA_NVIDIA_BASE_URL,
+          devBaseUrl: baseUrl || DEFAULT_NVIDIA_BASE_URL,
         }),
     }),
     {
