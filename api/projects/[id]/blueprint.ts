@@ -25,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Map DB shape to frontend contract shape
       const mapped = {
         project_id: id,
-        steps: blueprint.steps.map((s) => ({
+        steps: blueprint.steps.map((s: any) => ({
           id: s.id,
           file_or_module: s.fileOrModule,
           what_changes: s.whatChanges,
@@ -71,7 +71,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const mapped = {
         project_id: id,
-        steps: (updated?.steps ?? []).map((s) => ({
+        steps: (updated?.steps ?? []).map((s: any) => ({
           id: s.id,
           file_or_module: s.fileOrModule,
           what_changes: s.whatChanges,

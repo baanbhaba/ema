@@ -17,6 +17,8 @@ dist-ssr
 target
 **/target
 *.local
+*.tsbuildinfo
+
 
 # ── Config files that contain secrets ─────────────────────────────────────────
 prisma.config.ts
