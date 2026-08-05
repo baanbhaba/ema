@@ -19,6 +19,7 @@ import { Modal } from "../components/common/Modal";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
 import { ErrorState } from "../components/common/ErrorState";
 import { useAuthStore } from "../store/useAuthStore";
+import { PipelineNarrativeBanner } from "../components/common/PipelineNarrativeBanner";
 
 export const DashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -101,36 +102,17 @@ export const DashboardPage: React.FC = () => {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center space-x-2 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-black rounded text-xs font-bold font-mono transition-colors"
+          className="inline-flex items-center justify-center space-x-2 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-black rounded text-xs font-bold font-mono transition-colors cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Upload Java Project</span>
         </button>
       </div>
 
-      {/* Migration Pipeline Flow Banner (Section 4.3 Narrative) */}
-      <div className="p-4 bg-zinc-900 border border-amber-500/30 rounded-lg text-xs font-mono space-y-2">
-        <div className="text-[10px] uppercase font-bold text-amber-500 tracking-wider">
-          EMA Codebase Migration Pipeline Narrative
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5 text-zinc-300 text-[11px]">
-          <span className="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/30 font-bold">1. Upload Project</span>
-          <span className="text-zinc-500">→</span>
-          <span className="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded">2. Core Analysis</span>
-          <span className="text-zinc-500">→</span>
-          <span className="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded">3. Impact Analysis</span>
-          <span className="text-zinc-500">→</span>
-          <span className="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded">4. Migration Blueprint</span>
-          <span className="text-zinc-500">→</span>
-          <span className="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded">5. Human Review</span>
-          <span className="text-zinc-500">→</span>
-          <span className="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded">6. Transformation</span>
-          <span className="text-zinc-500">→</span>
-          <span className="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded">7. Validation</span>
-          <span className="text-zinc-500">→</span>
-          <span className="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/30 font-bold">8. Migration Report</span>
-        </div>
-      </div>
+      {/* Migration Pipeline Flow Banner (Section 4.3 Narrative - Clickable & Interactive) */}
+      <PipelineNarrativeBanner
+        projectId={projects && projects[0] ? projects[0].id : "proj-payment-gateway"}
+      />
 
       {isLoading && <LoadingSkeleton rows={3} />}
 
@@ -276,13 +258,8 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1 flex items-center justify-between">
-              <span className="flex items-center space-x-1.5">
-                <span>Upload `.java` File</span>
-                <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-1.5 py-0.2 rounded font-mono">
-                  (built in backend)
-                </span>
-              </span>
+            <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              Upload `.java` File
             </label>
             <input
               type="file"
@@ -293,14 +270,9 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1 flex items-center justify-between">
-              <span className="flex items-center space-x-1">
-                <Code className="w-3.5 h-3.5 text-amber-500" />
-                <span>Java Source Code</span>
-              </span>
-              <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-1.5 py-0.2 rounded font-mono">
-                (built in backend)
-              </span>
+            <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1 flex items-center space-x-1">
+              <Code className="w-3.5 h-3.5 text-amber-500" />
+              <span>Java Source Code</span>
             </label>
             <textarea
               rows={6}

@@ -57,9 +57,6 @@ export const CoreAuditPage: React.FC = () => {
         <div>
           <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2 font-mono">
             <span>Core Architectural Audit</span>
-            <span className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-sans">
             Static analysis of detected tech stack, deprecated API signatures, and component dependency graphs.
@@ -84,14 +81,9 @@ export const CoreAuditPage: React.FC = () => {
       {/* Architecture Summary */}
       <Card
         title={
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center space-x-2">
-              <Cpu className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-              <span>Architecture Summary</span>
-            </div>
-            <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
+          <div className="flex items-center space-x-2">
+            <Cpu className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+            <span>Architecture Summary</span>
           </div>
         }
       >
@@ -104,14 +96,9 @@ export const CoreAuditPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card
           title={
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center space-x-2">
-                <FileCode className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                <span>Technology Stack</span>
-              </div>
-              <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-1.5 py-0.2 rounded font-mono">
-                (built in backend)
-              </span>
+            <div className="flex items-center space-x-2">
+              <FileCode className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+              <span>Technology Stack</span>
             </div>
           }
           subtitle="Identified frameworks, libraries, and runtime dependencies"
@@ -142,14 +129,9 @@ export const CoreAuditPage: React.FC = () => {
 
         <Card
           title={
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center space-x-2">
-                <Network className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                <span>Dependency Graph (petgraph)</span>
-              </div>
-              <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-1.5 py-0.2 rounded font-mono">
-                (built in backend)
-              </span>
+            <div className="flex items-center space-x-2">
+              <Network className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+              <span>Dependency Graph (petgraph)</span>
             </div>
           }
           subtitle="Architectural topology flow"
@@ -170,14 +152,9 @@ export const CoreAuditPage: React.FC = () => {
       {/* Deprecated Usages Section */}
       <Card
         title={
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center space-x-2">
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
-              <span>Deprecated Usages ({audit.deprecated_usages.length})</span>
-            </div>
-            <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
+          <div className="flex items-center space-x-2">
+            <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+            <span>Deprecated Usages ({audit.deprecated_usages.length})</span>
           </div>
         }
         subtitle="List of Java APIs requiring modernization"

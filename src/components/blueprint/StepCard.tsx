@@ -59,10 +59,7 @@ export const StepCard: React.FC<StepCardProps> = ({
     if (isExpanded && !isViewed) {
       markStepViewed(projectId, step.id);
     }
-    if (isExpanded && isDevMode && !transformedRustCode && !isTransforming) {
-      handleRunTransformation();
-    }
-  }, [isExpanded, isViewed, markStepViewed, projectId, step.id, isDevMode, transformedRustCode, isTransforming]);
+  }, [isExpanded, isViewed, markStepViewed, projectId, step.id]);
 
   const handleCardClick = () => {
     if (!isViewed) {

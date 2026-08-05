@@ -37,7 +37,20 @@ export async function fetchApi<T>(
     );
   }
 
-  return response.json();
+  const contentType = response.headers.get("content-type") || "";
+  const text = await response.text();
+
+  if (text.trim().startsWith("<") || (contentType && !contentType.includes("application/json") && text.trim().startsWith("<!DOCTYPE"))) {
+    throw new Error(
+      `Backend Request Failed (HTML Fallback): Endpoint '${url}' returned HTML instead of JSON (Vercel SPA rewrite).`
+    );
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Backend Request Failed: Response from '${url}' was not valid JSON.`);
+  }
 }
 
 export * from "./project";

@@ -28,9 +28,6 @@ export const IntegrationsPage: React.FC = () => {
         <div>
           <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2">
             <span>Integrations & Sandbox Toolchains</span>
-            <span className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-sans">
             CI/CD Webhook triggers, tree-sitter AST parser status, and Docker build environment checks.
@@ -46,14 +43,9 @@ export const IntegrationsPage: React.FC = () => {
       {/* Sandboxed Runtime Toolchains */}
       <Card
         title={
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center space-x-2">
-              <Terminal className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-              <span>Sandboxed Runtime & Toolchain Status</span>
-            </div>
-            <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
+          <div className="flex items-center space-x-2">
+            <Terminal className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+            <span>Sandboxed Runtime & Toolchain Status</span>
           </div>
         }
         subtitle="Tree-sitter parser, petgraph dependency analyzer, and Docker JDK verification engines"
@@ -84,14 +76,9 @@ export const IntegrationsPage: React.FC = () => {
       {/* CI/CD Webhooks */}
       <Card
         title={
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center space-x-2">
-              <Plug className="w-3.5 h-3.5 text-amber-500" />
-              <span>CI/CD Webhook Trigger Endpoints</span>
-            </div>
-            <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
+          <div className="flex items-center space-x-2">
+            <Plug className="w-3.5 h-3.5 text-amber-500" />
+            <span>CI/CD Webhook Trigger Endpoints</span>
           </div>
         }
         subtitle="Trigger ingestion and audit steps automatically on repository commits"

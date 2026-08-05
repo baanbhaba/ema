@@ -53,9 +53,6 @@ export const ImpactAuditPage: React.FC = () => {
         <div>
           <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2 font-mono">
             <span>Impact & Blast Radius Audit</span>
-            <span className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
             Evaluates breaking change exposure across public API interfaces, database schema dialects, configurations, and third-party libraries.
@@ -80,14 +77,9 @@ export const ImpactAuditPage: React.FC = () => {
       {/* 1. API Surface Table */}
       <Card
         title={
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center space-x-2">
-              <Layers className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-              <span>Public API Surface Risk</span>
-            </div>
-            <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
+          <div className="flex items-center space-x-2">
+            <Layers className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+            <span>Public API Surface Risk</span>
           </div>
         }
         subtitle="Downstream clients and breaking change risk levels"
@@ -133,14 +125,9 @@ export const ImpactAuditPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card
           title={
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center space-x-2">
-                <Database className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                <span>Database Schema & Driver Impacts</span>
-              </div>
-              <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-1.5 py-0.2 rounded font-mono">
-                (built in backend)
-              </span>
+            <div className="flex items-center space-x-2">
+              <Database className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+              <span>Database Schema & Driver Impacts</span>
             </div>
           }
         >
@@ -168,14 +155,9 @@ export const ImpactAuditPage: React.FC = () => {
 
         <Card
           title={
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center space-x-2">
-                <Sliders className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                <span>Configuration Impacts</span>
-              </div>
-              <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-1.5 py-0.2 rounded font-mono">
-                (built in backend)
-              </span>
+            <div className="flex items-center space-x-2">
+              <Sliders className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+              <span>Configuration Impacts</span>
             </div>
           }
         >
@@ -205,14 +187,9 @@ export const ImpactAuditPage: React.FC = () => {
       {/* 3. Dependency Risks Table */}
       <Card
         title={
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-              <span>Dependency Upgrade Risks</span>
-            </div>
-            <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+            <span>Dependency Upgrade Risks</span>
           </div>
         }
         subtitle="Version jumps and known breaking changes"
@@ -280,14 +257,9 @@ export const ImpactAuditPage: React.FC = () => {
       {/* 4. Blast Radius Section */}
       <Card
         title={
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center space-x-2">
-              <Zap className="w-3.5 h-3.5 text-amber-500" />
-              <span>Blast Radius Summary</span>
-            </div>
-            <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
+          <div className="flex items-center space-x-2">
+            <Zap className="w-3.5 h-3.5 text-amber-500" />
+            <span>Blast Radius Summary</span>
           </div>
         }
         subtitle="Expand flagged architectural changes to view affected source files"

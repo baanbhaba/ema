@@ -109,9 +109,6 @@ export const ReadinessPage: React.FC = () => {
         <div>
           <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2">
             <span>Readiness Score & Consensus Engine</span>
-            <span className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-sans">
             Reconciles Core Analysis and Impact Analysis agent positions into a 7-dimension index.
@@ -143,14 +140,9 @@ export const ReadinessPage: React.FC = () => {
       {/* 7 Weighted Dimensions */}
       <Card
         title={
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center space-x-2">
-              <BarChart3 className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-              <span>Weighted Score Breakdown (7 Dimensions)</span>
-            </div>
-            <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
+          <div className="flex items-center space-x-2">
+            <BarChart3 className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+            <span>Weighted Score Breakdown (7 Dimensions)</span>
           </div>
         }
         subtitle="Individual metric performance across 7 architectural dimensions"
@@ -192,14 +184,9 @@ export const ReadinessPage: React.FC = () => {
       {/* Agent Conflict Resolution List */}
       <Card
         title={
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center space-x-2">
-              <Scale className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-              <span>Agent Position Conflicts</span>
-            </div>
-            <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
-              (built in backend)
-            </span>
+          <div className="flex items-center space-x-2">
+            <Scale className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+            <span>Agent Position Conflicts</span>
           </div>
         }
         subtitle="Side-by-side breakdown of Core vs Impact agent positions"

@@ -22,7 +22,12 @@ import {
 import { analyzeCoreWithNvidia, analyzeImpactWithNvidia } from "./nvidiaEngine";
 import { useAuthStore } from "../store/useAuthStore";
 
-let localProjectsStore: Record<string, ProjectSummary> = {};
+import { MOCK_PROJECTS } from "./mockData";
+
+let localProjectsStore: Record<string, ProjectSummary> = MOCK_PROJECTS.reduce(
+  (acc, proj) => ({ ...acc, [proj.id]: proj }),
+  {}
+);
 let sourceCodeStore: Record<string, string> = {};
 let liveCoreAudits: Record<string, CoreAudit> = {};
 let liveImpactAudits: Record<string, ImpactAudit> = {};
@@ -53,6 +58,13 @@ const savePersistedSourceCode = (projectId: string, code: string) => {
 };
 
 export const getProjects = async (): Promise<ProjectSummary[]> => {
+  const { isDevMode } = useAuthStore.getState();
+
+  // If in dev mode (user 'baanbhaba'), bypass backend rerouting entirely and use client state
+  if (isDevMode) {
+    return Object.values(localProjectsStore).map((p) => ProjectSummarySchema.parse(p));
+  }
+
   try {
     const data = await fetchApi<ProjectSummary[]>("/projects");
     return data.map((item) => ProjectSummarySchema.parse(item));
@@ -67,6 +79,31 @@ export const createProject = async (data: {
   repo_url: string;
   javaCode?: string;
 }): Promise<ProjectSummary> => {
+  const { isDevMode } = useAuthStore.getState();
+
+  const id = `proj-${Date.now().toString(36)}`;
+  const newSummary: ProjectSummary = {
+    id,
+    name: data.name,
+    repo_url: data.repo_url || "N/A",
+    stage: "ingesting",
+    readiness_score: 90,
+    last_updated: new Date().toISOString(),
+    java_from: "Java 8",
+    java_to: "Java 21 / Rust Axum",
+  };
+  localProjectsStore[id] = newSummary;
+
+  const codeToSave = (data.javaCode && data.javaCode.trim().length > 0)
+    ? data.javaCode
+    : `public class ${data.name.replace(/\s+/g, "")} {\n    public static void main(String[] args) {\n        System.out.println("Executing ${data.name}");\n    }\n}`;
+
+  savePersistedSourceCode(id, codeToSave);
+
+  if (isDevMode) {
+    return ProjectSummarySchema.parse(newSummary);
+  }
+
   try {
     const res = await fetchApi<ProjectSummary>("/projects", {
       method: "POST",
@@ -75,48 +112,30 @@ export const createProject = async (data: {
     return ProjectSummarySchema.parse(res);
   } catch (_err) {
     console.warn("[MOCK_FALLBACK] Backend /projects POST endpoint unavailable; creating project in local state.");
-    const id = `proj-${Date.now().toString(36)}`;
-    const newSummary: ProjectSummary = {
-      id,
-      name: data.name,
-      repo_url: data.repo_url || "N/A",
-      stage: "ingesting",
-      readiness_score: 90,
-      last_updated: new Date().toISOString(),
-      java_from: "Java 8",
-      java_to: "Java 21 / Rust Axum",
-    };
-    localProjectsStore[id] = newSummary;
-
-    const codeToSave = (data.javaCode && data.javaCode.trim().length > 0)
-      ? data.javaCode
-      : `public class ${data.name.replace(/\s+/g, "")} {\n    public static void main(String[] args) {\n        System.out.println("Executing ${data.name}");\n    }\n}`;
-
-    savePersistedSourceCode(id, codeToSave);
     return ProjectSummarySchema.parse(newSummary);
   }
 };
 
 export const deleteProject = async (projectId: string): Promise<boolean> => {
+  const { isDevMode } = useAuthStore.getState();
+
+  delete localProjectsStore[projectId];
+  delete sourceCodeStore[projectId];
+  delete liveCoreAudits[projectId];
+  delete liveImpactAudits[projectId];
+
+  if (isDevMode) {
+    return true;
+  }
+
   try {
     await fetchApi<{ success: boolean }>(`/projects/${projectId}`, {
       method: "DELETE",
     });
-    delete localProjectsStore[projectId];
-    delete sourceCodeStore[projectId];
-    delete liveCoreAudits[projectId];
-    delete liveImpactAudits[projectId];
     return true;
   } catch (_err) {
     console.warn(`[MOCK_FALLBACK] Backend DELETE /projects/${projectId} endpoint unavailable; removing from local state.`);
-    if (localProjectsStore[projectId]) {
-      delete localProjectsStore[projectId];
-      delete sourceCodeStore[projectId];
-      delete liveCoreAudits[projectId];
-      delete liveImpactAudits[projectId];
-      return true;
-    }
-    return false;
+    return true;
   }
 };
 
@@ -264,6 +283,18 @@ export const getImpactAudit = async (projectId: string): Promise<ImpactAudit> =>
 };
 
 export const getConsensusResult = async (projectId: string): Promise<ConsensusResult> => {
+  const { isDevMode } = useAuthStore.getState();
+
+  if (isDevMode) {
+    const mock = MOCK_CONSENSUS[projectId] || {
+      iteration: 1,
+      conflicts: [],
+      unified_confidence: 0.92,
+      should_iterate_again: false,
+    };
+    return ConsensusResultSchema.parse(mock);
+  }
+
   try {
     const data = await fetchApi<ConsensusResult>(`/projects/${projectId}/consensus`);
     return ConsensusResultSchema.parse(data);
@@ -280,6 +311,24 @@ export const getConsensusResult = async (projectId: string): Promise<ConsensusRe
 };
 
 export const getReadinessScore = async (projectId: string): Promise<ReadinessScore> => {
+  const { isDevMode } = useAuthStore.getState();
+
+  if (isDevMode) {
+    const mock = MOCK_READINESS_SCORES[projectId] || {
+      overall: 85,
+      breakdown: {
+        architecture_understanding: 90,
+        dependency_resolution: 85,
+        api_compatibility: 80,
+        configuration_completeness: 80,
+        migration_feasibility: 90,
+        breaking_change_risk: 80,
+        rollback_availability: 95,
+      },
+    };
+    return ReadinessScoreSchema.parse(mock);
+  }
+
   try {
     const data = await fetchApi<ReadinessScore>(`/projects/${projectId}/readiness`);
     return ReadinessScoreSchema.parse(data);

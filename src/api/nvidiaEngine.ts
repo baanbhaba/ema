@@ -16,10 +16,13 @@ const getDevEndpoints = () => {
   const { isDevMode, devApiKey, devBaseUrl } = useAuthStore.getState();
   if (isDevMode && devApiKey && devApiKey.trim().length > 0) {
     const directEndpoint = formatNvidiaEndpoint(devBaseUrl);
-    const endpoints = [
-      directEndpoint,
-      "/nvidia-api/chat/completions",
-    ];
+    const endpoints = [directEndpoint];
+    if (
+      typeof window !== "undefined" &&
+      (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ) {
+      endpoints.push("/nvidia-api/chat/completions");
+    }
     return { apiKey: devApiKey.trim(), endpoints };
   }
   return null;

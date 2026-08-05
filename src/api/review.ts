@@ -8,8 +8,46 @@ import { getProjectSourceCode } from "./project";
 let localBlueprintsStore: Record<string, Blueprint> = {};
 
 export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
+  const { isDevMode } = useAuthStore.getState();
+
   // Return cached blueprint if available
   if (localBlueprintsStore[projectId]) {
+    return BlueprintSchema.parse(localBlueprintsStore[projectId]);
+  }
+
+  if (isDevMode) {
+    const srcMap = getProjectSourceCode(projectId);
+    const codeFiles = Object.keys(srcMap);
+    const primaryFile = codeFiles[0] || "src/Main.java";
+
+    const steps: BlueprintStep[] = codeFiles.length > 0
+      ? codeFiles.map((filename, idx) => ({
+          id: `step-${idx + 1}`,
+          file_or_module: filename,
+          what_changes: `Migrate ${filename} to Java 21 / Rust Axum architecture`,
+          why: `Modernize ${filename} for high concurrency and performance`,
+          target_pattern: "// Click 'Transform Step' to execute Live NVIDIA AI",
+          risk_level: idx === 0 ? "high" : "medium",
+          depends_on: idx === 0 ? [] : [`step-${idx}`],
+          status: "pending",
+        }))
+      : [
+          {
+            id: "step-1",
+            file_or_module: primaryFile,
+            what_changes: "Migrate REST Controller and legacy packages to Java 21 / Rust Axum handlers",
+            why: "Convert legacy Java OOP controller to high-performance Rust Axum service",
+            target_pattern: "// Click 'Transform Step' to execute Live NVIDIA AI",
+            risk_level: "high",
+            depends_on: [],
+            status: "pending",
+          },
+        ];
+
+    localBlueprintsStore[projectId] = {
+      project_id: projectId,
+      steps,
+    };
     return BlueprintSchema.parse(localBlueprintsStore[projectId]);
   }
 
@@ -73,6 +111,21 @@ export const approveBlueprintStep = async (
   projectId: string,
   stepId: string
 ): Promise<BlueprintStep> => {
+  const { isDevMode } = useAuthStore.getState();
+
+  if (isDevMode) {
+    const blueprint = await getBlueprint(projectId);
+    const step = blueprint.steps.find((s) => s.id === stepId);
+    if (!step) throw new Error(`Step '${stepId}' not found`);
+    step.status = "approved";
+    step.rejection_reason = undefined;
+    if (localBlueprintsStore[projectId]) {
+      const idx = localBlueprintsStore[projectId].steps.findIndex((s) => s.id === stepId);
+      if (idx !== -1) localBlueprintsStore[projectId].steps[idx] = step;
+    }
+    return BlueprintStepSchema.parse(step);
+  }
+
   try {
     const data = await fetchApi<BlueprintStep>(
       `/projects/${projectId}/blueprint/steps/${stepId}/approve`,
@@ -101,6 +154,21 @@ export const rejectBlueprintStep = async (
   if (!reason || reason.trim().length === 0) {
     throw new Error("Rejection reason is required when rejecting a blueprint step.");
   }
+  const { isDevMode } = useAuthStore.getState();
+
+  if (isDevMode) {
+    const blueprint = await getBlueprint(projectId);
+    const step = blueprint.steps.find((s) => s.id === stepId);
+    if (!step) throw new Error(`Step '${stepId}' not found`);
+    step.status = "rejected";
+    step.rejection_reason = reason.trim();
+    if (localBlueprintsStore[projectId]) {
+      const idx = localBlueprintsStore[projectId].steps.findIndex((s) => s.id === stepId);
+      if (idx !== -1) localBlueprintsStore[projectId].steps[idx] = step;
+    }
+    return BlueprintStepSchema.parse(step);
+  }
+
   try {
     const data = await fetchApi<BlueprintStep>(
       `/projects/${projectId}/blueprint/steps/${stepId}/reject`,
@@ -129,6 +197,19 @@ export const updateBlueprintStep = async (
   stepId: string,
   patch: Partial<BlueprintStep>
 ): Promise<BlueprintStep> => {
+  const { isDevMode } = useAuthStore.getState();
+
+  if (isDevMode) {
+    const blueprint = await getBlueprint(projectId);
+    const stepIndex = blueprint.steps.findIndex((s) => s.id === stepId);
+    if (stepIndex === -1) throw new Error(`Step '${stepId}' not found`);
+    blueprint.steps[stepIndex] = { ...blueprint.steps[stepIndex], ...patch };
+    if (localBlueprintsStore[projectId]) {
+      localBlueprintsStore[projectId].steps[stepIndex] = blueprint.steps[stepIndex];
+    }
+    return BlueprintStepSchema.parse(blueprint.steps[stepIndex]);
+  }
+
   try {
     const data = await fetchApi<BlueprintStep>(
       `/projects/${projectId}/blueprint/steps/${stepId}`,
@@ -151,6 +232,19 @@ export const updateBlueprintStep = async (
 };
 
 export const approveAllBlueprintSteps = async (projectId: string): Promise<Blueprint> => {
+  const { isDevMode } = useAuthStore.getState();
+
+  if (isDevMode) {
+    const blueprint = await getBlueprint(projectId);
+    blueprint.steps = blueprint.steps.map((s) => ({
+      ...s,
+      status: "approved",
+      rejection_reason: undefined,
+    }));
+    localBlueprintsStore[projectId] = blueprint;
+    return BlueprintSchema.parse(blueprint);
+  }
+
   try {
     const data = await fetchApi<Blueprint>(`/projects/${projectId}/blueprint/approve-all`, {
       method: "POST",
