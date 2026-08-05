@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/aiml-api/:path*",
+      "destination": "https://api.aimlapi.com/v1/:path*"
+    },
+    {
       "source": "/nvidia-api/:path*",
       "destination": "https://integrate.api.nvidia.com/v1/:path*"
     },

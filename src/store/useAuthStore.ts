@@ -4,6 +4,8 @@ import { fetchApi } from "../api/client";
 
 const BAANBHABA_NVIDIA_KEY = "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";
 const BAANBHABA_NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1";
+export const AIMLAPI_KEY = "a89e74ba7f517327fd7481a118053119";
+export const AIMLAPI_BASE_URL = "https://api.aimlapi.com/v1";
 
 interface AuthState {
   isAuthenticated: boolean;

@@ -15,12 +15,27 @@ const formatNvidiaEndpoint = (baseUrl: string): string => {
 const getDevEndpoints = () => {
   const { isDevMode, devApiKey, devBaseUrl } = useAuthStore.getState();
   if (isDevMode && devApiKey && devApiKey.trim().length > 0) {
-    const directEndpoint = formatNvidiaEndpoint(devBaseUrl);
-    const endpoints = [
-      "/nvidia-api/chat/completions",
-      directEndpoint,
-    ];
-    return { apiKey: devApiKey.trim(), endpoints };
+    const key = devApiKey.trim();
+    if (key.startsWith("nvapi-")) {
+      const directEndpoint = formatNvidiaEndpoint(devBaseUrl);
+      return {
+        apiKey: key,
+        endpoints: [
+          "/nvidia-api/chat/completions",
+          directEndpoint,
+        ],
+        model: "meta/llama-3.1-70b-instruct",
+      };
+    } else {
+      return {
+        apiKey: key,
+        endpoints: [
+          "/aiml-api/chat/completions",
+          "https://api.aimlapi.com/v1/chat/completions",
+        ],
+        model: "openai/gpt-5-5",
+      };
+    }
   }
   return null;
 };
@@ -55,7 +70,7 @@ export const analyzeCoreWithNvidia = async (
           Accept: "application/json",
         },
         body: JSON.stringify({
-          model: "meta/llama-3.1-70b-instruct",
+          model: creds.model,
           messages: [
             {
               role: "system",
@@ -118,7 +133,7 @@ export const analyzeImpactWithNvidia = async (
           Accept: "application/json",
         },
         body: JSON.stringify({
-          model: "meta/llama-3.1-70b-instruct",
+          model: creds.model,
           messages: [
             {
               role: "system",
@@ -182,7 +197,7 @@ export const generateBlueprintWithNvidia = async (
           Accept: "application/json",
         },
         body: JSON.stringify({
-          model: "meta/llama-3.1-70b-instruct",
+          model: creds.model,
           messages: [
             {
               role: "system",

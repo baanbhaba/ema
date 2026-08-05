@@ -19,6 +19,12 @@ export default defineConfig({
         secure: false,
         rewrite: (path: string) => path.replace(/^\/nvidia-api/, ""),
       },
+      "/aiml-api": {
+        target: "https://api.aimlapi.com/v1",
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path: string) => path.replace(/^\/aiml-api/, ""),
+      },
     },
   },
   test: {
