@@ -223,9 +223,7 @@ export const StepCard: React.FC<StepCardProps> = ({
               <Sparkles className="w-4 h-4 animate-pulse" />
               <span>
                 {isTransforming
-                  ? "NVIDIA Llama 3.1 70B Rewriting..."
-                  : isDevMode
-                  ? "Transform Step with Live NVIDIA AI"
+                  ? "Transforming Code..."
                   : "Transform Step"}
               </span>
             </button>
@@ -247,14 +245,14 @@ export const StepCard: React.FC<StepCardProps> = ({
                 <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">
                   After: Migration Target Code
                 </span>
-                {isDevMode && transformedRustCode && (
+                {transformedRustCode && (
                   <span className="text-[9px] bg-amber-500 text-black px-1.5 py-0.2 rounded font-bold">
-                    LIVE NVIDIA 70B AI OUTPUT
+                    TRANSFORMED CODE
                   </span>
                 )}
               </div>
               <pre className="p-3 bg-zinc-900 text-amber-400 rounded text-[11px] font-mono overflow-x-auto whitespace-pre border border-amber-500/30 max-h-60">
-                {transformedRustCode || (transformError ? `[Error]: ${transformError}` : (step.target_pattern && !step.target_pattern.includes("ModuleHandler") ? step.target_pattern : "// Click 'Transform Step with Live NVIDIA AI' above to execute live AI rewrite"))}
+                {transformedRustCode || (transformError ? `[Error]: ${transformError}` : (step.target_pattern && !step.target_pattern.includes("ModuleHandler") ? step.target_pattern : "// Click 'Transform Step' above to generate target code"))}
               </pre>
             </div>
           </div>

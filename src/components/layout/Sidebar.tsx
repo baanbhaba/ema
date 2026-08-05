@@ -59,7 +59,7 @@ export const Sidebar: React.FC = () => {
     downloadCargoToml(selectedProject?.name || selectedProjectId);
   };
 
-  const handleResyncNvidiaAI = () => {
+  const handleResyncAnalysis = () => {
     queryClient.invalidateQueries({ queryKey: ["blueprint", selectedProjectId] });
     queryClient.invalidateQueries({ queryKey: ["core-audit", selectedProjectId] });
     queryClient.invalidateQueries({ queryKey: ["impact-audit", selectedProjectId] });
@@ -101,17 +101,17 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-56 bg-zinc-950 border-r border-zinc-800 flex flex-col justify-between shrink-0 min-h-[calc(100vh-3.5rem)] font-mono text-xs hidden md:flex transition-colors text-zinc-100">
+    <aside className="w-56 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col justify-between shrink-0 min-h-[calc(100vh-3.5rem)] font-mono text-xs hidden md:flex transition-colors text-zinc-900 dark:text-zinc-100">
       <div className="space-y-3">
         {/* Project Selector & Overview Header */}
-        <div className="p-3 border-b border-zinc-800 space-y-2">
+        <div className="p-3 border-b border-zinc-200 dark:border-zinc-800 space-y-2">
           <NavLink
             to="/"
             className={({ isActive }) =>
               `flex items-center space-x-2 px-2.5 py-1.5 rounded transition-all ${
                 isActive && !id
-                  ? "bg-amber-500/10 text-amber-400 font-bold border-l-2 border-amber-500"
-                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold border-l-2 border-amber-500"
+                  : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100"
               }`
             }
           >
@@ -120,8 +120,8 @@ export const Sidebar: React.FC = () => {
           </NavLink>
 
           {/* Active Project Switcher Dropdown */}
-          <div className="bg-zinc-900/90 border border-zinc-800 rounded p-2 space-y-1 shadow-xs">
-            <div className="flex items-center justify-between text-[10px] text-zinc-400 uppercase font-bold tracking-wider">
+          <div className="bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 rounded p-2 space-y-1 shadow-xs">
+            <div className="flex items-center justify-between text-[10px] text-zinc-500 dark:text-zinc-400 uppercase font-bold tracking-wider">
               <span>Active Project</span>
               <FolderGit2 className="w-3 h-3 text-amber-500" />
             </div>
@@ -130,10 +130,10 @@ export const Sidebar: React.FC = () => {
               <select
                 value={selectedProjectId}
                 onChange={handleProjectSelect}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-100 font-mono focus:outline-none focus:border-amber-500 appearance-none cursor-pointer pr-6"
+                className="w-full bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded px-2 py-1 text-xs text-zinc-900 dark:text-zinc-100 font-mono focus:outline-none focus:border-amber-500 appearance-none cursor-pointer pr-6"
               >
                 {activeProjects.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-zinc-900 text-zinc-100">
+                  <option key={p.id} value={p.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
                     {p.name}
                   </option>
                 ))}
@@ -142,7 +142,7 @@ export const Sidebar: React.FC = () => {
             </div>
             {selectedProject && (
               <div className="text-[10px] text-zinc-500 truncate pt-0.5">
-                Stage: <span className="text-amber-400 font-bold uppercase">{selectedProject.stage.replace("_", " ")}</span>
+                Stage: <span className="text-amber-600 dark:text-amber-400 font-bold uppercase">{selectedProject.stage.replace("_", " ")}</span>
               </div>
             )}
           </div>
@@ -150,7 +150,7 @@ export const Sidebar: React.FC = () => {
 
         {/* Streamlined Project Navigation Menu */}
         <div className="px-2 space-y-0.5">
-          <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-500 flex items-center justify-between">
+          <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-500 flex items-center justify-between">
             <span>Pipeline Views</span>
           </div>
           {navItems.map((item) => {
@@ -162,8 +162,8 @@ export const Sidebar: React.FC = () => {
                 className={({ isActive }) =>
                   `flex items-center space-x-2 px-2.5 py-1.5 rounded transition-all ${
                     isActive
-                      ? "bg-zinc-900 text-zinc-100 font-bold border-l-2 border-amber-500 shadow-2xs"
-                      : "text-zinc-400 hover:bg-zinc-900/80 hover:text-zinc-100"
+                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold border-l-2 border-amber-500 shadow-2xs"
+                      : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900/80 hover:text-zinc-900 dark:hover:text-zinc-100"
                   }`
                 }
               >
@@ -174,9 +174,9 @@ export const Sidebar: React.FC = () => {
           })}
         </div>
 
-        {/* Sidebar Export & Download Quick Utilities (Rarely Used Buttons Hosted in Sidebar) */}
-        <div className="px-2 pt-2 border-t border-zinc-800 space-y-1">
-          <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center justify-between">
+        {/* Sidebar Export & Download Quick Utilities */}
+        <div className="px-2 pt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-1">
+          <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center justify-between">
             <span>Exports & Downloads</span>
             <Sparkles className="w-3 h-3 text-amber-500/70" />
           </div>
@@ -185,8 +185,8 @@ export const Sidebar: React.FC = () => {
             type="button"
             onClick={handleDownloadRustCode}
             disabled={isExporting}
-            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500/50 text-zinc-200 hover:text-amber-400 text-xs transition-all cursor-pointer text-left"
-            title="Download complete Rust Axum main source file"
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 text-zinc-800 dark:text-zinc-200 hover:text-amber-600 dark:hover:text-amber-400 text-xs transition-all cursor-pointer text-left"
+            title="Download complete Rust Axum migrated source code"
           >
             <FileCode2 className="w-3.5 h-3.5 shrink-0 text-amber-500" />
             <span className="truncate">Download Rust (.rs)</span>
@@ -195,7 +195,7 @@ export const Sidebar: React.FC = () => {
           <button
             type="button"
             onClick={handleDownloadCargoToml}
-            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500/50 text-zinc-200 hover:text-amber-400 text-xs transition-all cursor-pointer text-left"
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 text-zinc-800 dark:text-zinc-200 hover:text-amber-600 dark:hover:text-amber-400 text-xs transition-all cursor-pointer text-left"
             title="Download Cargo.toml dependencies file"
           >
             <Download className="w-3.5 h-3.5 shrink-0 text-amber-500" />
@@ -204,18 +204,18 @@ export const Sidebar: React.FC = () => {
 
           <button
             type="button"
-            onClick={handleResyncNvidiaAI}
-            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500/50 text-zinc-200 hover:text-amber-400 text-xs transition-all cursor-pointer text-left"
-            title="Refresh and re-trigger live NVIDIA AI analysis"
+            onClick={handleResyncAnalysis}
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 text-zinc-800 dark:text-zinc-200 hover:text-amber-600 dark:hover:text-amber-400 text-xs transition-all cursor-pointer text-left"
+            title="Refresh analysis cache"
           >
             <RotateCw className="w-3.5 h-3.5 shrink-0 text-amber-500" />
-            <span className="truncate">Re-Sync NVIDIA AI</span>
+            <span className="truncate">Re-Sync Analysis</span>
           </button>
         </div>
       </div>
 
       {/* Enterprise Bottom Links */}
-      <div className="p-2 border-t border-zinc-800 space-y-0.5">
+      <div className="p-2 border-t border-zinc-200 dark:border-zinc-800 space-y-0.5">
         <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
           Governance
         </div>
@@ -228,8 +228,8 @@ export const Sidebar: React.FC = () => {
               className={({ isActive }) =>
                 `flex items-center space-x-2 px-2.5 py-1.5 rounded transition-all ${
                   isActive
-                    ? "bg-zinc-900 text-zinc-100 font-bold border-l-2 border-amber-500"
-                    : "text-zinc-400 hover:bg-zinc-900/60 hover:text-zinc-100"
+                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold border-l-2 border-amber-500"
+                    : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900/60 hover:text-zinc-900 dark:hover:text-zinc-100"
                 }`
               }
             >

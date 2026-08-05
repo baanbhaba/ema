@@ -69,7 +69,7 @@ export const sanitizeRustCode = (rawCode: string): string => {
     code = code.replace(/```(?:rust|rs)?/gi, "").replace(/```/g, "");
   }
 
-  // Remove invalid macros
+  // Remove invalid macros if any
   code = code.replace(/import_axum_prelude!\s*\(\s*\)\s*;?/g, "");
 
   // Fix obsolete Axum 0.6 Server::bind API to Axum 0.7 TcpListener::bind + axum::serve
@@ -78,48 +78,7 @@ export const sanitizeRustCode = (rawCode: string): string => {
     'let listener = tokio::net::TcpListener::bind("$1").await?;\naxum::serve(listener, $2).await?'
   );
 
-  // Strip all comments
-  code = stripRustComments(code);
-
-  // Filter out prose intro/outro lines
-  const lines = code.split("\n");
-  const validCodeLines: string[] = [];
-  let codeStarted = false;
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!codeStarted) {
-      if (
-        trimmed.startsWith("use ") ||
-        trimmed.startsWith("#[") ||
-        trimmed.startsWith("pub ") ||
-        trimmed.startsWith("fn ") ||
-        trimmed.startsWith("struct ") ||
-        trimmed.startsWith("enum ") ||
-        trimmed.startsWith("impl ") ||
-        trimmed.startsWith("async ") ||
-        trimmed.startsWith("mod ") ||
-        trimmed.startsWith("const ") ||
-        trimmed.startsWith("type ") ||
-        trimmed.startsWith("trait ")
-      ) {
-        codeStarted = true;
-      } else {
-        continue;
-      }
-    }
-    validCodeLines.push(line);
-  }
-
-  code = validCodeLines.join("\n");
-
-  // Clean empty lines
-  const cleanedLines = code
-    .split("\n")
-    .map((l) => l.trimEnd())
-    .filter((l, i, arr) => !(l.trim() === "" && (i === 0 || arr[i - 1].trim() === "")));
-
-  return cleanedLines.join("\n").trim();
+  return code.trim();
 };
 
 export const downloadCombinedRustProject = (projectName: string, steps: BlueprintStep[]) => {

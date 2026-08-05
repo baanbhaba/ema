@@ -291,14 +291,12 @@ export const DashboardPage: React.FC = () => {
               </div>
               {isDevMode && (
                 <span className="text-[10px] bg-amber-500 text-black font-bold px-2 py-0.5 rounded">
-                  LIVE NVIDIA NIM AI ACTIVE
+                  LIVE ENGINE ACTIVE
                 </span>
               )}
             </div>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-sans">
-              {isDevMode
-                ? "Live NVIDIA Llama 3.1 70B Instruct model will perform real-time Core Audit, Impact Audit, and Code Transformations."
-                : "Tree-sitter parser extracts AST symbols and triggers Rust orchestration service."}
+              Tree-sitter parser extracts AST symbols and executes code transformation pipeline.
             </p>
           </div>
         </form>

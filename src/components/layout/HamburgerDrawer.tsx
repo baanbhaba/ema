@@ -72,7 +72,7 @@ export const HamburgerDrawer: React.FC = () => {
     downloadCargoToml(selectedProject?.name || selectedProjectId);
   };
 
-  const handleResyncNvidiaAI = () => {
+  const handleResyncAnalysis = () => {
     queryClient.invalidateQueries({ queryKey: ["blueprint", selectedProjectId] });
     queryClient.invalidateQueries({ queryKey: ["core-audit", selectedProjectId] });
     queryClient.invalidateQueries({ queryKey: ["impact-audit", selectedProjectId] });
@@ -101,40 +101,40 @@ export const HamburgerDrawer: React.FC = () => {
         onClick={() => setHamburgerOpen(false)}
       ></div>
 
-      <div className="relative w-full max-w-sm bg-zinc-950 text-zinc-100 border-l border-zinc-800 h-full flex flex-col justify-between z-10 shadow-2xl p-5 overflow-y-auto transition-colors">
+      <div className="relative w-full max-w-sm bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 border-l border-zinc-200 dark:border-zinc-800 h-full flex flex-col justify-between z-10 shadow-2xl p-5 overflow-y-auto transition-colors">
         <div className="space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+          <div className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-amber-500 rounded flex items-center justify-center font-bold text-black text-xs">
                 A
               </div>
-              <span className="font-bold text-sm text-zinc-100 tracking-wider">
+              <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100 tracking-wider">
                 ALCHEMI CONTROL PANEL
               </span>
             </div>
 
             <button
               onClick={() => setHamburgerOpen(false)}
-              className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 transition-colors"
+              className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Theme Switcher */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded p-3 space-y-2">
+          <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-3 space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-zinc-400 uppercase text-[10px] tracking-wider">
+              <span className="text-zinc-500 dark:text-zinc-400 uppercase text-[10px] tracking-wider">
                 Theme Mode
               </span>
-              <span className="text-amber-400 text-[11px] font-bold">
+              <span className="text-amber-600 dark:text-amber-400 text-[11px] font-bold">
                 {isDarkMode ? "DARK MONOCHROME" : "LIGHT MONOCHROME"}
               </span>
             </div>
 
             <button
               onClick={toggleDarkMode}
-              className="w-full flex items-center justify-between p-2 rounded bg-zinc-950 border border-zinc-800 hover:border-amber-500 transition-colors text-xs text-zinc-200"
+              className="w-full flex items-center justify-between p-2 rounded bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 hover:border-amber-500 transition-colors text-xs text-zinc-800 dark:text-zinc-200"
             >
               <div className="flex items-center space-x-2">
                 {isDarkMode ? (
@@ -144,16 +144,16 @@ export const HamburgerDrawer: React.FC = () => {
                 )}
                 <span>{isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}</span>
               </div>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 font-bold">
+              <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-300 font-bold">
                 TOGGLE
               </span>
             </button>
           </div>
 
           {/* Active Project Selector */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded p-3 space-y-2">
+          <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-3 space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-amber-500 uppercase text-[10px] font-bold tracking-wider flex items-center space-x-1">
+              <span className="text-amber-600 dark:text-amber-500 uppercase text-[10px] font-bold tracking-wider flex items-center space-x-1">
                 <FolderGit2 className="w-3.5 h-3.5" />
                 <span>Active Project</span>
               </span>
@@ -162,10 +162,10 @@ export const HamburgerDrawer: React.FC = () => {
               <select
                 value={selectedProjectId}
                 onChange={handleProjectSelect}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5 text-xs text-zinc-100 font-mono focus:outline-none focus:border-amber-500 appearance-none cursor-pointer pr-6"
+                className="w-full bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded px-2.5 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 font-mono focus:outline-none focus:border-amber-500 appearance-none cursor-pointer pr-6"
               >
                 {activeProjects.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-zinc-900 text-zinc-100">
+                  <option key={p.id} value={p.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
                     {p.name}
                   </option>
                 ))}
@@ -176,7 +176,7 @@ export const HamburgerDrawer: React.FC = () => {
 
           {/* Streamlined Project Pipeline Menu */}
           <div className="space-y-1">
-            <span className="text-[10px] text-amber-500 uppercase tracking-widest block px-2 mb-1 font-bold">
+            <span className="text-[10px] text-amber-600 dark:text-amber-500 uppercase tracking-widest block px-2 mb-1 font-bold">
               Project Pipeline Options
             </span>
             {projectNavItems.map((item) => {
@@ -189,8 +189,8 @@ export const HamburgerDrawer: React.FC = () => {
                   onClick={() => setHamburgerOpen(false)}
                   className={`flex items-center space-x-2.5 px-3 py-2 rounded text-xs transition-colors ${
                     isActive
-                      ? "bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30"
-                      : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900"
+                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900"
                   }`}
                 >
                   <Icon className="w-4 h-4 shrink-0 text-amber-500" />
@@ -201,8 +201,8 @@ export const HamburgerDrawer: React.FC = () => {
           </div>
 
           {/* Sidebar Downloads & Code Utilities */}
-          <div className="space-y-1 pt-3 border-t border-zinc-800">
-            <span className="text-[10px] text-zinc-400 uppercase tracking-widest block px-2 mb-1 font-bold flex items-center justify-between">
+          <div className="space-y-1 pt-3 border-t border-zinc-200 dark:border-zinc-800">
+            <span className="text-[10px] text-zinc-500 dark:text-zinc-400 uppercase tracking-widest block px-2 mb-1 font-bold flex items-center justify-between">
               <span>Exports & Downloads</span>
               <Sparkles className="w-3.5 h-3.5 text-amber-500/70" />
             </span>
@@ -211,7 +211,7 @@ export const HamburgerDrawer: React.FC = () => {
               type="button"
               onClick={handleDownloadRustCode}
               disabled={isExporting}
-              className="w-full flex items-center space-x-2.5 px-3 py-2 rounded text-xs text-zinc-300 hover:text-amber-400 bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 transition-all cursor-pointer text-left"
+              className="w-full flex items-center space-x-2.5 px-3 py-2 rounded text-xs text-zinc-800 dark:text-zinc-300 hover:text-amber-600 dark:hover:text-amber-400 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 transition-all cursor-pointer text-left"
             >
               <FileCode2 className="w-4 h-4 shrink-0 text-amber-500" />
               <span>Download Rust Code (.rs)</span>
@@ -220,7 +220,7 @@ export const HamburgerDrawer: React.FC = () => {
             <button
               type="button"
               onClick={handleDownloadCargoToml}
-              className="w-full flex items-center space-x-2.5 px-3 py-2 rounded text-xs text-zinc-300 hover:text-amber-400 bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 transition-all cursor-pointer text-left"
+              className="w-full flex items-center space-x-2.5 px-3 py-2 rounded text-xs text-zinc-800 dark:text-zinc-300 hover:text-amber-600 dark:hover:text-amber-400 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 transition-all cursor-pointer text-left"
             >
               <Download className="w-4 h-4 shrink-0 text-amber-500" />
               <span>Download Cargo.toml</span>
@@ -228,16 +228,16 @@ export const HamburgerDrawer: React.FC = () => {
 
             <button
               type="button"
-              onClick={handleResyncNvidiaAI}
-              className="w-full flex items-center space-x-2.5 px-3 py-2 rounded text-xs text-zinc-300 hover:text-amber-400 bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 transition-all cursor-pointer text-left"
+              onClick={handleResyncAnalysis}
+              className="w-full flex items-center space-x-2.5 px-3 py-2 rounded text-xs text-zinc-800 dark:text-zinc-300 hover:text-amber-600 dark:hover:text-amber-400 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 transition-all cursor-pointer text-left"
             >
               <RotateCw className="w-4 h-4 shrink-0 text-amber-500" />
-              <span>Re-Sync NVIDIA AI</span>
+              <span>Re-Sync Analysis</span>
             </button>
           </div>
 
           {/* Global Enterprise Nav */}
-          <div className="space-y-1 pt-3 border-t border-zinc-800">
+          <div className="space-y-1 pt-3 border-t border-zinc-200 dark:border-zinc-800">
             <span className="text-[10px] text-zinc-500 uppercase tracking-widest block px-2 mb-1 font-bold">
               System Control
             </span>
@@ -251,8 +251,8 @@ export const HamburgerDrawer: React.FC = () => {
                   onClick={() => setHamburgerOpen(false)}
                   className={`flex items-center space-x-2.5 px-3 py-2 rounded text-xs transition-colors ${
                     isActive
-                      ? "bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30"
-                      : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900"
+                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900"
                   }`}
                 >
                   <Icon className="w-4 h-4 shrink-0 text-zinc-400" />
@@ -264,19 +264,19 @@ export const HamburgerDrawer: React.FC = () => {
         </div>
 
         {/* User Footer */}
-        <div className="pt-4 border-t border-zinc-800 space-y-3">
-          <div className="flex items-center justify-between bg-zinc-900 p-2.5 rounded border border-zinc-800">
+        <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
+          <div className="flex items-center justify-between bg-zinc-50 dark:bg-zinc-900 p-2.5 rounded border border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-amber-500 text-xs">
+              <div className="w-8 h-8 rounded bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 flex items-center justify-center font-bold text-amber-600 dark:text-amber-500 text-xs">
                 {username ? username.substring(0, 2).toUpperCase() : "AD"}
               </div>
               <div className="flex-1 min-w-0">
-                <span className="text-xs font-bold text-zinc-200 block truncate">
+                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-200 block truncate">
                   {username || "admin"}
                 </span>
                 <div className="flex items-center space-x-1 text-[10px] text-zinc-500">
                   <ShieldCheck className="w-3 h-3 text-amber-500 shrink-0" />
-                  <span>NVIDIA NIM AI Active</span>
+                  <span>Engine Active</span>
                 </div>
               </div>
             </div>
@@ -286,14 +286,14 @@ export const HamburgerDrawer: React.FC = () => {
                 logout();
                 setHamburgerOpen(false);
               }}
-              className="p-1.5 rounded bg-zinc-800 text-red-400 hover:bg-red-500/10 transition-colors"
+              className="p-1.5 rounded bg-zinc-200 dark:bg-zinc-800 text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />
             </button>
           </div>
-          <p className="text-[10px] text-zinc-600 text-center font-sans">
-            EMA Pipeline v1.0.0 PROD • Barebones Java → Rust Engine
+          <p className="text-[10px] text-zinc-500 dark:text-zinc-600 text-center font-sans">
+            EMA Pipeline v1.0.0 PROD • Java → Rust Engine
           </p>
         </div>
       </div>
