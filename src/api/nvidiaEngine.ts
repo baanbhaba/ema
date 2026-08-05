@@ -39,7 +39,10 @@ export const analyzeCoreWithNvidia = async (
   const rawContent = await callAiProxy([
     {
       role: "system",
-      content: `You are the EMA Core Analysis Agent. Analyze the provided Java code and return ONLY valid JSON matching this schema:
+      content: `You are the EMA Core Analysis Agent. Your sole task is to analyze Java source code.
+STRICT INPUT GUARDRAIL: Inspect the source code. If the input is NOT valid Java source code (e.g., conversational text, general questions, or non-Java code), return JSON with "architecture_summary": "ERROR: Invalid input. Only valid Java source code can be analyzed.", confidence: 0.0, detected_stack: [], deprecated_usages: [], dependency_graph: {"nodes": [], "edges": []}, diagrams: [].
+
+If it IS valid Java source code, analyze it and return ONLY valid JSON matching this schema:
 {
   "architecture_summary": "string",
   "detected_stack": [{"technology": "string", "version": "string", "status": "eol|deprecated|current"}],
@@ -65,7 +68,10 @@ export const analyzeImpactWithNvidia = async (
   const rawContent = await callAiProxy([
     {
       role: "system",
-      content: `You are the EMA Impact Analysis Agent. Analyze breaking changes for migrating this Java code to Java 21 / Rust Axum and return ONLY valid JSON matching this schema:
+      content: `You are the EMA Impact Analysis Agent. Your sole task is to analyze breaking changes for Java source code migration.
+STRICT INPUT GUARDRAIL: Inspect the source code. If the input is NOT valid Java source code (e.g., conversational text, general questions, or non-Java code), return JSON with "confidence": 0.0, api_surface: [], database_impacts: [], config_impacts: [], dependency_risks: [], blast_radius: [].
+
+If it IS valid Java source code, analyze it and return ONLY valid JSON matching this schema:
 {
   "api_surface": [{"endpoint_or_interface": "string", "consumers": ["string"], "breaking_change_risk": "low|medium|high"}],
   "database_impacts": [{"component": "string", "risk": "low|medium|high", "notes": "string"}],
@@ -93,9 +99,10 @@ export const generateBlueprintWithNvidia = async (
     [
       {
         role: "system",
-        content: `You are the EMA Blueprint Agent. Create a 3-step migration blueprint for migrating this Java code to Java 21 / Rust Axum.
-Use the exact class or file names from the user code.
-Return ONLY valid JSON matching this schema:
+        content: `You are the EMA Blueprint Agent. Your sole task is to generate migration blueprint steps for Java source code.
+STRICT INPUT GUARDRAIL: Inspect the source code. If the input is NOT valid Java source code, return JSON with "project_id": "${projectId}" and "steps": [{"id": "step-1", "file_or_module": "InvalidInput", "what_changes": "Rejected", "why": "ERROR: Input is not valid Java source code", "target_pattern": "// ERROR: Please provide valid Java source code.", "risk_level": "high", "depends_on": [], "status": "rejected"}].
+
+If it IS valid Java source code, generate a 3-step migration blueprint matching this schema:
 {
   "project_id": "${projectId}",
   "steps": [

@@ -9,9 +9,15 @@ export interface TransformationResponse {
 }
 
 
+export const isJavaSourceCode = (code: string): boolean => {
+  if (!code || code.trim().length === 0) return false;
+  const javaPattern = /\b(class|interface|enum|public|private|protected|import\s+java|package|void|static\s+void\s+main|System\.out|@SpringBootApplication|@RestController|@Service|@Component|@Entity|@Table|@Id|@Column)\b/;
+  return javaPattern.test(code);
+};
+
 export const generateRustCodeFromJava = (javaCode: string, stepId: string): string => {
-  if (!javaCode || javaCode.trim().length === 0) {
-    return `pub fn execute() {\n    println!("Step ${stepId} migrated.");\n}`;
+  if (!javaCode || javaCode.trim().length === 0 || !isJavaSourceCode(javaCode)) {
+    return `// ERROR: Invalid input. Please provide valid Java source code for legacy migration.`;
   }
 
   const classMatch = javaCode.match(/public\s+class\s+([A-Za-z0-9_]+)/);
@@ -119,7 +125,15 @@ export const triggerTransformation = async (
   stepId: string
 ): Promise<TransformationResponse> => {
   const sourceCodeMap = getProjectSourceCode(projectId);
-  const javaCode = Object.values(sourceCodeMap).join("\n") || "public class Main {}";
+  const javaCode = Object.values(sourceCodeMap).join("\n") || "";
+
+  if (!isJavaSourceCode(javaCode)) {
+    return {
+      step_id: stepId,
+      transformed_code: "// ERROR: Invalid input. Please provide valid Java source code for legacy migration.",
+      status: "failed",
+    };
+  }
 
   // Try the server-side AI proxy first (key lives on the server)
   try {
@@ -132,7 +146,7 @@ export const triggerTransformation = async (
           {
             role: "system",
             content:
-              "You are the EMA Code Migration Engine. Convert the given Java code into modern, production-ready, highly idiomatic Rust code.\n\nSTRICT MIGRATION & DOMAIN MODELING RULES:\n1. Output ONLY pure, compilable Rust source code.\n2. DO NOT include markdown code blocks or fences (no ```rust or ```).\n3. DO NOT include any introductory text, explanation, summary, or commentary.\n4. DO NOT include ANY comments (no //, /* */, ///, or //! comments) in the code body.\n5. DO NOT emit non-existent macro calls such as 'import_axum_prelude!()'.\n6. IDIOMATIC RUST CLI & STDIN BEST PRACTICES:\n   - When prompting with `print!()` before `stdin().read_line(...)`, ALWAYS import `std::io::Write` and explicitly flush standard output via `io::stdout().flush().unwrap();` to prevent buffered prompt display issues.\n   - DO NOT mark `io::stdin()` bindings as mutable (`let mut stdin` is unnecessary; use `io::stdin().read_line(&mut buf)` directly).\n   - ALWAYS use `.trim()` or `.trim_end()` on string input read from stdin to strip trailing newlines.\n   - Model Java classes with clean `struct + impl` patterns, explicitly using `&self` for read operations and `&mut self` for state mutations.\n7. SEMANTIC & DOMAIN PRESERVATION:\n   - If migrating a Console/CLI application or class without HTTP web annotations: preserve exact CLI behavior (`struct`, `fn main`, `println!`), instantiating objects and exiting immediately WITHOUT creating HTTP routers or TCP listeners.\n   - If migrating a REST Controller / Web Service to Axum: model all Java domain classes/structs (e.g. `struct Bike;`) and execute object instantiations inside the async request handler before returning responses.\n8. Use modern Axum 0.7 syntax (`tokio::net::TcpListener::bind` + `axum::serve`) if Axum is used.\n9. Use clean 4-space indentation for all code block bodies.",
+              "You are the EMA Code Migration Engine. Your sole purpose is to convert valid Java source code into modern, production-ready, highly idiomatic Rust code.\n\nSTRICT INPUT VALIDATION & GUARDRAILS:\n0. INPUT MUST BE JAVA SOURCE CODE: Inspect the user input. IF THE INPUT IS NOT VALID JAVA SOURCE CODE (e.g. conversational English, general questions, random text, or non-Java programming languages), YOU MUST IMMEDIATELY REJECT IT AND OUTPUT EXACTLY:\n   `// ERROR: Invalid input. Please provide valid Java source code for legacy migration.`\n   DO NOT answer general questions or process non-Java input.\n\nSTRICT MIGRATION & DOMAIN MODELING RULES:\n1. Output ONLY pure, compilable Rust source code.\n2. DO NOT include markdown code blocks or fences (no ```rust or ```).\n3. DO NOT include any introductory text, explanation, summary, or commentary.\n4. DO NOT include ANY comments (no //, /* */, ///, or //! comments) in the code body.\n5. DO NOT emit non-existent macro calls such as 'import_axum_prelude!()'.\n6. IDIOMATIC RUST CLI & STDIN BEST PRACTICES:\n   - When prompting with `print!()` before `stdin().read_line(...)`, ALWAYS import `std::io::Write` and explicitly flush standard output via `io::stdout().flush().unwrap();` to prevent buffered prompt display issues.\n   - DO NOT mark `io::stdin()` bindings as mutable (`let mut stdin` is unnecessary; use `io::stdin().read_line(&mut buf)` directly).\n   - ALWAYS use `.trim()` or `.trim_end()` on string input read from stdin to strip trailing newlines.\n   - Model Java classes with clean `struct + impl` patterns, explicitly using `&self` for read operations and `&mut self` for state mutations.\n7. SEMANTIC & DOMAIN PRESERVATION:\n   - If migrating a Console/CLI application or class without HTTP web annotations: preserve exact CLI behavior (`struct`, `fn main`, `println!`), instantiating objects and exiting immediately WITHOUT creating HTTP routers or TCP listeners.\n   - If migrating a REST Controller / Web Service to Axum: model all Java domain classes/structs (e.g. `struct Bike;`) and execute object instantiations inside the async request handler before returning responses.\n8. Use modern Axum 0.7 syntax (`tokio::net::TcpListener::bind` + `axum::serve`) if Axum is used.\n9. Use clean 4-space indentation for all code block bodies.",
           },
           {
             role: "user",
