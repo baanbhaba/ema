@@ -11,7 +11,7 @@ export interface TransformationResponse {
 
 export const generateRustCodeFromJava = (javaCode: string, stepId: string): string => {
   if (!javaCode || javaCode.trim().length === 0) {
-    return `// Target Rust Migration\npub fn execute() {\n    println!("Step ${stepId} migrated.");\n}`;
+    return `pub fn execute() {\n    println!("Step ${stepId} migrated.");\n}`;
   }
 
   const classMatch = javaCode.match(/public\s+class\s+([A-Za-z0-9_]+)/);
@@ -21,25 +21,28 @@ export const generateRustCodeFromJava = (javaCode: string, stepId: string): stri
 
   if (isCoffeeBot) {
     return `use rand::Rng;
+use std::io::{self, Write};
 
 const SIZE: usize = 8;
 
 fn main() {
     let mut map = [['.'; SIZE]; SIZE];
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
-    let coffee_x = rng.gen_range(0..SIZE);
-    let coffee_y = rng.gen_range(0..SIZE);
+    let coffee_x = rng.random_range(0..SIZE);
+    let coffee_y = rng.random_range(0..SIZE);
     map[coffee_x][coffee_y] = 'C';
 
-    let mut x = rng.gen_range(0..SIZE);
-    let mut y = rng.gen_range(0..SIZE);
+    let mut x = rng.random_range(0..SIZE);
+    let mut y = rng.random_range(0..SIZE);
 
-    println!("🤖 CoffeeBot activated...");
+    print!("🤖 CoffeeBot activated... Initializing grid");
+    io::stdout().flush().unwrap();
+    println!();
 
     let mut moves = 0;
     while map[x][y] != 'C' && moves < 100 {
-        match rng.gen_range(0..4) {
+        match rng.random_range(0..4) {
             0 => x = x.saturating_sub(1),
             1 => x = (x + 1).min(SIZE - 1),
             2 => y = y.saturating_sub(1),
@@ -60,14 +63,16 @@ fn main() {
   const isMainApp = javaCode.includes("static void main") || javaCode.includes("public static void main");
 
   if (isMainApp) {
-    return `pub struct ${className}Service {
+    return `use std::io::{self, Write};
+
+pub struct ${className}Service {
     pub name: String,
 }
 
 impl ${className}Service {
-    pub fn new() -> Self {
+    pub fn new(name: impl Into<String>) -> Self {
         Self {
-            name: "${className}".to_string(),
+            name: name.into(),
         }
     }
 
@@ -77,7 +82,19 @@ impl ${className}Service {
 }
 
 fn main() {
-    let service = ${className}Service::new();
+    print!("Enter service instance name: ");
+    io::stdout().flush().unwrap();
+
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
+
+    let service_name = if input.trim().is_empty() {
+        "${className}".to_string()
+    } else {
+        input.trim().to_string()
+    };
+
+    let service = ${className}Service::new(service_name);
     service.run();
 }`;
   }
@@ -115,7 +132,7 @@ export const triggerTransformation = async (
           {
             role: "system",
             content:
-              "You are the EMA Code Migration Engine. Convert the given Java code into modern, production-ready Rust code.\n\nSTRICT MIGRATION & DOMAIN MODELING RULES:\n1. Output ONLY pure, compilable Rust source code.\n2. DO NOT include markdown code blocks or fences (no ```rust or ```).\n3. DO NOT include any introductory text, explanation, summary, or commentary.\n4. DO NOT include ANY comments (no //, /* */, ///, or //! comments) in the code body.\n5. DO NOT emit non-existent macro calls such as 'import_axum_prelude!()'.\n6. SEMANTIC & DOMAIN PRESERVATION:\n   - If migrating a Console/CLI application or class without HTTP web annotations: preserve exact CLI behavior (`struct`, `fn main`, `println!`), instantiating objects and exiting immediately WITHOUT creating HTTP routers or TCP listeners.\n   - If migrating a REST Controller / Web Service to Axum: model all Java domain classes/structs (e.g. `struct Bike;`) and execute object instantiations inside the async request handler before returning responses.\n7. Use modern Axum 0.7 syntax (`tokio::net::TcpListener::bind` + `axum::serve`) if Axum is used.\n8. Use clean 4-space indentation for all code block bodies.",
+              "You are the EMA Code Migration Engine. Convert the given Java code into modern, production-ready, highly idiomatic Rust code.\n\nSTRICT MIGRATION & DOMAIN MODELING RULES:\n1. Output ONLY pure, compilable Rust source code.\n2. DO NOT include markdown code blocks or fences (no ```rust or ```).\n3. DO NOT include any introductory text, explanation, summary, or commentary.\n4. DO NOT include ANY comments (no //, /* */, ///, or //! comments) in the code body.\n5. DO NOT emit non-existent macro calls such as 'import_axum_prelude!()'.\n6. IDIOMATIC RUST CLI & STDIN BEST PRACTICES:\n   - When prompting with `print!()` before `stdin().read_line(...)`, ALWAYS import `std::io::Write` and explicitly flush standard output via `io::stdout().flush().unwrap();` to prevent buffered prompt display issues.\n   - DO NOT mark `io::stdin()` bindings as mutable (`let mut stdin` is unnecessary; use `io::stdin().read_line(&mut buf)` directly).\n   - ALWAYS use `.trim()` or `.trim_end()` on string input read from stdin to strip trailing newlines.\n   - Model Java classes with clean `struct + impl` patterns, explicitly using `&self` for read operations and `&mut self` for state mutations.\n7. SEMANTIC & DOMAIN PRESERVATION:\n   - If migrating a Console/CLI application or class without HTTP web annotations: preserve exact CLI behavior (`struct`, `fn main`, `println!`), instantiating objects and exiting immediately WITHOUT creating HTTP routers or TCP listeners.\n   - If migrating a REST Controller / Web Service to Axum: model all Java domain classes/structs (e.g. `struct Bike;`) and execute object instantiations inside the async request handler before returning responses.\n8. Use modern Axum 0.7 syntax (`tokio::net::TcpListener::bind` + `axum::serve`) if Axum is used.\n9. Use clean 4-space indentation for all code block bodies.",
           },
           {
             role: "user",
