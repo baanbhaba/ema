@@ -27,7 +27,7 @@ export const Header: React.FC = () => {
           <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-800 hidden sm:block"></div>
 
           <div className="hidden sm:flex items-center space-x-2 text-xs text-zinc-600 dark:text-zinc-400">
-            <span>Automated Legacy Code Transformation Engine (Java → Rust)</span>
+            <span>Enterprise Migration Platform</span>
             {currentProjectId && (
               <>
                 <span className="text-zinc-400 dark:text-zinc-600">/</span>

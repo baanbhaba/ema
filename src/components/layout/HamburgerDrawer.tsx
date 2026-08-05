@@ -69,7 +69,7 @@ export const HamburgerDrawer: React.FC = () => {
     setIsExporting(true);
     try {
       const blueprint = await getBlueprint(selectedProjectId);
-      downloadCombinedRustProject(selectedProject?.name || selectedProjectId, blueprint.steps || []);
+      downloadCombinedRustProject(selectedProjectId, selectedProject?.name || selectedProjectId, blueprint.steps || []);
     } catch (_err) {
       console.warn("Failed to download Rust code; fallback export.");
     } finally {

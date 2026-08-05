@@ -5,33 +5,38 @@
 @layer base {
   :root {
     --bg-main: #ffffff;
-    --bg-surface: #fafafa;
-    --bg-surface-elevated: #f4f4f5;
-    --border-subtle: #e4e4e7;
-    --border-emphasis: #d4d4d8;
-    --text-primary: #09090b;
-    --text-secondary: #52525b;
-    --text-muted: #71717a;
-    --accent-amber: #d97706;
+    --bg-surface: #f8fafc;
+    --bg-surface-elevated: #f1f5f9;
+    --border-subtle: #e2e8f0;
+    --border-emphasis: #cbd5e1;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --accent-amber: #f59e0b;
   }
 
   .dark {
-    --bg-main: #09090b;
-    --bg-surface: #18181b;
-    --bg-surface-elevated: #27272a;
-    --border-subtle: #27272a;
-    --border-emphasis: #3f3f46;
-    --text-primary: #fafafa;
-    --text-secondary: #a1a1aa;
-    --text-muted: #71717a;
+    --bg-main: #090d16;
+    --bg-surface: #0f172a;
+    --bg-surface-elevated: #1e293b;
+    --border-subtle: #1e293b;
+    --border-emphasis: #334155;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
     --accent-amber: #f59e0b;
   }
 
   body {
     background-color: var(--bg-main);
     color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.011em;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
 }
 
@@ -46,10 +51,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
-  border-radius: 2px;
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: #334155;
 }

@@ -1,4 +1,6 @@
 import type { BlueprintStep } from "../types/contracts";
+import { getProjectSourceCode } from "../api/project";
+import { generateRustCodeFromJava } from "../api/transform";
 
 export const stripRustComments = (code: string): string => {
   let result = "";
@@ -81,7 +83,11 @@ export const sanitizeRustCode = (rawCode: string): string => {
   return code.trim();
 };
 
-export const downloadCombinedRustProject = (projectName: string, steps: BlueprintStep[]) => {
+export const downloadCombinedRustProject = (
+  projectId: string,
+  projectName: string,
+  steps: BlueprintStep[]
+) => {
   const cleanName = (projectName || "migrated_service")
     .toLowerCase()
     .replace(/[^a-z0-9_]/g, "_");
@@ -96,11 +102,15 @@ export const downloadCombinedRustProject = (projectName: string, steps: Blueprin
       if (sanitized) {
         extractedCodeChunks.push(sanitized);
       }
-    } else {
-      const safeName = step.file_or_module.replace(/[^a-zA-Z0-9]/g, "");
-      extractedCodeChunks.push(`pub struct ${safeName}Handler {\n    pub status: String,\n}`);
     }
   });
+
+  if (extractedCodeChunks.length === 0) {
+    const srcMap = getProjectSourceCode(projectId);
+    const rawJavaCode = Object.values(srcMap).join("\n") || "";
+    const generated = generateRustCodeFromJava(rawJavaCode, "combined");
+    extractedCodeChunks.push(generated);
+  }
 
   let rawCombined = extractedCodeChunks.join("\n\n");
 

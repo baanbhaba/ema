@@ -202,6 +202,7 @@ export const DashboardPage: React.FC = () => {
 
                 <Link
                   to={`/projects/${project.id}/blueprint`}
+                  onClick={() => sessionStorage.setItem("ema_selected_project_id", project.id)}
                   className="inline-flex items-center space-x-1 font-semibold text-zinc-900 dark:text-zinc-100 hover:text-amber-500 dark:hover:text-amber-400 transition-colors"
                 >
                   <span>Review Blueprint</span>

@@ -26,8 +26,8 @@ export const DependencyGraphSchema = z.object({
 });
 
 export const DiagramSchema = z.object({
-  type: z.enum(["class", "component", "sequence"]),
-  format: z.literal("mermaid"),
+  type: z.string(),
+  format: z.string(),
   content: z.string(),
 });
 

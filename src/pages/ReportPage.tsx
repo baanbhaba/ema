@@ -90,7 +90,7 @@ export const ReportPage: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={() => downloadCombinedRustProject(id || "migrated_service", report.blueprint?.steps || [])}
+              onClick={() => downloadCombinedRustProject(id || "migrated_service", id || "migrated_service", report.blueprint?.steps || [])}
               className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-xs transition-colors flex items-center space-x-1.5"
             >
               <Download className="w-3.5 h-3.5" />

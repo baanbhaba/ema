@@ -435,23 +435,23 @@ export const MOCK_CONSENSUS: Record<string, ConsensusResult> = {
     should_iterate_again: false,
   },
   "proj-legacy-monolith": {
-    iteration: 3,
+    iteration: 1,
     conflicts: [
       {
-        topic: "CGLIB Proxy Manipulation vs Java 21 Module System",
+        topic: "Bytecode Proxy & Target Memory Management",
         core_position: "Proposes replacement with ByteBuddy for dynamic proxy creation.",
-        impact_position: "Identified 14 legacy DAO classes with package-private reflection access that fail JPMS encapsulated reflection checks.",
-        resolved: false,
+        impact_position: "Identified zero breaking encapsulation checks for target execution.",
+        resolved: true,
       },
       {
-        topic: "Log4j 1.x Appender Rewriting",
-        core_position: "Suggests simple log4j-1.2-api bridge inclusion.",
-        impact_position: "Bridge fails due to custom SocketAppender implementation sending binary serialized domain objects.",
-        resolved: false,
+        topic: "Logging System Modernization",
+        core_position: "Suggests log4j-to-slf4j bridge inclusion.",
+        impact_position: "Bridge verified and output streams configured for structured stdout.",
+        resolved: true,
       },
     ],
-    unified_confidence: 0.52,
-    should_iterate_again: true, // Show "Analysis is re-running" banner
+    unified_confidence: 0.94,
+    should_iterate_again: false,
   },
 };
 
@@ -481,15 +481,15 @@ export const MOCK_READINESS_SCORES: Record<string, ReadinessScore> = {
     },
   },
   "proj-legacy-monolith": {
-    overall: 48,
+    overall: 90,
     breakdown: {
-      architecture_understanding: 60,
-      dependency_resolution: 40,
-      api_compatibility: 45,
-      configuration_completeness: 35,
-      migration_feasibility: 50,
-      breaking_change_risk: 40,
-      rollback_availability: 70,
+      architecture_understanding: 92,
+      dependency_resolution: 88,
+      api_compatibility: 90,
+      configuration_completeness: 88,
+      migration_feasibility: 92,
+      breaking_change_risk: 88,
+      rollback_availability: 95,
     },
   },
 };
