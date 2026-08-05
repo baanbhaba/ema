@@ -186,15 +186,15 @@ export const PipelineNarrativeBanner: React.FC<PipelineNarrativeBannerProps> = (
 
   return (
     <>
-      <div className="p-4 bg-zinc-900 border border-amber-500/30 rounded-lg text-xs font-mono space-y-3 shadow-lg transition-all">
+      <div className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-amber-500/30 rounded-lg text-xs font-mono space-y-3 shadow-sm transition-all">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
-            <span className="text-[11px] uppercase font-bold text-amber-500 tracking-wider">
+            <span className="text-[11px] uppercase font-bold text-amber-600 dark:text-amber-500 tracking-wider">
               EMA Codebase Migration Pipeline Narrative
             </span>
           </div>
-          <span className="text-[10px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700 font-sans">
+          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 font-sans">
             Click any step to inspect stage actions & narrative
           </span>
         </div>
@@ -212,7 +212,7 @@ export const PipelineNarrativeBanner: React.FC<PipelineNarrativeBannerProps> = (
                   className={`group inline-flex items-center space-x-1.5 px-2.5 py-1 rounded border transition-all cursor-pointer text-left ${
                     isCurrent
                       ? "bg-amber-500 text-black border-amber-400 font-bold shadow-xs scale-102"
-                      : "bg-zinc-800/80 hover:bg-zinc-800 text-zinc-200 hover:text-amber-400 border-zinc-700 hover:border-amber-500/50"
+                      : "bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:text-amber-600 dark:hover:text-amber-400 border-zinc-300 dark:border-zinc-700 hover:border-amber-500/50"
                   }`}
                   title={`Click to view details for ${stage.title}`}
                 >
@@ -220,7 +220,7 @@ export const PipelineNarrativeBanner: React.FC<PipelineNarrativeBannerProps> = (
                   <span>{stage.title}</span>
                 </button>
                 {idx < PIPELINE_STAGES.length - 1 && (
-                  <span className="text-zinc-600 select-none">→</span>
+                  <span className="text-zinc-400 dark:text-zinc-600 select-none">→</span>
                 )}
               </React.Fragment>
             );
@@ -245,7 +245,7 @@ export const PipelineNarrativeBanner: React.FC<PipelineNarrativeBannerProps> = (
                 <button
                   type="button"
                   onClick={() => setSelectedStage(null)}
-                  className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200"
+                  className="px-3 py-1.5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
                 >
                   Close
                 </button>
@@ -262,17 +262,17 @@ export const PipelineNarrativeBanner: React.FC<PipelineNarrativeBannerProps> = (
           }
         >
           <div className="space-y-4 font-mono text-xs">
-            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded text-amber-300 font-sans leading-relaxed">
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded text-amber-900 dark:text-amber-300 font-sans leading-relaxed">
               {selectedStage.description}
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-bold text-zinc-200 uppercase text-[10px] tracking-wider">
+              <h4 className="font-bold text-zinc-800 dark:text-zinc-200 uppercase text-[10px] tracking-wider">
                 What the Engine Executes at this Stage
               </h4>
-              <ul className="space-y-1 bg-zinc-900 p-3 rounded border border-zinc-800">
+              <ul className="space-y-1 bg-zinc-50 dark:bg-zinc-900 p-3 rounded border border-zinc-200 dark:border-zinc-800">
                 {selectedStage.whatItDoes.map((item, i) => (
-                  <li key={i} className="flex items-start space-x-2 text-zinc-300">
+                  <li key={i} className="flex items-start space-x-2 text-zinc-800 dark:text-zinc-300">
                     <span className="text-amber-500 font-bold">•</span>
                     <span>{item}</span>
                   </li>
@@ -281,18 +281,18 @@ export const PipelineNarrativeBanner: React.FC<PipelineNarrativeBannerProps> = (
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="p-3 bg-zinc-900 border border-zinc-800 rounded space-y-1">
-                <h5 className="font-bold text-zinc-400 text-[10px] uppercase">Input Artifacts</h5>
-                <ul className="space-y-0.5 text-zinc-300">
+              <div className="p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded space-y-1">
+                <h5 className="font-bold text-zinc-500 dark:text-zinc-400 text-[10px] uppercase">Input Artifacts</h5>
+                <ul className="space-y-0.5 text-zinc-800 dark:text-zinc-300">
                   {selectedStage.inputs.map((inp, i) => (
                     <li key={i}>→ {inp}</li>
                   ))}
                 </ul>
               </div>
 
-              <div className="p-3 bg-zinc-900 border border-zinc-800 rounded space-y-1">
-                <h5 className="font-bold text-zinc-400 text-[10px] uppercase">Produced Outputs</h5>
-                <ul className="space-y-0.5 text-zinc-300">
+              <div className="p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded space-y-1">
+                <h5 className="font-bold text-zinc-500 dark:text-zinc-400 text-[10px] uppercase">Produced Outputs</h5>
+                <ul className="space-y-0.5 text-zinc-800 dark:text-zinc-300">
                   {selectedStage.outputs.map((out, i) => (
                     <li key={i}>✓ {out}</li>
                   ))}
@@ -300,9 +300,9 @@ export const PipelineNarrativeBanner: React.FC<PipelineNarrativeBannerProps> = (
               </div>
             </div>
 
-            <div className="p-2.5 bg-zinc-950 rounded border border-zinc-800 flex items-center justify-between text-zinc-400 text-[11px]">
+            <div className="p-2.5 bg-zinc-100 dark:bg-zinc-950 rounded border border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-zinc-600 dark:text-zinc-400 text-[11px]">
               <span>Pipeline Stage Status:</span>
-              <span className="font-bold text-amber-500">{selectedStage.statusNote}</span>
+              <span className="font-bold text-amber-600 dark:text-amber-500">{selectedStage.statusNote}</span>
             </div>
           </div>
         </Modal>

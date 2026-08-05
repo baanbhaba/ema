@@ -11,9 +11,7 @@ import {
   Eye,
   Info,
   Sparkles,
-  Download,
 } from "lucide-react";
-import { downloadCombinedRustProject, downloadCargoToml } from "../utils/exportRustCode";
 import {
   getBlueprint,
   regenerateBlueprintWithNvidiaAI,
@@ -170,24 +168,6 @@ export const BlueprintPage: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 font-mono">
-          <button
-            onClick={() => downloadCombinedRustProject(id || "migrated_service", sortedSteps)}
-            className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded shadow-sm flex items-center space-x-1.5"
-            title="Download converted Rust Axum source code"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download Transformed Rust Code (.rs)</span>
-          </button>
-
-          <button
-            onClick={() => downloadCargoToml(id || "migrated_service")}
-            className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold text-xs rounded shadow-sm flex items-center space-x-1.5"
-            title="Download Cargo.toml configuration"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>Cargo.toml</span>
-          </button>
-
           {isDevMode && (
             <button
               onClick={() => regenerateMutation.mutate()}

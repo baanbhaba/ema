@@ -65,34 +65,34 @@ export const StepEditModal: React.FC<StepEditModalProps> = ({
     >
       <form id="edit-step-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-gray-300 mb-1">
+          <label className="block text-xs font-semibold text-zinc-800 dark:text-zinc-300 mb-1">
             Target Module / File
           </label>
           <input
             type="text"
             disabled
             value={step?.file_or_module || ""}
-            className="w-full px-3 py-2 bg-gray-950/60 border border-gray-800 rounded-lg text-xs text-gray-400 font-mono"
+            className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-950/60 border border-zinc-300 dark:border-zinc-800 rounded-lg text-xs text-zinc-600 dark:text-zinc-400 font-mono"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-300 mb-1">Proposed Transformation</label>
+          <label className="block text-xs font-semibold text-zinc-800 dark:text-zinc-300 mb-1">Proposed Transformation</label>
           <textarea
             rows={2}
             value={whatChanges}
             onChange={(e) => setWhatChanges(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-950 border border-gray-800 rounded-lg text-xs text-gray-100 focus:outline-none focus:border-blue-500 font-mono"
+            className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-lg text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 font-mono"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-300 mb-1">Target Pattern / Code Template</label>
+          <label className="block text-xs font-semibold text-zinc-800 dark:text-zinc-300 mb-1">Target Pattern / Code Template</label>
           <textarea
             rows={6}
             value={targetPattern}
             onChange={(e) => setTargetPattern(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-950 border border-gray-800 rounded-lg text-xs text-emerald-400 focus:outline-none focus:border-blue-500 font-mono whitespace-pre"
+            className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-lg text-xs text-emerald-700 dark:text-emerald-400 focus:outline-none focus:border-blue-500 font-mono whitespace-pre"
           />
         </div>
       </form>

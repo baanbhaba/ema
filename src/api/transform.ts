@@ -30,13 +30,10 @@ export const triggerTransformation = async (
   if (isDevMode && devApiKey && devApiKey.trim().length > 0) {
     const directEndpoint = formatNvidiaEndpoint(devBaseUrl);
 
-    const endpointsToTry = [directEndpoint];
-    if (
-      typeof window !== "undefined" &&
-      (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-    ) {
-      endpointsToTry.push("/nvidia-api/chat/completions");
-    }
+    const endpointsToTry = [
+      "/nvidia-api/chat/completions",
+      directEndpoint,
+    ];
 
     const sourceCodeMap = getProjectSourceCode(projectId);
     const javaCode = Object.values(sourceCodeMap).join("\n") || "public class Main {}";
