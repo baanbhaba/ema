@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { NavLink, useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { NavLink, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard,
@@ -24,6 +24,7 @@ import { downloadCombinedRustProject, downloadCargoToml } from "../../utils/expo
 export const Sidebar: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const [isExporting, setIsExporting] = useState(false);
 
@@ -33,13 +34,28 @@ export const Sidebar: React.FC = () => {
   });
 
   const activeProjects = projects && projects.length > 0 ? projects : [];
-  const selectedProjectId = id || (activeProjects[0] ? activeProjects[0].id : "proj-payment-gateway");
+  const savedProjectId = sessionStorage.getItem("ema_selected_project_id");
+  const selectedProjectId = id || savedProjectId || (activeProjects[0] ? activeProjects[0].id : "proj-payment-gateway");
   const selectedProject = activeProjects.find((p) => p.id === selectedProjectId) || activeProjects[0];
+
+  useEffect(() => {
+    if (id) {
+      sessionStorage.setItem("ema_selected_project_id", id);
+    }
+  }, [id]);
 
   const handleProjectSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const targetId = e.target.value;
     if (targetId) {
-      navigate(`/projects/${targetId}/blueprint`);
+      sessionStorage.setItem("ema_selected_project_id", targetId);
+      let subPage = "blueprint";
+      if (location.pathname.includes("/core-audit")) subPage = "core-audit";
+      else if (location.pathname.includes("/impact-audit")) subPage = "impact-audit";
+      else if (location.pathname.includes("/readiness")) subPage = "readiness";
+      else if (location.pathname.includes("/blueprint")) subPage = "blueprint";
+      else if (location.pathname.includes("/report")) subPage = "report";
+
+      navigate(`/projects/${targetId}/${subPage}`);
     }
   };
 

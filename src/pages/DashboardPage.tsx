@@ -19,7 +19,6 @@ import { Modal } from "../components/common/Modal";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
 import { ErrorState } from "../components/common/ErrorState";
 import { useAuthStore } from "../store/useAuthStore";
-import { PipelineNarrativeBanner } from "../components/common/PipelineNarrativeBanner";
 
 export const DashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -109,10 +108,7 @@ export const DashboardPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Migration Pipeline Flow Banner (Section 4.3 Narrative - Clickable & Interactive) */}
-      <PipelineNarrativeBanner
-        projectId={projects && projects[0] ? projects[0].id : "proj-payment-gateway"}
-      />
+
 
       {isLoading && <LoadingSkeleton rows={3} />}
 

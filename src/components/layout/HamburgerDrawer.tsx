@@ -45,13 +45,22 @@ export const HamburgerDrawer: React.FC = () => {
 
   const match = location.pathname.match(/\/projects\/([^/]+)/);
   const activeProjects = projects && projects.length > 0 ? projects : [];
-  const selectedProjectId = match ? match[1] : (activeProjects[0] ? activeProjects[0].id : "proj-payment-gateway");
+  const savedProjectId = sessionStorage.getItem("ema_selected_project_id");
+  const selectedProjectId = (match ? match[1] : savedProjectId) || (activeProjects[0] ? activeProjects[0].id : "proj-payment-gateway");
   const selectedProject = activeProjects.find((p) => p.id === selectedProjectId) || activeProjects[0];
 
   const handleProjectSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const targetId = e.target.value;
     if (targetId) {
-      navigate(`/projects/${targetId}/blueprint`);
+      sessionStorage.setItem("ema_selected_project_id", targetId);
+      let subPage = "blueprint";
+      if (location.pathname.includes("/core-audit")) subPage = "core-audit";
+      else if (location.pathname.includes("/impact-audit")) subPage = "impact-audit";
+      else if (location.pathname.includes("/readiness")) subPage = "readiness";
+      else if (location.pathname.includes("/blueprint")) subPage = "blueprint";
+      else if (location.pathname.includes("/report")) subPage = "report";
+
+      navigate(`/projects/${targetId}/${subPage}`);
       setHamburgerOpen(false);
     }
   };
