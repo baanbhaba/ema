@@ -15,7 +15,7 @@ export const isJavaSourceCode = (code: string): boolean => {
   return javaPattern.test(code);
 };
 
-export const generateRustCodeFromJava = (javaCode: string, stepId: string): string => {
+export const generateRustCodeFromJava = (javaCode: string, _stepId: string): string => {
   if (!javaCode || javaCode.trim().length === 0 || !isJavaSourceCode(javaCode)) {
     return `// ERROR: Invalid input. Please provide valid Java source code for legacy migration.`;
   }
