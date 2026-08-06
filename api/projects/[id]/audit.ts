@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { prisma } from "../../../src/lib/prisma";
+import { detectJavaDeprecatedUsages, detectJavaStack } from "../../../src/api/project";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;
@@ -21,21 +22,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const primarySource = project.uploadedSources[0];
       const fileName = primarySource ? primarySource.fileName : `${project.name}.java`;
+      const rawCode = primarySource ? primarySource.rawCode : "";
+
+      const detectedUsages = rawCode ? detectJavaDeprecatedUsages(rawCode, fileName) : [];
+      const detectedStack = rawCode ? detectJavaStack(rawCode) : [
+        { technology: "Java", version: "8.0", status: "deprecated" },
+        { technology: "Spring Boot", version: "2.7", status: "deprecated" },
+      ];
 
       const coreAudit = await prisma.coreAudit.upsert({
         where: { projectId: id },
         update: {
           architectureSummary: `Core Architecture Audit for '${project.name}' (${fileName})`,
+          detectedStack: detectedStack,
+          deprecatedUsages: detectedUsages.length > 0 ? detectedUsages : [
+            { file: fileName, line: 1, pattern: "javax.*", recommended_replacement: "jakarta.*" },
+          ],
           confidence: 0.95,
         },
         create: {
           projectId: id,
           architectureSummary: `Core Architecture Audit for '${project.name}' (${fileName})`,
-          detectedStack: [
-            { technology: "Java", version: "8.0", status: "deprecated" },
-            { technology: "Spring Boot", version: "2.7", status: "deprecated" },
-          ],
-          deprecatedUsages: [
+          detectedStack: detectedStack,
+          deprecatedUsages: detectedUsages.length > 0 ? detectedUsages : [
             { file: fileName, line: 1, pattern: "javax.*", recommended_replacement: "jakarta.*" },
           ],
           dependencyGraph: {
