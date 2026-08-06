@@ -35,6 +35,18 @@
       "destination": "/api/projects/:id/blueprint"
     },
     {
+      "source": "/api/v1/projects/:id/readiness",
+      "destination": "/api/projects/:id/readiness"
+    },
+    {
+      "source": "/api/v1/projects/:id/consensus",
+      "destination": "/api/projects/:id/consensus"
+    },
+    {
+      "source": "/api/v1/projects/:id/report",
+      "destination": "/api/projects/:id/report"
+    },
+    {
       "source": "/api/v1/projects/:id/audit",
       "destination": "/api/projects/:id/audit"
     },

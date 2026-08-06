@@ -86,13 +86,29 @@ export const getMigrationReport = async (projectId: string): Promise<MigrationRe
       };
     });
 
+    const dbImpactNotes = ((finalImpactAudit.database_impacts || []) as any[])
+      .map((d: any) => `- Database: ${d.component || "DB Layer"} (${d.notes || "Schema migration verified"})`)
+      .join("\n");
+
+    const configImpactNotes = ((finalImpactAudit.config_impacts || []) as any[])
+      .map((c: any) => `- Config: ${c.file || c.component || "App Config"} (${c.notes || "Environment parameters updated"})`)
+      .join("\n");
+
+    const rollbackPlan = `# Automatic Rollback Plan for Project: ${projName}
+1. Revert git commit hash to pre-migration baseline for project '${projName}'
+2. Re-enable legacy service routing in API Gateway / Reverse Proxy
+3. Database & Config Reversion:
+${dbImpactNotes || "- Revert database schema migrations using SQLx / Liquibase"}
+${configImpactNotes || "- Restore application.properties / application.yml configurations"}
+4. Flush cache services and run target health check verification script`;
+
     const report: MigrationReport = {
       project_id: projectId,
       core_audit: finalCoreAudit,
       impact_audit: finalImpactAudit,
       blueprint: blueprint,
       entries: reportEntries,
-      rollback_plan: `# Automatic Rollback Plan for Project: ${projName}\n1. Revert git commit to pre-migration commit hash\n2. Re-enable legacy service routing in API Gateway\n3. Roll back database schema migrations using SQLx / Liquibase\n4. Flush Redis cache and verify microservice health checks`,
+      rollback_plan: rollbackPlan,
     };
 
     return MigrationReportSchema.parse(report);

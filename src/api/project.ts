@@ -4,6 +4,8 @@ import type {
   ImpactAudit,
   ConsensusResult,
   ReadinessScore,
+  Conflict,
+  Blueprint,
 } from "../types/contracts";
 import {
   ProjectSummarySchema,
@@ -282,69 +284,177 @@ export const getImpactAudit = async (projectId: string): Promise<ImpactAudit> =>
   }
 };
 
+export function calculateDynamicReadinessScore(
+  coreAudit?: CoreAudit | null,
+  impactAudit?: ImpactAudit | null,
+  blueprint?: Blueprint | null
+): ReadinessScore {
+  const deprecatedUsages = coreAudit?.deprecated_usages || [];
+  const detectedStack = coreAudit?.detected_stack || [];
+  const deprecatedCount = deprecatedUsages.length;
+  const eolCount = detectedStack.filter((s) => s.status === "eol").length;
+  const deprecatedStackCount = detectedStack.filter((s) => s.status === "deprecated").length;
+
+  const apiSurface = impactAudit?.api_surface || [];
+  const highRiskApi = apiSurface.filter((a) => a.breaking_change_risk === "high").length;
+  const medRiskApi = apiSurface.filter((a) => a.breaking_change_risk === "medium").length;
+
+  const configImpacts = impactAudit?.config_impacts || [];
+  const highRiskConfig = configImpacts.filter((c) => c.risk === "high").length;
+  const medRiskConfig = configImpacts.filter((c) => c.risk === "medium").length;
+
+  const dependencyRisks = impactAudit?.dependency_risks || [];
+
+  const blastRadius = impactAudit?.blast_radius || [];
+  const highSeverityBlast = blastRadius.filter((b) => b.severity === "high").length;
+  const medSeverityBlast = blastRadius.filter((b) => b.severity === "medium").length;
+
+  const dbImpacts = impactAudit?.database_impacts || [];
+  const highDbRisk = dbImpacts.filter((d) => d.risk === "high").length;
+
+  const steps = blueprint?.steps || [];
+  const approvedSteps = steps.filter((s) => s.status === "approved").length;
+  const rejectedSteps = steps.filter((s) => s.status === "rejected").length;
+
+  const architecture_understanding = Math.max(50, Math.min(100, 96 - deprecatedCount * 4 - eolCount * 5 - deprecatedStackCount * 2));
+  const dependency_resolution = Math.max(40, Math.min(100, 95 - dependencyRisks.length * 8 - eolCount * 6 - deprecatedStackCount * 3));
+  const api_compatibility = Math.max(40, Math.min(100, 98 - highRiskApi * 15 - medRiskApi * 6));
+  const configuration_completeness = Math.max(50, Math.min(100, 94 - highRiskConfig * 12 - medRiskConfig * 5));
+  const migration_feasibility = Math.max(30, Math.min(100, 88 + approvedSteps * 4 - rejectedSteps * 10));
+  const breaking_change_risk = Math.max(30, Math.min(100, 95 - highSeverityBlast * 15 - medSeverityBlast * 6));
+  const rollback_availability = Math.max(50, Math.min(100, 96 - highDbRisk * 10));
+
+  const overall = Math.round(
+    architecture_understanding * 0.20 +
+    migration_feasibility * 0.20 +
+    dependency_resolution * 0.15 +
+    api_compatibility * 0.15 +
+    breaking_change_risk * 0.15 +
+    configuration_completeness * 0.10 +
+    rollback_availability * 0.05
+  );
+
+  return {
+    overall,
+    breakdown: {
+      architecture_understanding,
+      dependency_resolution,
+      api_compatibility,
+      configuration_completeness,
+      migration_feasibility,
+      breaking_change_risk,
+      rollback_availability,
+    },
+  };
+}
+
+export function calculateDynamicConsensus(
+  coreAudit?: CoreAudit | null,
+  impactAudit?: ImpactAudit | null,
+  primaryFile: string = "Main.java"
+): ConsensusResult {
+  const conflicts: Conflict[] = [];
+
+  const apiSurface = impactAudit?.api_surface || [];
+  const depUsages = coreAudit?.deprecated_usages || [];
+  const depRisks = impactAudit?.dependency_risks || [];
+  const dbImpacts = impactAudit?.database_impacts || [];
+
+  const primaryApi = apiSurface[0]?.endpoint_or_interface || primaryFile;
+  const apiRisk = apiSurface[0]?.breaking_change_risk || "low";
+
+  conflicts.push({
+    topic: `Target Migration Pattern & API Contract for ${primaryApi}`,
+    core_position: `Convert ${primaryFile} structures and endpoints to native Rust Axum async handlers.`,
+    impact_position: `Ensure zero breaking API contract changes for downstream consumers (${apiRisk.toUpperCase()} risk detected).`,
+    resolved: apiRisk !== "high",
+  });
+
+  if (depUsages.length > 0 || depRisks.length > 0) {
+    const mainPattern = depUsages[0]?.pattern || depRisks[0]?.library || "Legacy Dependencies";
+    const replacement = depUsages[0]?.recommended_replacement || depRisks[0]?.target_version || "Updated Crates/Packages";
+    conflicts.push({
+      topic: `Modernization Strategy: ${mainPattern}`,
+      core_position: `Refactor legacy calls from '${mainPattern}' to '${replacement}'.`,
+      impact_position: `Verify backward compatibility and non-breaking upgrade paths across all dependents.`,
+      resolved: depRisks.length === 0 || !depRisks.some((d) => d.known_breaking_changes.length > 1),
+    });
+  }
+
+  if (dbImpacts.length > 0) {
+    const dbComp = dbImpacts[0].component || "Database Layer";
+    conflicts.push({
+      topic: `Database Integration (${dbComp})`,
+      core_position: `Migrate legacy ORM/JPA mappings to SQLx / async Rust database drivers.`,
+      impact_position: `Assess migration risk for schema locks, transaction boundaries, and pool connections (${dbImpacts[0].risk} risk).`,
+      resolved: dbImpacts[0].risk !== "high",
+    });
+  }
+
+  const coreConf = coreAudit?.confidence ?? 0.92;
+  const impactConf = impactAudit?.confidence ?? 0.90;
+  const unified_confidence = Math.round(((coreConf + impactConf) / 2) * 100) / 100;
+  const hasUnresolved = conflicts.some((c) => !c.resolved);
+
+  return {
+    iteration: hasUnresolved ? 2 : 1,
+    conflicts,
+    unified_confidence,
+    should_iterate_again: hasUnresolved || unified_confidence < 0.85,
+  };
+}
+
 export const getConsensusResult = async (projectId: string): Promise<ConsensusResult> => {
   const { isDevMode } = useAuthStore.getState();
+
+  if (!isDevMode) {
+    try {
+      const data = await fetchApi<ConsensusResult>(`/projects/${projectId}/consensus`);
+      return ConsensusResultSchema.parse(data);
+    } catch (_err) {
+      console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/consensus endpoint unavailable; computing dynamic consensus.`);
+    }
+  }
+
+  if (MOCK_CONSENSUS[projectId] && projectId === "proj-legacy-monolith") {
+    return ConsensusResultSchema.parse(MOCK_CONSENSUS[projectId]);
+  }
 
   const srcMap = getProjectSourceCode(projectId);
   const codeFiles = Object.keys(srcMap);
   const primaryFile = codeFiles[0] ? codeFiles[0].split("/").pop() || "App.java" : "Main.java";
 
-  const defaultConsensus: ConsensusResult = {
-    iteration: 1,
-    conflicts: [
-      {
-        topic: `Target Migration Pattern for ${primaryFile}`,
-        core_position: `Convert ${primaryFile} AST structures to native Rust struct and handler implementations.`,
-        impact_position: `Ensure zero breaking API contract changes for downstream consumers.`,
-        resolved: true,
-      },
-    ],
-    unified_confidence: 0.94,
-    should_iterate_again: false,
-  };
+  const coreAudit = await getCoreAudit(projectId).catch(() => null);
+  const impactAudit = await getImpactAudit(projectId).catch(() => null);
 
-  if (isDevMode) {
-    if (MOCK_CONSENSUS[projectId] && projectId !== "proj-legacy-monolith") {
-      return ConsensusResultSchema.parse(MOCK_CONSENSUS[projectId]);
-    }
-    return ConsensusResultSchema.parse(defaultConsensus);
-  }
-
-  try {
-    const data = await fetchApi<ConsensusResult>(`/projects/${projectId}/consensus`);
-    return ConsensusResultSchema.parse(data);
-  } catch (_err) {
-    return ConsensusResultSchema.parse(defaultConsensus);
-  }
+  const dynamicConsensus = calculateDynamicConsensus(coreAudit, impactAudit, primaryFile);
+  return ConsensusResultSchema.parse(dynamicConsensus);
 };
 
 export const getReadinessScore = async (projectId: string): Promise<ReadinessScore> => {
   const { isDevMode } = useAuthStore.getState();
 
-  const defaultReadiness: ReadinessScore = {
-    overall: 92,
-    breakdown: {
-      architecture_understanding: 95,
-      dependency_resolution: 90,
-      api_compatibility: 92,
-      configuration_completeness: 88,
-      migration_feasibility: 95,
-      breaking_change_risk: 90,
-      rollback_availability: 96,
-    },
-  };
-
-  if (isDevMode) {
-    if (MOCK_READINESS_SCORES[projectId] && projectId !== "proj-legacy-monolith") {
-      return ReadinessScoreSchema.parse(MOCK_READINESS_SCORES[projectId]);
+  if (!isDevMode) {
+    try {
+      const data = await fetchApi<ReadinessScore>(`/projects/${projectId}/readiness`);
+      return ReadinessScoreSchema.parse(data);
+    } catch (_err) {
+      console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/readiness endpoint unavailable; computing dynamic readiness score.`);
     }
-    return ReadinessScoreSchema.parse(defaultReadiness);
   }
 
-  try {
-    const data = await fetchApi<ReadinessScore>(`/projects/${projectId}/readiness`);
-    return ReadinessScoreSchema.parse(data);
-  } catch (_err) {
-    return ReadinessScoreSchema.parse(defaultReadiness);
+  if (MOCK_READINESS_SCORES[projectId] && projectId === "proj-legacy-monolith") {
+    return ReadinessScoreSchema.parse(MOCK_READINESS_SCORES[projectId]);
   }
+
+  const coreAudit = await getCoreAudit(projectId).catch(() => null);
+  const impactAudit = await getImpactAudit(projectId).catch(() => null);
+
+  const dynamicReadiness = calculateDynamicReadinessScore(coreAudit, impactAudit, null);
+
+  if (localProjectsStore[projectId]) {
+    localProjectsStore[projectId].readiness_score = dynamicReadiness.overall;
+  }
+
+  return ReadinessScoreSchema.parse(dynamicReadiness);
 };
