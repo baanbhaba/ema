@@ -77,7 +77,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const rustLines = rustCode.split("\n");
 
         const diffHeader = `--- a/${file}\n+++ b/${file.replace(/\.java$/, ".rs")}\n@@ -1,${javaLines.length} +1,${rustLines.length} @@\n`;
-        const diffBody = javaLines.map((l) => `- ${l}`).join("\n") + "\n" + rustLines.map((l) => `+ ${l}`).join("\n");
+        const diffBody = javaLines.map((l: string) => `- ${l}`).join("\n") + "\n" + rustLines.map((l: string) => `+ ${l}`).join("\n");
 
         return {
           unit: file,
