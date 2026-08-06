@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { prisma } from "../../src/lib/prisma";
+import { generateRustCodeFromJava } from "../../src/api/transform";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "GET") {
@@ -54,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     fileOrModule: `${name.replace(/[^a-zA-Z0-9_]/g, "")}.java`,
                     whatChanges: "Upgrade bytecode & convert REST controller logic to Axum router",
                     why: "Modernize Java application to Rust Tokio runtime",
-                    targetPattern: `pub struct ${name.replace(/[^a-zA-Z0-9_]/g, "")}Handler {\n    pub status: String,\n}`,
+                    targetPattern: generateRustCodeFromJava(javaCode || `public class ${name.replace(/[^a-zA-Z0-9_]/g, "")} {}`, "step-1"),
                     riskLevel: "medium",
                     status: "pending",
                   },

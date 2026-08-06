@@ -20,7 +20,7 @@ export const generateRustCodeFromJava = (javaCode: string, _stepId: string): str
     return `// ERROR: Invalid input. Please provide valid Java source code for legacy migration.`;
   }
 
-  const classMatch = javaCode.match(/public\s+class\s+([A-Za-z0-9_]+)/);
+  const classMatch = javaCode.match(/public\s+class\s+([A-Za-z0-9_]+)/) || javaCode.match(/class\s+([A-Za-z0-9_]+)/);
   const className = classMatch ? classMatch[1] : "MigratedModule";
 
   const isCoffeeBot = javaCode.includes("CoffeeBot") || javaCode.includes("map[x][y] != 'C'") || javaCode.includes("Coffee found");

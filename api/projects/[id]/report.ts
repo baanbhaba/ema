@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { prisma } from "../../../src/lib/prisma";
+import { generateRustCodeFromJava } from "../../../src/api/transform";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;
@@ -64,7 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           fileOrModule: primaryFile,
           whatChanges: "Migrate REST Controller and domain model",
           why: "Modernize to Rust Tokio / Axum",
-          targetPattern: `pub struct ${project.name.replace(/[^a-zA-Z0-9_]/g, "")}Handler {\n    pub status: String,\n}`,
+          targetPattern: generateRustCodeFromJava(rawJava, "step-1"),
           riskLevel: "medium",
           status: "pending",
         },
@@ -72,11 +73,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const reportEntries = steps.map((s: any) => {
         const file = s.fileOrModule || s.file_or_module || primaryFile;
-        const rustCode = s.targetPattern || s.target_pattern || `pub struct ${file.replace(/[^a-zA-Z0-9]/g, "")}Handler {\n    pub status: String,\n}`;
+        const pattern = s.targetPattern || s.target_pattern || "";
+        const isGenericPlaceholder =
+          !pattern ||
+          pattern.includes("Click 'Transform Step'") ||
+          (pattern.includes("pub struct ") && pattern.includes("Handler {\n"));
+
+        const rustCode = !isGenericPlaceholder
+          ? pattern
+          : generateRustCodeFromJava(rawJava, s.id || "step-1");
+
         const javaLines = rawJava.split("\n");
         const rustLines = rustCode.split("\n");
 
-        const diffHeader = `--- a/${file}\n+++ b/${file.replace(/\.java$/, ".rs")}\n@@ -1,${javaLines.length} +1,${rustLines.length} @@\n`;
+        const targetFile = file.endsWith(".java") ? file.replace(/\.java$/, ".rs") : `${file}.rs`;
+        const diffHeader = `--- a/${file}\n+++ b/${targetFile}\n@@ -1,${javaLines.length} +1,${rustLines.length} @@\n`;
         const diffBody = javaLines.map((l: string) => `- ${l}`).join("\n") + "\n" + rustLines.map((l: string) => `+ ${l}`).join("\n");
 
         return {

@@ -3,6 +3,7 @@ import { MigrationReportSchema } from "../types/contracts";
 import { fetchApi } from "./client";
 import { getCoreAudit, getImpactAudit, getProjectSourceCode } from "./project";
 import { getBlueprint } from "./review";
+import { generateRustCodeFromJava } from "./transform";
 import { sanitizeRustCode } from "../utils/exportRustCode";
 
 export const getMigrationReport = async (projectId: string): Promise<MigrationReport> => {
@@ -52,14 +53,23 @@ export const getMigrationReport = async (projectId: string): Promise<MigrationRe
 
     const reportEntries = blueprint.steps.map((s) => {
       const rawJava = srcMap[s.file_or_module] || Object.values(srcMap)[0] || `public class ${s.file_or_module.replace(/[^a-zA-Z0-9]/g, "")} {}`;
-      const rustCode = s.target_pattern && !s.target_pattern.includes("Click 'Transform Step'")
+      const isGenericPlaceholder =
+        !s.target_pattern ||
+        s.target_pattern.includes("Click 'Transform Step'") ||
+        (s.target_pattern.includes("pub struct ") && s.target_pattern.includes("Handler {\n"));
+
+      const rustCode = !isGenericPlaceholder
         ? sanitizeRustCode(s.target_pattern)
-        : `pub struct ${s.file_or_module.replace(/[^a-zA-Z0-9]/g, "")}Handler {\n    pub status: String,\n}`;
+        : generateRustCodeFromJava(rawJava, s.id);
 
       const javaLines = rawJava.split("\n");
       const rustLines = rustCode.split("\n");
 
-      const diffHeader = `--- a/${s.file_or_module}\n+++ b/${s.file_or_module.replace(/\.java$/, ".rs")}\n@@ -1,${javaLines.length} +1,${rustLines.length} @@\n`;
+      const targetFile = s.file_or_module.endsWith(".java")
+        ? s.file_or_module.replace(/\.java$/, ".rs")
+        : `${s.file_or_module}.rs`;
+
+      const diffHeader = `--- a/${s.file_or_module}\n+++ b/${targetFile}\n@@ -1,${javaLines.length} +1,${rustLines.length} @@\n`;
       const diffBody = javaLines.map((l) => `- ${l}`).join("\n") + "\n" + rustLines.map((l) => `+ ${l}`).join("\n");
 
       return {
