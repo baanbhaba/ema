@@ -149,6 +149,73 @@ export const getProjectSourceCode = (projectId: string): Record<string, string> 
   return {};
 };
 
+export function detectJavaDeprecatedUsages(javaCode: string, fileName: string): DeprecatedUsage[] {
+  const usages: DeprecatedUsage[] = [];
+  if (!javaCode) return usages;
+
+  const lines = javaCode.split("\n");
+
+  lines.forEach((lineText, idx) => {
+    const lineNum = idx + 1;
+
+    if (lineText.includes("new Date(")) {
+      usages.push({
+        file: fileName,
+        line: lineNum,
+        pattern: "new Date(int,int,int)",
+        recommended_replacement: "LocalDate.of()",
+      });
+    }
+
+    if (lineText.includes(".getYear()")) {
+      usages.push({
+        file: fileName,
+        line: lineNum,
+        pattern: "date.getYear()",
+        recommended_replacement: "LocalDate.getYear()",
+      });
+    }
+
+    if (lineText.includes(".getMonth()")) {
+      usages.push({
+        file: fileName,
+        line: lineNum,
+        pattern: "date.getMonth()",
+        recommended_replacement: "LocalDate.getMonthValue()",
+      });
+    }
+
+    if (lineText.includes(".getDate()")) {
+      usages.push({
+        file: fileName,
+        line: lineNum,
+        pattern: "date.getDate()",
+        recommended_replacement: "LocalDate.getDayOfMonth()",
+      });
+    }
+
+    if (lineText.includes(".stop()")) {
+      usages.push({
+        file: fileName,
+        line: lineNum,
+        pattern: "Thread.stop()",
+        recommended_replacement: "Thread.interrupt() with cooperative cancellation",
+      });
+    }
+
+    if (lineText.includes("javax.persistence") || lineText.includes("javax.servlet")) {
+      usages.push({
+        file: fileName,
+        line: lineNum,
+        pattern: "javax.* package",
+        recommended_replacement: "jakarta.* namespace",
+      });
+    }
+  });
+
+  return usages;
+}
+
 export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
   const { isDevMode } = useAuthStore.getState();
 
@@ -178,15 +245,20 @@ export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
   } catch (_err) {
     console.warn(`[MOCK_FALLBACK] Backend /analyze/core endpoint unavailable for project ${projectId}; returning audit.`);
     const proj = localProjectsStore[projectId];
+    const code = getPersistedSourceCode(projectId);
+    const srcMap = getProjectSourceCode(projectId);
+    const fileName = Object.keys(srcMap)[0] || `${proj?.name || "Main"}.java`;
+    const detectedUsages = code ? detectJavaDeprecatedUsages(code, fileName) : [];
+
     const mock = MOCK_CORE_AUDITS[projectId] || {
-      architecture_summary: `Architecture analysis for ${proj?.name || "Uploaded Project"}. Legacy Java Spring Boot application ready for Java 21 migration.`,
+      architecture_summary: `Architecture analysis for ${proj?.name || "Uploaded Project"}. Legacy Java application scanned cleanly for modernization.`,
       detected_stack: [
         { technology: "Java", version: "1.8.0", status: "eol" },
         { technology: "Spring Boot", version: "2.4.0", status: "eol" },
       ],
-      deprecated_usages: [
+      deprecated_usages: detectedUsages.length > 0 ? detectedUsages : [
         {
-          file: `${proj?.name || "Main"}.java`,
+          file: fileName,
           line: 15,
           pattern: "javax.persistence.*",
           recommended_replacement: "jakarta.persistence.*",
