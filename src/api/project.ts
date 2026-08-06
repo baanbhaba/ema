@@ -6,6 +6,12 @@ import type {
   ReadinessScore,
   Conflict,
   Blueprint,
+  DetectedStackItem,
+  DeprecatedUsage,
+  ApiSurfaceItem,
+  ImpactItem,
+  DependencyRisk,
+  BlastRadiusItem,
 } from "../types/contracts";
 import {
   ProjectSummarySchema,
