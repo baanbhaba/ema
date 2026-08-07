@@ -4,6 +4,7 @@ import { Lock, AlertCircle, User, ArrowRight, Sun, Moon, Shield } from "lucide-r
 import { useAuthStore } from "../store/useAuthStore";
 import { useUiStore } from "../store/useUiStore";
 import { Button } from "../components/common/Button";
+import { AnimatedLogo } from "../components/common/AnimatedLogo";
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -58,9 +59,7 @@ export const LoginPage: React.FC = () => {
       {/* Brand Header */}
       <div className="w-full max-w-md space-y-6 text-center">
         <div className="flex items-center justify-center space-x-3">
-          <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center font-bold text-black text-xl shadow-md">
-            A
-          </div>
+          <AnimatedLogo className="w-12 h-12 rounded-lg shadow-md" loopsBeforeStop={3} />
           <span className="font-bold text-2xl tracking-wider text-zinc-900 dark:text-white">ALCHEMI</span>
         </div>
 
