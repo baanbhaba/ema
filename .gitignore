@@ -21,7 +21,6 @@ target
 
 
 # ── Config files that contain secrets ─────────────────────────────────────────
-# (.env files are ignored above)
 
 
 # ── Logs ───────────────────────────────────────────────────────────────────────
@@ -35,7 +34,6 @@ lerna-debug.log*
 
 # ── Editor / OS ────────────────────────────────────────────────────────────────
 .vscode/*
-!.vscode/extensions.json
 .idea
 .DS_Store
 *.suo

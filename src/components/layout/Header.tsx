@@ -18,9 +18,11 @@ export const Header: React.FC = () => {
         {/* Left Brand & Context */}
         <div className="flex items-center space-x-4">
           <Link to="/" className="flex items-center space-x-2.5">
-            <div className="w-7 h-7 bg-amber-500 rounded flex items-center justify-center font-bold text-black text-sm shadow-xs">
-              A
-            </div>
+            <img
+              src="/cloud-network.gif"
+              alt="ALCHEMI logo"
+              className="w-7 h-7 rounded object-cover shadow-xs"
+            />
             <span className="font-bold text-base tracking-wider text-zinc-900 dark:text-white">ALCHEMI</span>
           </Link>
 
