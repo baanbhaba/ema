@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { LayoutGrid, RadioTower, LogOut } from "lucide-react";
 import { useUiStore } from "../../store/useUiStore";
 import { useAuthStore } from "../../store/useAuthStore";
-import { AnimatedLogo } from "../common/AnimatedLogo";
 
 export const Header: React.FC = () => {
   const location = useLocation();
@@ -19,7 +18,7 @@ export const Header: React.FC = () => {
         {/* Left Brand & Context */}
         <div className="flex items-center space-x-4">
           <Link to="/" className="flex items-center space-x-2.5">
-            <AnimatedLogo className="w-7 h-7 rounded shadow-xs" />
+            <img src="/cpu.png" alt="ALCHEMI Logo" className="w-7 h-7 rounded object-cover shadow-xs" />
             <span className="font-bold text-base tracking-wider text-zinc-900 dark:text-white">ALCHEMI</span>
           </Link>
 

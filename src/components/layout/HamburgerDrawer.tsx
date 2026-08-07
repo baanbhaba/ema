@@ -93,9 +93,7 @@ export const HamburgerDrawer: React.FC = () => {
         <div className="space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-amber-500 rounded flex items-center justify-center font-bold text-black text-xs">
-                A
-              </div>
+              <img src="/cpu.png" alt="ALCHEMI Logo" className="w-6 h-6 rounded object-cover shadow-xs" />
               <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100 tracking-wider">
                 ALCHEMI CONTROL PANEL
               </span>
