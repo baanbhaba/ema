@@ -1,5 +1,5 @@
 import React from "react";
-import { Plug, GitBranch, Terminal, ShieldCheck, CheckCircle2, Copy } from "lucide-react";
+import { Cable, GitFork, SquareTerminal, BadgeCheck, CircleCheckBig, ClipboardCopy } from "lucide-react";
 import { Card } from "../components/common/Card";
 
 import { useUiStore } from "../store/useUiStore";
@@ -35,7 +35,7 @@ export const IntegrationsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-1.5 px-3 py-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded text-xs">
-          <ShieldCheck className="w-4 h-4 text-amber-500" />
+          <BadgeCheck className="w-4 h-4 text-amber-500" />
           <span className="font-bold text-zinc-900 dark:text-zinc-100">Sandbox Engine Ready</span>
         </div>
       </div>
@@ -44,7 +44,7 @@ export const IntegrationsPage: React.FC = () => {
       <Card
         title={
           <div className="flex items-center space-x-2">
-            <Terminal className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+            <SquareTerminal className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
             <span>Sandboxed Runtime & Toolchain Status</span>
           </div>
         }
@@ -77,7 +77,7 @@ export const IntegrationsPage: React.FC = () => {
       <Card
         title={
           <div className="flex items-center space-x-2">
-            <Plug className="w-3.5 h-3.5 text-amber-500" />
+            <Cable className="w-3.5 h-3.5 text-amber-500" />
             <span>CI/CD Webhook Trigger Endpoints</span>
           </div>
         }
@@ -91,7 +91,7 @@ export const IntegrationsPage: React.FC = () => {
             >
               <div className="space-y-0.5 min-w-0">
                 <div className="flex items-center space-x-2">
-                  <GitBranch className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <GitFork className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                   <span className="font-bold text-zinc-900 dark:text-zinc-100">{w.name}</span>
                   <span className="text-[10px] text-zinc-400">({w.event})</span>
                 </div>
@@ -104,12 +104,12 @@ export const IntegrationsPage: React.FC = () => {
               >
                 {copiedIndex === idx ? (
                   <>
-                    <CheckCircle2 className="w-3 h-3 text-amber-500" />
+                    <CircleCheckBig className="w-3 h-3 text-amber-500" />
                     <span className="text-amber-500">Copied</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3 h-3 text-zinc-400" />
+                    <ClipboardCopy className="w-3 h-3 text-zinc-400" />
                     <span>Copy Webhook URL</span>
                   </>
                 )}

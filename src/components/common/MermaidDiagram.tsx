@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
-import { AlertTriangle } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { useUiStore } from "../../store/useUiStore";
 
 interface MermaidDiagramProps {
@@ -59,7 +59,7 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => 
     return (
       <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded text-xs text-amber-400 font-mono space-y-1">
         <div className="flex items-center space-x-1.5 font-bold">
-          <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+          <TriangleAlert className="w-3.5 h-3.5 text-amber-500" />
           <span>Diagram Render Warning</span>
         </div>
         <p className="text-[11px] font-sans text-amber-300">

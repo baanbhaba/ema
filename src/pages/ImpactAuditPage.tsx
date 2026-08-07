@@ -1,16 +1,7 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Zap,
-  Database,
-  Sliders,
-  AlertTriangle,
-  ChevronDown,
-  ChevronRight,
-  Layers,
-  FileCheck,
-} from "lucide-react";
+import { Bolt, Database, Sliders, TriangleAlert, ChevronDown, ChevronRight, Layers, ScanText } from "lucide-react";
 import { getImpactAudit } from "../api/client";
 import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
@@ -69,7 +60,7 @@ export const ImpactAuditPage: React.FC = () => {
             </span>
           </div>
           <div className="w-8 h-8 rounded bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center justify-center font-bold">
-            <Zap className="w-4 h-4" />
+            <Bolt className="w-4 h-4" />
           </div>
         </div>
       </div>
@@ -188,7 +179,7 @@ export const ImpactAuditPage: React.FC = () => {
       <Card
         title={
           <div className="flex items-center space-x-2">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+            <TriangleAlert className="w-3.5 h-3.5 text-amber-500" />
             <span>Dependency Upgrade Risks</span>
           </div>
         }
@@ -258,7 +249,7 @@ export const ImpactAuditPage: React.FC = () => {
       <Card
         title={
           <div className="flex items-center space-x-2">
-            <Zap className="w-3.5 h-3.5 text-amber-500" />
+            <Bolt className="w-3.5 h-3.5 text-amber-500" />
             <span>Blast Radius Summary</span>
           </div>
         }
@@ -300,7 +291,7 @@ export const ImpactAuditPage: React.FC = () => {
                     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-2 text-xs space-y-0.5 max-h-40 overflow-y-auto">
                       {blast.affected_files.map((file, fIdx) => (
                         <div key={fIdx} className="flex items-center space-x-1.5 text-zinc-700 dark:text-zinc-300">
-                          <FileCheck className="w-3 h-3 text-zinc-400 shrink-0" />
+                          <ScanText className="w-3 h-3 text-zinc-400 shrink-0" />
                           <span>{file}</span>
                         </div>
                       ))}

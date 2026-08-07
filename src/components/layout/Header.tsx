@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, ShieldAlert, LogOut } from "lucide-react";
+import { LayoutGrid, RadioTower, LogOut } from "lucide-react";
 import { useUiStore } from "../../store/useUiStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { AnimatedLogo } from "../common/AnimatedLogo";
@@ -48,7 +48,7 @@ export const Header: React.FC = () => {
             }`}
             title="Toggle artificial API errors to test UI fallback components"
           >
-            <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+            <RadioTower className="w-3.5 h-3.5 text-amber-500" />
             <span className="hidden md:inline">API Simulation: {isSimulatingApiError ? "ERR" : "OK"}</span>
           </button>
 
@@ -67,7 +67,7 @@ export const Header: React.FC = () => {
             className="p-2 bg-zinc-200 dark:bg-zinc-900 hover:bg-zinc-300 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-800 rounded transition-colors flex items-center space-x-2"
             aria-label="Open Navigation Menu"
           >
-            <Menu className="w-4 h-4 text-amber-500" />
+            <LayoutGrid className="w-4 h-4 text-amber-500" />
             <span className="text-xs font-bold hidden sm:inline">MENU</span>
           </button>
         </div>

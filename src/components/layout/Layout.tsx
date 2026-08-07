@@ -3,7 +3,7 @@ import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { HamburgerDrawer } from "./HamburgerDrawer";
 import { useUiStore } from "../../store/useUiStore";
-import { AlertCircle, CheckCircle2, X } from "lucide-react";
+import { AlertCircle, CircleCheckBig, X } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -42,7 +42,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               {n.type === "warning" ? (
                 <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
               ) : (
-                <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <CircleCheckBig className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
               )}
               <div>
                 <span className="font-bold block text-zinc-100">{n.message}</span>

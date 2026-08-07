@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Search, ShieldAlert, Cpu, Network, FileCode, Check } from "lucide-react";
+import { ScanSearch, RadioTower, Microchip, Globe, FileTerminal, Check } from "lucide-react";
 import { getCoreAudit } from "../api/client";
 import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
@@ -82,7 +82,7 @@ export const CoreAuditPage: React.FC = () => {
       <Card
         title={
           <div className="flex items-center space-x-2">
-            <Cpu className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+            <Microchip className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
             <span>Architecture Summary</span>
           </div>
         }
@@ -97,7 +97,7 @@ export const CoreAuditPage: React.FC = () => {
         <Card
           title={
             <div className="flex items-center space-x-2">
-              <FileCode className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+              <FileTerminal className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
               <span>Technology Stack</span>
             </div>
           }
@@ -130,7 +130,7 @@ export const CoreAuditPage: React.FC = () => {
         <Card
           title={
             <div className="flex items-center space-x-2">
-              <Network className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+              <Globe className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
               <span>Dependency Graph (petgraph)</span>
             </div>
           }
@@ -153,7 +153,7 @@ export const CoreAuditPage: React.FC = () => {
       <Card
         title={
           <div className="flex items-center space-x-2">
-            <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+            <RadioTower className="w-3.5 h-3.5 text-amber-500" />
             <span>Deprecated Usages ({audit.deprecated_usages.length})</span>
           </div>
         }
@@ -162,7 +162,7 @@ export const CoreAuditPage: React.FC = () => {
         <div className="space-y-3 font-mono">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-zinc-100 dark:border-zinc-800">
             <div className="relative flex-1 max-w-md">
-              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-2" />
+              <ScanSearch className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-2" />
               <input
                 type="text"
                 placeholder="Search file path, pattern, or replacement..."

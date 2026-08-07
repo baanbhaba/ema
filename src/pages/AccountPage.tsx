@@ -1,5 +1,5 @@
 import React from "react";
-import { User, ShieldCheck, Users, Activity, HardDrive } from "lucide-react";
+import { CircuitBoard, BadgeCheck, UsersRound, Waves, Database } from "lucide-react";
 import { Card } from "../components/common/Card";
 import { useAuthStore } from "../store/useAuthStore";
 
@@ -22,7 +22,7 @@ export const AccountPage: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2 px-3 py-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded text-xs">
-          <ShieldCheck className="w-4 h-4 text-amber-500" />
+          <BadgeCheck className="w-4 h-4 text-amber-500" />
           <span className="font-bold text-zinc-900 dark:text-zinc-100">Alpha Administrator</span>
         </div>
       </div>
@@ -31,7 +31,7 @@ export const AccountPage: React.FC = () => {
       <Card
         title={
           <div className="flex items-center space-x-2">
-            <User className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+            <CircuitBoard className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
             <span>Active Administrator</span>
           </div>
         }
@@ -59,7 +59,7 @@ export const AccountPage: React.FC = () => {
       <Card
         title={
           <div className="flex items-center space-x-2">
-            <Users className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+            <UsersRound className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
             <span>Team Approval Roles & Governance</span>
           </div>
         }
@@ -107,7 +107,7 @@ export const AccountPage: React.FC = () => {
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-4 space-y-1">
           <div className="flex items-center justify-between text-xs text-zinc-400">
             <span>LLM Token Usage</span>
-            <Activity className="w-4 h-4 text-amber-500" />
+            <Waves className="w-4 h-4 text-amber-500" />
           </div>
           <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 block">0 / 20M</span>
           <p className="text-[10px] text-zinc-500 font-sans">Monthly enterprise allocation</p>
@@ -116,7 +116,7 @@ export const AccountPage: React.FC = () => {
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-4 space-y-1">
           <div className="flex items-center justify-between text-xs text-zinc-400">
             <span>Active Pipelines</span>
-            <HardDrive className="w-4 h-4 text-amber-500" />
+            <Database className="w-4 h-4 text-amber-500" />
           </div>
           <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 block">0 Active</span>
           <p className="text-[10px] text-zinc-500 font-sans">Java → Rust Migrations</p>
@@ -125,7 +125,7 @@ export const AccountPage: React.FC = () => {
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-4 space-y-1">
           <div className="flex items-center justify-between text-xs text-zinc-400">
             <span>Sandbox Executions</span>
-            <ShieldCheck className="w-4 h-4 text-amber-500" />
+            <BadgeCheck className="w-4 h-4 text-amber-500" />
           </div>
           <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 block">0 Passes</span>
           <p className="text-[10px] text-zinc-500 font-sans">Docker JDK runs</p>

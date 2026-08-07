@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Card } from "../common/Card";
-import { Undo2, Copy, Check } from "lucide-react";
+import { Undo, ClipboardCopy, Check } from "lucide-react";
 
 interface RollbackSectionProps {
   rollbackPlan: string;
@@ -20,7 +20,7 @@ export const RollbackSection: React.FC<RollbackSectionProps> = ({ rollbackPlan }
       title={
         <div className="flex items-center justify-between w-full font-mono">
           <div className="flex items-center space-x-2 text-zinc-900 dark:text-zinc-100">
-            <Undo2 className="w-4 h-4 text-amber-500" />
+            <Undo className="w-4 h-4 text-amber-500" />
             <span>Rollback Protocol & Instructions</span>
           </div>
           <button
@@ -34,7 +34,7 @@ export const RollbackSection: React.FC<RollbackSectionProps> = ({ rollbackPlan }
               </>
             ) : (
               <>
-                <Copy className="w-3 h-3" />
+                <ClipboardCopy className="w-3 h-3" />
                 <span>Copy Shell Commands</span>
               </>
             )}

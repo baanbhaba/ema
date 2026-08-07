@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal } from "../common/Modal";
-import { AlertTriangle } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 
 interface ConfirmBulkApproveModalProps {
   isOpen: boolean;
@@ -46,7 +46,7 @@ export const ConfirmBulkApproveModal: React.FC<ConfirmBulkApproveModalProps> = (
     >
       <div className="space-y-3 text-xs text-zinc-700 dark:text-zinc-300">
         <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded flex items-start space-x-2 text-amber-800 dark:text-amber-300">
-          <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+          <TriangleAlert className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
           <div className="space-y-0.5">
             <h4 className="font-bold text-amber-900 dark:text-amber-200 font-mono">Point of No Return</h4>
             <p className="leading-relaxed font-sans">

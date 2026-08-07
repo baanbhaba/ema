@@ -1,5 +1,5 @@
 import React from "react";
-import { Loader2 } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "outline" | "danger" | "amber" | "ghost";
@@ -56,7 +56,7 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {isLoading ? (
-        <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+        <LoaderCircle className="w-3.5 h-3.5 animate-spin shrink-0" />
       ) : (
         Icon && iconPosition === "left" && <Icon className="w-3.5 h-3.5 shrink-0" />
       )}

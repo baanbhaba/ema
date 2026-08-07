@@ -1,15 +1,7 @@
 import React, { useEffect, useState } from "react";
 import type { BlueprintStep } from "../../types/contracts";
 import { Badge } from "../common/Badge";
-import {
-  Check,
-  X,
-  Edit2,
-  ChevronDown,
-  ChevronRight,
-  AlertTriangle,
-  Sparkles,
-} from "lucide-react";
+import { Check, X, Edit2, ChevronDown, ChevronRight, TriangleAlert, Sparkles } from "lucide-react";
 import { useUiStore } from "../../store/useUiStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { triggerTransformation } from "../../api/transform";
@@ -267,7 +259,7 @@ export const StepCard: React.FC<StepCardProps> = ({
           {step.status === "rejected" && step.rejection_reason && (
             <div className="p-3 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-400">
               <div className="flex items-center space-x-1.5 font-bold">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-red-500" />
+                <TriangleAlert className="w-4 h-4 shrink-0 text-red-500" />
                 <span>Rejection Reason:</span>
               </div>
               <p className="font-mono mt-1 text-[11px]">{step.rejection_reason}</p>

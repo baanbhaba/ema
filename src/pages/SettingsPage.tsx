@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Server, CheckCircle2, ShieldCheck, Cpu, Key, Terminal, Code2 } from "lucide-react";
+import { ServerCog, CircleCheckBig, BadgeCheck, Microchip, KeyRound, SquareTerminal, Code } from "lucide-react";
 import { Card } from "../components/common/Card";
 import { useUiStore } from "../store/useUiStore";
 import { useAuthStore } from "../store/useAuthStore";
@@ -47,7 +47,7 @@ export const SettingsPage: React.FC = () => {
 
         {savedSuccess && (
           <div className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded text-xs flex items-center space-x-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+            <CircleCheckBig className="w-3.5 h-3.5 text-amber-500" />
             <span>Backend Endpoint Configuration Saved</span>
           </div>
         )}
@@ -59,7 +59,7 @@ export const SettingsPage: React.FC = () => {
           title={
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center space-x-2">
-                <Key className="w-4 h-4 text-amber-500" />
+                <KeyRound className="w-4 h-4 text-amber-500" />
                 <span className="text-amber-500 font-bold">Baanbhaba Developer API Sandbox</span>
               </div>
               <span className="text-[10px] bg-amber-500 text-black font-bold px-2 py-0.5 rounded">
@@ -75,7 +75,7 @@ export const SettingsPage: React.FC = () => {
                 Custom API Key / Secret Token
               </label>
               <div className="relative">
-                <Terminal className="w-3.5 h-3.5 text-amber-500 absolute left-3 top-2.5" />
+                <SquareTerminal className="w-3.5 h-3.5 text-amber-500 absolute left-3 top-2.5" />
                 <input
                   type="password"
                   value={inputDevKey}
@@ -91,7 +91,7 @@ export const SettingsPage: React.FC = () => {
                 Custom Backend Base URL / Direct Endpoint Link
               </label>
               <div className="relative">
-                <Code2 className="w-3.5 h-3.5 text-amber-500 absolute left-3 top-2.5" />
+                <Code className="w-3.5 h-3.5 text-amber-500 absolute left-3 top-2.5" />
                 <input
                   type="text"
                   value={inputDevUrl}
@@ -126,7 +126,7 @@ export const SettingsPage: React.FC = () => {
         <Card
           title={
             <div className="flex items-center space-x-2">
-              <Server className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+              <ServerCog className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
               <span>Rust Backend Endpoint</span>
             </div>
           }
@@ -162,7 +162,7 @@ export const SettingsPage: React.FC = () => {
           <Card
             title={
               <div className="flex items-center space-x-2">
-                <Cpu className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+                <Microchip className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
                 <span>Analysis Stage Engine</span>
               </div>
             }
@@ -180,7 +180,7 @@ export const SettingsPage: React.FC = () => {
           <Card
             title={
               <div className="flex items-center space-x-2">
-                <Cpu className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+                <Microchip className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
                 <span>Transformation Stage Engine</span>
               </div>
             }
@@ -202,7 +202,7 @@ export const SettingsPage: React.FC = () => {
         title={
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center space-x-2">
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+              <BadgeCheck className="w-3.5 h-3.5 text-amber-500" />
               <span>Java 8 → 21 Transformation Engine Benchmarks</span>
             </div>
             <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-400">

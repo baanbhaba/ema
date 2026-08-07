@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Lock, AlertCircle, User, ArrowRight, Sun, Moon, Shield } from "lucide-react";
+import { ScanLine, AlertCircle, CircuitBoard, MoveRight, Sun, Moon, ShieldEllipsis } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useUiStore } from "../store/useUiStore";
 import { Button } from "../components/common/Button";
@@ -76,11 +76,11 @@ export const LoginPage: React.FC = () => {
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 text-left space-y-5 shadow-xl transition-colors">
           <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800 text-xs">
             <span className="font-bold text-zinc-800 dark:text-zinc-200 flex items-center space-x-2">
-              <Lock className="w-4 h-4 text-amber-500" />
+              <ScanLine className="w-4 h-4 text-amber-500" />
               <span>SECURE ACCESS</span>
             </span>
             <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold flex items-center space-x-1">
-              <Shield className="w-3 h-3 text-amber-500" />
+              <ShieldEllipsis className="w-3 h-3 text-amber-500" />
               <span>Enterprise</span>
             </span>
           </div>
@@ -96,7 +96,7 @@ export const LoginPage: React.FC = () => {
             <div>
               <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Username</label>
               <div className="relative">
-                <User className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
+                <CircuitBoard className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
                 <input
                   type="text"
                   required
@@ -111,7 +111,7 @@ export const LoginPage: React.FC = () => {
             <div>
               <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Password</label>
               <div className="relative">
-                <Lock className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
+                <ScanLine className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
                 <input
                   type="password"
                   required
@@ -129,7 +129,7 @@ export const LoginPage: React.FC = () => {
               size="md"
               fullWidth
               isLoading={isSubmitting}
-              icon={ArrowRight}
+              icon={MoveRight}
               iconPosition="right"
             >
               Authenticate & Enter Engine

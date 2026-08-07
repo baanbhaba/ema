@@ -1,28 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  X,
-  LayoutDashboard,
-  Layers,
-  Zap,
-  BarChart3,
-  GitPullRequest,
-  FileCheck2,
-  Settings,
-  User,
-  Plug,
-  Sun,
-  Moon,
-  ShieldCheck,
-  LogOut,
-  ChevronDown,
-  FolderGit2,
-  Download,
-  FileCode2,
-  RotateCw,
-  Sparkles,
-} from "lucide-react";
+import { X, MonitorPlay, Layers, Bolt, BarChart3, GitPullRequest, FileCheck2, SlidersHorizontal, CircuitBoard, Cable, Sun, Moon, BadgeCheck, LogOut, ChevronDown, FolderGit, CloudDownload, FileTerminal, RefreshCcw, Sparkles } from "lucide-react";
 import { useUiStore } from "../../store/useUiStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { getProjects, getBlueprint } from "../../api/client";
@@ -90,17 +69,17 @@ export const HamburgerDrawer: React.FC = () => {
 
   const projectNavItems = [
     { label: "Core Audit", path: `/projects/${selectedProjectId}/core-audit`, icon: Layers },
-    { label: "Impact & Blast Radius", path: `/projects/${selectedProjectId}/impact-audit`, icon: Zap },
+    { label: "Impact & Blast Radius", path: `/projects/${selectedProjectId}/impact-audit`, icon: Bolt },
     { label: "Readiness & Consensus", path: `/projects/${selectedProjectId}/readiness`, icon: BarChart3 },
     { label: "Blueprint Review", path: `/projects/${selectedProjectId}/blueprint`, icon: GitPullRequest },
     { label: "Migration Report", path: `/projects/${selectedProjectId}/report`, icon: FileCheck2 },
   ];
 
   const primaryNavItems = [
-    { label: "Projects Dashboard", path: "/", icon: LayoutDashboard },
-    { label: "API Settings", path: "/settings", icon: Settings },
-    { label: "Account & Team", path: "/account", icon: User },
-    { label: "Integrations & Sandbox", path: "/integrations", icon: Plug },
+    { label: "Projects Dashboard", path: "/", icon: MonitorPlay },
+    { label: "API Settings", path: "/settings", icon: SlidersHorizontal },
+    { label: "Account & Team", path: "/account", icon: CircuitBoard },
+    { label: "Integrations & Sandbox", path: "/integrations", icon: Cable },
   ];
 
   return (
@@ -163,7 +142,7 @@ export const HamburgerDrawer: React.FC = () => {
           <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-3 space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="text-amber-600 dark:text-amber-500 uppercase text-[10px] font-bold tracking-wider flex items-center space-x-1">
-                <FolderGit2 className="w-3.5 h-3.5" />
+                <FolderGit className="w-3.5 h-3.5" />
                 <span>Active Project</span>
               </span>
             </div>
@@ -222,7 +201,7 @@ export const HamburgerDrawer: React.FC = () => {
               disabled={isExporting}
               className="w-full flex items-center space-x-2.5 px-3 py-2 rounded text-xs text-zinc-800 dark:text-zinc-300 hover:text-amber-600 dark:hover:text-amber-400 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 transition-all cursor-pointer text-left"
             >
-              <FileCode2 className="w-4 h-4 shrink-0 text-amber-500" />
+              <FileTerminal className="w-4 h-4 shrink-0 text-amber-500" />
               <span>Download Rust Code (.rs)</span>
             </button>
 
@@ -231,7 +210,7 @@ export const HamburgerDrawer: React.FC = () => {
               onClick={handleDownloadCargoToml}
               className="w-full flex items-center space-x-2.5 px-3 py-2 rounded text-xs text-zinc-800 dark:text-zinc-300 hover:text-amber-600 dark:hover:text-amber-400 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 transition-all cursor-pointer text-left"
             >
-              <Download className="w-4 h-4 shrink-0 text-amber-500" />
+              <CloudDownload className="w-4 h-4 shrink-0 text-amber-500" />
               <span>Download Cargo.toml</span>
             </button>
 
@@ -240,7 +219,7 @@ export const HamburgerDrawer: React.FC = () => {
               onClick={handleResyncAnalysis}
               className="w-full flex items-center space-x-2.5 px-3 py-2 rounded text-xs text-zinc-800 dark:text-zinc-300 hover:text-amber-600 dark:hover:text-amber-400 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 transition-all cursor-pointer text-left"
             >
-              <RotateCw className="w-4 h-4 shrink-0 text-amber-500" />
+              <RefreshCcw className="w-4 h-4 shrink-0 text-amber-500" />
               <span>Re-Sync Analysis</span>
             </button>
           </div>
@@ -284,7 +263,7 @@ export const HamburgerDrawer: React.FC = () => {
                   {username || "admin"}
                 </span>
                 <div className="flex items-center space-x-1 text-[10px] text-zinc-500">
-                  <ShieldCheck className="w-3 h-3 text-amber-500 shrink-0" />
+                  <BadgeCheck className="w-3 h-3 text-amber-500 shrink-0" />
                   <span>Engine Active</span>
                 </div>
               </div>

@@ -1,14 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import {
-  RotateCw,
-  CheckCircle2,
-  HelpCircle,
-  BarChart3,
-  Layers,
-  Scale,
-} from "lucide-react";
+import { RefreshCcw, CircleCheckBig, HelpCircle, BarChart3, Layers, Scale } from "lucide-react";
 import { getReadinessScore, getConsensusResult } from "../api/client";
 import { Card } from "../components/common/Card";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
@@ -130,7 +123,7 @@ export const ReadinessPage: React.FC = () => {
 
       {consensusData.should_iterate_again && (
         <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded text-amber-600 dark:text-amber-400 flex items-center space-x-2 text-xs">
-          <RotateCw className="w-4 h-4 text-amber-500 animate-spin shrink-0" />
+          <RefreshCcw className="w-4 h-4 text-amber-500 animate-spin shrink-0" />
           <span>
             <strong>Analysis Iteration Active:</strong> Unresolved agent conflicts detected. Engine re-evaluating migration steps.
           </span>
@@ -235,7 +228,7 @@ export const ReadinessPage: React.FC = () => {
             ))
           ) : (
             <div className="p-4 text-center text-zinc-400 text-xs bg-zinc-50 dark:bg-zinc-950 rounded border border-zinc-200 dark:border-zinc-800">
-              <CheckCircle2 className="w-6 h-6 text-zinc-400 mx-auto mb-1" />
+              <CircleCheckBig className="w-6 h-6 text-zinc-400 mx-auto mb-1" />
               <span>Full consensus achieved on iteration #1. Zero conflicts detected.</span>
             </div>
           )}

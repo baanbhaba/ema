@@ -1,17 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  GitPullRequest,
-  CheckCircle2,
-  Expand,
-  Shrink,
-  AlertCircle,
-  ArrowRight,
-  Eye,
-  Info,
-  Sparkles,
-} from "lucide-react";
+import { GitPullRequest, CircleCheckBig, Expand, Shrink, AlertCircle, MoveRight, Eye, Info, Sparkles } from "lucide-react";
 import {
   getBlueprint,
   regenerateBlueprintWithNvidiaAI,
@@ -234,7 +224,7 @@ export const BlueprintPage: React.FC = () => {
             <span className="text-[10px] text-zinc-400 uppercase block">Approved</span>
             <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{approvedCount}</span>
           </div>
-          <CheckCircle2 className="w-5 h-5 text-zinc-400" />
+          <CircleCheckBig className="w-5 h-5 text-zinc-400" />
         </div>
 
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-3 flex items-center justify-between">
@@ -319,7 +309,7 @@ export const BlueprintPage: React.FC = () => {
             className="inline-flex items-center space-x-1.5 px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 rounded font-bold text-xs hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
           >
             <span>View Generated Migration Report</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <MoveRight className="w-3.5 h-3.5" />
           </button>
         </div>
       )}

@@ -1,18 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  UploadCloud,
-  FileText,
-  Zap,
-  GitCommit,
-  UserCheck,
-  Cpu,
-  CheckCircle2,
-  FileCheck2,
-  ArrowRight,
-  Sparkles,
-  Info,
-} from "lucide-react";
+import { UploadCloud, FileScan, Bolt, GitPullRequestArrow, UserCheck, Microchip, CircleCheckBig, FileCheck2, MoveRight, Sparkles, Info } from "lucide-react";
 import { Modal } from "./Modal";
 
 export interface PipelineStageInfo {
@@ -49,7 +37,7 @@ export const PIPELINE_STAGES: PipelineStageInfo[] = [
     id: 2,
     title: "2. Core Architecture Audit",
     shortLabel: "Core Audit",
-    icon: FileText,
+    icon: FileScan,
     routeSuffix: "core-audit",
     description: "Analyzes legacy Java frameworks, deprecated APIs, and dependency coupling.",
     whatItDoes: [
@@ -65,7 +53,7 @@ export const PIPELINE_STAGES: PipelineStageInfo[] = [
     id: 3,
     title: "3. Impact & Blast Radius Analysis",
     shortLabel: "Impact Audit",
-    icon: Zap,
+    icon: Bolt,
     routeSuffix: "impact-audit",
     description: "Evaluates breaking change risks across API surface, database, and config layers.",
     whatItDoes: [
@@ -81,7 +69,7 @@ export const PIPELINE_STAGES: PipelineStageInfo[] = [
     id: 4,
     title: "4. Migration Blueprint Generation",
     shortLabel: "Blueprint",
-    icon: GitCommit,
+    icon: GitPullRequestArrow,
     routeSuffix: "blueprint",
     description: "Decomposes monolithic Java code into ordered micro-step migration units.",
     whatItDoes: [
@@ -113,7 +101,7 @@ export const PIPELINE_STAGES: PipelineStageInfo[] = [
     id: 6,
     title: "6. Live Code Transformation",
     shortLabel: "Transformation",
-    icon: Cpu,
+    icon: Microchip,
     routeSuffix: "blueprint",
     description: "Executes live NVIDIA Llama 3.1 70B AI model code generation to produce Rust Axum target code.",
     whatItDoes: [
@@ -129,7 +117,7 @@ export const PIPELINE_STAGES: PipelineStageInfo[] = [
     id: 7,
     title: "7. AST & Type Validation",
     shortLabel: "Validation",
-    icon: CheckCircle2,
+    icon: CircleCheckBig,
     routeSuffix: "readiness",
     description: "Verifies generated target code against readiness scores and unified consensus.",
     whatItDoes: [
@@ -255,7 +243,7 @@ export const PipelineNarrativeBanner: React.FC<PipelineNarrativeBannerProps> = (
                   className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs rounded transition-colors"
                 >
                   <span>Go to {selectedStage.shortLabel} View</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <MoveRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>

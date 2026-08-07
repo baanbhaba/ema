@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { TriangleAlert, IterationCw } from "lucide-react";
 import { useUiStore } from "../../store/useUiStore";
 
 interface ErrorStateProps {
@@ -18,7 +18,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   return (
     <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg space-y-3 text-red-800 dark:text-red-200">
       <div className="flex items-start space-x-3">
-        <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+        <TriangleAlert className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
         <div className="flex-1">
           <h4 className="text-sm font-semibold">{title}</h4>
           <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">{message}</p>
@@ -44,7 +44,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
               onClick={onRetry}
               className="inline-flex items-center space-x-1 px-3 py-1 bg-red-600 text-white rounded font-medium hover:bg-red-700"
             >
-              <RefreshCw className="w-3 h-3" />
+              <IterationCw className="w-3 h-3" />
               <span>Retry</span>
             </button>
           )}

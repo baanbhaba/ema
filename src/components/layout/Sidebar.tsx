@@ -1,23 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  LayoutDashboard,
-  FileText,
-  Zap,
-  CheckSquare,
-  GitCommit,
-  FileCheck,
-  Settings,
-  User,
-  Plug,
-  FolderGit2,
-  ChevronDown,
-  Download,
-  FileCode2,
-  RotateCw,
-  Sparkles,
-} from "lucide-react";
+import { MonitorPlay, FileScan, Bolt, SquareCheckBig, GitPullRequestArrow, ScanText, SlidersHorizontal, CircuitBoard, Cable, FolderGit, ChevronDown, CloudDownload, FileTerminal, RefreshCcw, Sparkles } from "lucide-react";
 import { getProjects, getBlueprint } from "../../api/client";
 import { downloadCombinedRustProject, downloadCargoToml } from "../../utils/exportRustCode";
 
@@ -86,34 +70,34 @@ export const Sidebar: React.FC = () => {
     {
       label: "Core Audit",
       path: `/projects/${selectedProjectId}/core-audit`,
-      icon: FileText,
+      icon: FileScan,
     },
     {
       label: "Impact Audit",
       path: `/projects/${selectedProjectId}/impact-audit`,
-      icon: Zap,
+      icon: Bolt,
     },
     {
       label: "Readiness & Consensus",
       path: `/projects/${selectedProjectId}/readiness`,
-      icon: CheckSquare,
+      icon: SquareCheckBig,
     },
     {
       label: "Blueprint Review",
       path: `/projects/${selectedProjectId}/blueprint`,
-      icon: GitCommit,
+      icon: GitPullRequestArrow,
     },
     {
       label: "Migration Report",
       path: `/projects/${selectedProjectId}/report`,
-      icon: FileCheck,
+      icon: ScanText,
     },
   ];
 
   const enterpriseItems = [
-    { label: "API Settings", path: "/settings", icon: Settings },
-    { label: "Account & Team", path: "/account", icon: User },
-    { label: "Integrations", path: "/integrations", icon: Plug },
+    { label: "API Settings", path: "/settings", icon: SlidersHorizontal },
+    { label: "Account & Team", path: "/account", icon: CircuitBoard },
+    { label: "Integrations", path: "/integrations", icon: Cable },
   ];
 
   return (
@@ -131,7 +115,7 @@ export const Sidebar: React.FC = () => {
               }`
             }
           >
-            <LayoutDashboard className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            <MonitorPlay className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span>Dashboard</span>
           </NavLink>
 
@@ -139,7 +123,7 @@ export const Sidebar: React.FC = () => {
           <div className="bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 rounded p-2 space-y-1 shadow-xs">
             <div className="flex items-center justify-between text-[10px] text-zinc-500 dark:text-zinc-400 uppercase font-bold tracking-wider">
               <span>Active Project</span>
-              <FolderGit2 className="w-3 h-3 text-amber-500" />
+              <FolderGit className="w-3 h-3 text-amber-500" />
             </div>
 
             <div className="relative">
@@ -204,7 +188,7 @@ export const Sidebar: React.FC = () => {
             className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 text-zinc-800 dark:text-zinc-200 hover:text-amber-600 dark:hover:text-amber-400 text-xs transition-all cursor-pointer text-left"
             title="Download complete Rust Axum migrated source code"
           >
-            <FileCode2 className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+            <FileTerminal className="w-3.5 h-3.5 shrink-0 text-amber-500" />
             <span className="truncate">Download Rust (.rs)</span>
           </button>
 
@@ -214,7 +198,7 @@ export const Sidebar: React.FC = () => {
             className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 text-zinc-800 dark:text-zinc-200 hover:text-amber-600 dark:hover:text-amber-400 text-xs transition-all cursor-pointer text-left"
             title="Download Cargo.toml dependencies file"
           >
-            <Download className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+            <CloudDownload className="w-3.5 h-3.5 shrink-0 text-amber-500" />
             <span className="truncate">Download Cargo.toml</span>
           </button>
 
@@ -224,7 +208,7 @@ export const Sidebar: React.FC = () => {
             className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 text-zinc-800 dark:text-zinc-200 hover:text-amber-600 dark:hover:text-amber-400 text-xs transition-all cursor-pointer text-left"
             title="Refresh analysis cache"
           >
-            <RotateCw className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+            <RefreshCcw className="w-3.5 h-3.5 shrink-0 text-amber-500" />
             <span className="truncate">Re-Sync Analysis</span>
           </button>
         </div>

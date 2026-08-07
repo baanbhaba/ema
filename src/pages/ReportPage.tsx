@@ -1,19 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import {
-  FileCheck2,
-  Clock,
-  UserCheck,
-  Code2,
-  FileCode,
-  Package,
-  Layers,
-  Settings2,
-  CheckCircle2,
-  AlertTriangle,
-  Download,
-} from "lucide-react";
+import { FileCheck2, Clock, UserCheck, Code, FileTerminal, Package, Layers, Settings2, CircleCheckBig, TriangleAlert, CloudDownload } from "lucide-react";
 import { getMigrationReport } from "../api/report";
 import { downloadCombinedRustProject, downloadCargoToml } from "../utils/exportRustCode";
 import { Card } from "../components/common/Card";
@@ -93,7 +81,7 @@ export const ReportPage: React.FC = () => {
               onClick={() => downloadCombinedRustProject(id || "migrated_service", id || "migrated_service", report.blueprint?.steps || [])}
               className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-xs transition-colors flex items-center space-x-1.5"
             >
-              <Download className="w-3.5 h-3.5" />
+              <CloudDownload className="w-3.5 h-3.5" />
               <span>Download Rust Code (.rs)</span>
             </button>
 
@@ -102,7 +90,7 @@ export const ReportPage: React.FC = () => {
               onClick={() => downloadCargoToml(id || "migrated_service")}
               className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-bold rounded text-xs transition-colors flex items-center space-x-1.5"
             >
-              <Download className="w-3.5 h-3.5" />
+              <CloudDownload className="w-3.5 h-3.5" />
               <span>Cargo.toml</span>
             </button>
 
@@ -131,7 +119,7 @@ export const ReportPage: React.FC = () => {
         {/* 1. Files Modified */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-4 space-y-2">
           <div className="flex items-center space-x-2 font-bold text-zinc-900 dark:text-zinc-100">
-            <FileCode className="w-4 h-4 text-amber-500" />
+            <FileTerminal className="w-4 h-4 text-amber-500" />
             <span>Files Modified ({filesModified.length})</span>
           </div>
           <ul className="space-y-1 text-zinc-600 dark:text-zinc-400 text-[11px] max-h-28 overflow-y-auto">
@@ -186,7 +174,7 @@ export const ReportPage: React.FC = () => {
         {/* 5. Validation Summary */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-4 space-y-2">
           <div className="flex items-center space-x-2 font-bold text-zinc-900 dark:text-zinc-100">
-            <CheckCircle2 className="w-4 h-4 text-amber-500" />
+            <CircleCheckBig className="w-4 h-4 text-amber-500" />
             <span>Validation Summary</span>
           </div>
           <div className="text-zinc-600 dark:text-zinc-400 text-[11px] space-y-1">
@@ -199,7 +187,7 @@ export const ReportPage: React.FC = () => {
         {/* 6. Manual Intervention Summary */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-4 space-y-2">
           <div className="flex items-center space-x-2 font-bold text-zinc-900 dark:text-zinc-100">
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
+            <TriangleAlert className="w-4 h-4 text-amber-500" />
             <span>Manual Interventions ({manualInterventions.length})</span>
           </div>
           <ul className="space-y-1 text-zinc-600 dark:text-zinc-400 text-[11px] max-h-28 overflow-y-auto">
@@ -216,7 +204,7 @@ export const ReportPage: React.FC = () => {
         title={
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center space-x-2">
-              <Code2 className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+              <Code className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
               <span>Transformed Source Code Units ({totalUnits})</span>
             </div>
           </div>

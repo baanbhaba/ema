@@ -1,17 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import {
-  Plus,
-  ArrowRight,
-  GitBranch,
-  Clock,
-  FolderGit2,
-  Server,
-  Code,
-  Cpu,
-  Trash2,
-} from "lucide-react";
+import { Plus, MoveRight, GitFork, Clock, FolderGit, ServerCog, Code, Microchip, Trash2 } from "lucide-react";
 import { getProjects, createProject, deleteProject } from "../api/client";
 import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
@@ -122,7 +112,7 @@ export const DashboardPage: React.FC = () => {
 
       {!isLoading && !isError && projects && projects.length === 0 && (
         <Card className="text-center py-12">
-          <FolderGit2 className="w-10 h-10 text-zinc-400 mx-auto mb-3" />
+          <FolderGit className="w-10 h-10 text-zinc-400 mx-auto mb-3" />
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 font-mono">No Active Projects</h3>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-md mx-auto mt-1 mb-4">
             Upload a `.java` file or repository zip to trigger real-time AST parsing and migration analysis.
@@ -148,14 +138,14 @@ export const DashboardPage: React.FC = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-2.5">
                     <div className="w-8 h-8 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-amber-500">
-                      <Server className="w-4 h-4" />
+                      <ServerCog className="w-4 h-4" />
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                         {project.name}
                       </h3>
                       <div className="flex items-center space-x-1 text-xs text-zinc-500">
-                        <GitBranch className="w-3 h-3 text-zinc-400" />
+                        <GitFork className="w-3 h-3 text-zinc-400" />
                         <span className="truncate max-w-[150px]">{project.repo_url}</span>
                       </div>
                     </div>
@@ -206,7 +196,7 @@ export const DashboardPage: React.FC = () => {
                   className="inline-flex items-center space-x-1 font-semibold text-zinc-900 dark:text-zinc-100 hover:text-amber-500 dark:hover:text-amber-400 transition-colors"
                 >
                   <span>Review Blueprint</span>
-                  <ArrowRight className="w-3 h-3" />
+                  <MoveRight className="w-3 h-3" />
                 </Link>
               </div>
             </div>
@@ -283,7 +273,7 @@ export const DashboardPage: React.FC = () => {
           <div className="p-3 bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 rounded text-zinc-700 dark:text-zinc-300 space-y-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-1.5 font-bold text-amber-500">
-                <Cpu className="w-3.5 h-3.5" />
+                <Microchip className="w-3.5 h-3.5" />
                 <span>Target Engine: Java OOP → Rust Axum</span>
               </div>
               {isDevMode && (
