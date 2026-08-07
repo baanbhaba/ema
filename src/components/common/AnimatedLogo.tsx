@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback } from "react";
-import { parseGIF, decompressFrames } from "gifuct-js";
+import { parseGIF, decompressFrames, type ParsedFrame } from "gifuct-js";
 
 interface AnimatedLogoProps {
   /** Tailwind/CSS className applied to the <canvas> */
@@ -10,10 +10,10 @@ interface AnimatedLogoProps {
 
 /**
  * AnimatedLogo
- *  • Decodes cloud-network.gif frame-by-frame with gifuct-js
- *  • Auto-plays `loopsBeforeStop` loops then freezes on the last frame
- *  • On mouse-enter, plays exactly 1 more full loop then freezes again
- *  • Amber CSS filter applied so it matches ALCHEMI's colour scheme
+ *  • Decodes cloud-network.gif frame-by-frame via gifuct-js
+ *  • Plays `loopsBeforeStop` full cycles then freezes on the last frame
+ *  • On mouse-enter plays exactly 1 more full loop then freezes again
+ *  • CSS filter tints the GIF amber to match ALCHEMI's colour scheme
  */
 export const AnimatedLogo: React.FC<AnimatedLogoProps> = ({
   className = "w-7 h-7",
@@ -21,10 +21,18 @@ export const AnimatedLogo: React.FC<AnimatedLogoProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // All mutable animation state lives in a ref — no stale-closure issues
-  const s = useRef({
-    frames: [] as ReturnType<typeof decompressFrames>,
-    offscreen: null as HTMLCanvasElement | null,
+  // All mutable animation state in a ref — zero stale-closure issues
+  const s = useRef<{
+    frames: ParsedFrame[];
+    offscreen: HTMLCanvasElement | null;
+    frameIdx: number;
+    loopCount: number;
+    rafId: number;
+    lastTs: number;
+    running: boolean;
+  }>({
+    frames: [],
+    offscreen: null,
     frameIdx: 0,
     loopCount: 0,
     rafId: 0,
@@ -32,80 +40,81 @@ export const AnimatedLogo: React.FC<AnimatedLogoProps> = ({
     running: false,
   });
 
-  /** Paint one GIF frame onto the canvas */
+  /** Composite one GIF frame onto the visible canvas */
   const drawFrame = useCallback((idx: number) => {
     const canvas = canvasRef.current;
-    const state = s.current;
-    if (!canvas || !state.frames.length) return;
+    const st = s.current;
+    if (!canvas || !st.frames.length) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const frame = state.frames[idx];
+    const frame = st.frames[idx];
     const { width: fw, height: fh, left, top } = frame.dims;
 
-    if (!state.offscreen) {
-      state.offscreen = document.createElement("canvas");
-      state.offscreen.width = canvas.width;
-      state.offscreen.height = canvas.height;
+    if (!st.offscreen) {
+      st.offscreen = document.createElement("canvas");
+      st.offscreen.width = canvas.width;
+      st.offscreen.height = canvas.height;
     }
-    const off = state.offscreen.getContext("2d")!;
+    const off = st.offscreen.getContext("2d")!;
 
-    // Clear on first frame or when disposal says so
-    if (idx === 0 || (frame.disposalType ?? 0) === 2) {
+    // Clear accumulated pixels on first frame or explicit clear disposal
+    if (idx === 0 || frame.disposalType === 2) {
       off.clearRect(0, 0, canvas.width, canvas.height);
     }
 
-    const img = off.createImageData(fw, fh);
-    img.data.set(frame.patch);
-    off.putImageData(img, left, top);
+    const imgData = off.createImageData(fw, fh);
+    imgData.data.set(frame.patch);
+    off.putImageData(imgData, left, top);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(state.offscreen, 0, 0);
+    ctx.drawImage(st.offscreen, 0, 0);
   }, []);
 
   /**
-   * Start the RAF loop for exactly `targetLoops` full cycles.
-   * Cancels any currently running loop first.
+   * Kick off RAF loop for exactly `targetLoops` full cycles.
+   * Cancels any existing loop first.
    */
   const play = useCallback(
     (targetLoops: number) => {
-      const state = s.current;
-      cancelAnimationFrame(state.rafId);
-      state.frameIdx = 0;
-      state.loopCount = 0;
-      state.lastTs = 0;
-      state.running = true;
+      const st = s.current;
+      cancelAnimationFrame(st.rafId);
+      st.frameIdx = 0;
+      st.loopCount = 0;
+      st.lastTs = 0;
+      st.running = true;
 
       const loop = (ts: number) => {
-        if (!state.running || !state.frames.length) return;
+        if (!st.running || !st.frames.length) return;
 
-        const frame = state.frames[state.frameIdx];
-        const delay = (frame.delay ?? 10) * 10; // centiseconds → ms
+        const frame = st.frames[st.frameIdx];
+        // GIF delay is in centiseconds (1/100 s) → convert to ms
+        const delay = (frame.delay ?? 10) * 10;
 
-        if (ts - state.lastTs >= delay) {
-          drawFrame(state.frameIdx);
-          state.lastTs = ts;
-          state.frameIdx++;
+        if (ts - st.lastTs >= delay) {
+          drawFrame(st.frameIdx);
+          st.lastTs = ts;
+          st.frameIdx++;
 
-          if (state.frameIdx >= state.frames.length) {
-            state.frameIdx = 0;
-            state.loopCount++;
-            if (state.loopCount >= targetLoops) {
-              state.running = false;
-              return; // frozen on last painted frame
+          if (st.frameIdx >= st.frames.length) {
+            st.frameIdx = 0;
+            st.loopCount++;
+            if (st.loopCount >= targetLoops) {
+              st.running = false;
+              return; // stays frozen on last painted frame
             }
           }
         }
 
-        state.rafId = requestAnimationFrame(loop);
+        st.rafId = requestAnimationFrame(loop);
       };
 
-      state.rafId = requestAnimationFrame(loop);
+      st.rafId = requestAnimationFrame(loop);
     },
     [drawFrame]
   );
 
-  // Fetch + decode GIF once, then auto-play
+  // Fetch + decode the GIF exactly once on mount, then auto-play
   useEffect(() => {
     let cancelled = false;
 
@@ -116,7 +125,8 @@ export const AnimatedLogo: React.FC<AnimatedLogoProps> = ({
         if (cancelled) return;
 
         const gif = parseGIF(buf);
-        const frames = decompressFrames(gif, true);
+        // Pass literal `true` so TS resolves the overload to ParsedFrame[]
+        const frames: ParsedFrame[] = decompressFrames(gif, true);
         if (cancelled || !frames.length) return;
 
         const canvas = canvasRef.current;
@@ -127,8 +137,8 @@ export const AnimatedLogo: React.FC<AnimatedLogoProps> = ({
         s.current.frames = frames;
 
         play(loopsBeforeStop);
-      } catch (e) {
-        console.warn("[AnimatedLogo] GIF load failed:", e);
+      } catch (err) {
+        console.warn("[AnimatedLogo] GIF load failed:", err);
       }
     })();
 
@@ -149,6 +159,7 @@ export const AnimatedLogo: React.FC<AnimatedLogoProps> = ({
       className={className}
       onMouseEnter={handleMouseEnter}
       style={{
+        // Amber tint: sepia base → saturate warmth → nudge hue to ~38° amber
         filter:
           "sepia(1) saturate(4) hue-rotate(-15deg) brightness(1.15) contrast(1.05)",
         display: "block",
