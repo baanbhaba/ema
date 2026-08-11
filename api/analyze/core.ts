@@ -86,29 +86,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       };
     }
 
-    // ── Persist to DB if project_id provided ──────────────────────────────
+    // ── Persist to DB if project_id provided (resilient to DB connection glitches) ──
     if (project_id) {
-      await prisma.coreAudit.upsert({
-        where: { projectId: project_id },
-        update: {
-          architectureSummary: audit.architecture_summary,
-          detectedStack: audit.detected_stack,
-          deprecatedUsages: audit.deprecated_usages,
-          dependencyGraph: audit.dependency_graph,
-          diagrams: audit.diagrams,
-          confidence: audit.confidence,
-        },
-        create: {
-          projectId: project_id,
-          architectureSummary: audit.architecture_summary,
-          detectedStack: audit.detected_stack,
-          deprecatedUsages: audit.deprecated_usages,
-          dependencyGraph: audit.dependency_graph,
-          diagrams: audit.diagrams,
-          confidence: audit.confidence,
-        },
-      });
-      await refreshProjectReadiness(project_id);
+      try {
+        await prisma.coreAudit.upsert({
+          where: { projectId: project_id },
+          update: {
+            architectureSummary: audit.architecture_summary,
+            detectedStack: audit.detected_stack,
+            deprecatedUsages: audit.deprecated_usages,
+            dependencyGraph: audit.dependency_graph,
+            diagrams: audit.diagrams,
+            confidence: audit.confidence,
+          },
+          create: {
+            projectId: project_id,
+            architectureSummary: audit.architecture_summary,
+            detectedStack: audit.detected_stack,
+            deprecatedUsages: audit.deprecated_usages,
+            dependencyGraph: audit.dependency_graph,
+            diagrams: audit.diagrams,
+            confidence: audit.confidence,
+          },
+        });
+        await refreshProjectReadiness(project_id).catch(() => null);
+      } catch (dbErr) {
+        console.warn("Failed to persist core audit to DB (non-critical):", dbErr);
+      }
     }
 
     return res.status(200).json(audit);
