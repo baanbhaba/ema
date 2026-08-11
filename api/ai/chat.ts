@@ -56,31 +56,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const contentType = upstream.headers.get("content-type") || "";
     const bodyText = await upstream.text();
 
-    // Track usage in audit history asynchronously if upstream call succeeded
+    // Track usage in audit history asynchronously in background (do not await, prevent crashes from breaking response)
     if (upstream.ok) {
-      try {
-        const parsed = JSON.parse(bodyText);
-        const totalTokens = parsed.usage?.total_tokens ?? 0;
-        const promptTokens = parsed.usage?.prompt_tokens ?? 0;
-        const completionTokens = parsed.usage?.completion_tokens ?? 0;
+      Promise.resolve().then(async () => {
+        try {
+          const parsed = JSON.parse(bodyText);
+          const totalTokens = parsed.usage?.total_tokens ?? 0;
+          const promptTokens = parsed.usage?.prompt_tokens ?? 0;
+          const completionTokens = parsed.usage?.completion_tokens ?? 0;
 
-        await prisma.auditHistory.create({
-          data: {
-            projectId: typeof projectId === "string" ? projectId : null,
-            action: "AI_TOKEN_USAGE",
-            metadata: {
-              provider: useAiml ? "aiml" : "nvidia",
-              model: model || "meta/llama-3.1-70b-instruct",
-              totalTokens,
-              promptTokens,
-              completionTokens,
-              timestamp: new Date().toISOString(),
+          await prisma.auditHistory.create({
+            data: {
+              projectId: typeof projectId === "string" ? projectId : null,
+              action: "AI_TOKEN_USAGE",
+              metadata: {
+                provider: useAiml ? "aiml" : "nvidia",
+                model: model || "meta/llama-3.1-70b-instruct",
+                totalTokens,
+                promptTokens,
+                completionTokens,
+                timestamp: new Date().toISOString(),
+              },
             },
-          },
-        }).catch((err) => console.warn("Failed to persist token usage log:", err));
-      } catch {
-        // Ignore JSON parse error for audit tracking
-      }
+          });
+        } catch (_ignore) {}
+      });
     }
 
     res.status(upstream.status).setHeader("content-type", contentType).send(bodyText);
