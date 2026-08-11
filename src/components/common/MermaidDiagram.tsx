@@ -37,7 +37,14 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => 
       try {
         setRenderError(null);
         const cleanId = `mermaid-${id.replace(/[^a-zA-Z0-9]/g, "-")}`;
-        const { svg } = await mermaid.render(cleanId, chart);
+        // Sanitize single quotes in Mermaid diagram definitions to prevent parser crashes
+        let sanitizedChart = chart;
+        sanitizedChart = sanitizedChart.replace(/\bas\s+'([^']*)'/g, 'as "$1"');
+        sanitizedChart = sanitizedChart.replace(/\bparticipant\s+'([^']*)'/g, 'participant "$1"');
+        sanitizedChart = sanitizedChart.replace(/\[\s*'([^']*)'\s*\]/g, '["$1"]');
+        sanitizedChart = sanitizedChart.replace(/\(\s*'([^']*)'\s*\)/g, '("$1")');
+
+        const { svg } = await mermaid.render(cleanId, sanitizedChart);
         if (isMounted) {
           setSvgContent(svg);
         }
