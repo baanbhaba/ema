@@ -10,11 +10,15 @@ export async function completeJson<T>(
 ): Promise<T | null> {
   const nvidiaKey = process.env.NVIDIA_API_KEY || process.env.VITE_NVIDIA_API_KEY;
   const aimlKey = process.env.AIML_API_KEY || process.env.VITE_AIML_API_KEY;
-  const apiKey = nvidiaKey || aimlKey || FALLBACK_NVIDIA_KEY;
 
-  const endpoint = (nvidiaKey || FALLBACK_NVIDIA_KEY)
-    ? "https://integrate.api.nvidia.com/v1/chat/completions"
-    : "https://api.aimlapi.com/v1/chat/completions";
+  const isAiml = !nvidiaKey && !FALLBACK_NVIDIA_KEY && !!(aimlKey || FALLBACK_AIML_KEY);
+  const apiKey = isAiml
+    ? (aimlKey || FALLBACK_AIML_KEY)
+    : (nvidiaKey || FALLBACK_NVIDIA_KEY);
+
+  const endpoint = isAiml
+    ? "https://api.aimlapi.com/v1/chat/completions"
+    : "https://integrate.api.nvidia.com/v1/chat/completions";
 
   try {
     const response = await fetch(endpoint, {
