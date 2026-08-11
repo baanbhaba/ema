@@ -1,19 +1,29 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Layout } from "./components/layout/Layout";
-import { LoginPage } from "./pages/LoginPage";
-import { DashboardPage } from "./pages/DashboardPage";
-import { CoreAuditPage } from "./pages/CoreAuditPage";
-import { ImpactAuditPage } from "./pages/ImpactAuditPage";
-import { ReadinessPage } from "./pages/ReadinessPage";
-import { BlueprintPage } from "./pages/BlueprintPage";
-import { ReportPage } from "./pages/ReportPage";
-import { SettingsPage } from "./pages/SettingsPage";
-import { AccountPage } from "./pages/AccountPage";
-import { IntegrationsPage } from "./pages/IntegrationsPage";
-import { NotFoundPage } from "./pages/NotFoundPage";
 import { useAuthStore } from "./store/useAuthStore";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
+
+// Lazy-loaded pages to optimize initial bundle size & load times
+const LoginPage = lazy(() => import("./pages/LoginPage").then(m => ({ default: m.LoginPage })));
+const DashboardPage = lazy(() => import("./pages/DashboardPage").then(m => ({ default: m.DashboardPage })));
+const CoreAuditPage = lazy(() => import("./pages/CoreAuditPage").then(m => ({ default: m.CoreAuditPage })));
+const ImpactAuditPage = lazy(() => import("./pages/ImpactAuditPage").then(m => ({ default: m.ImpactAuditPage })));
+const ReadinessPage = lazy(() => import("./pages/ReadinessPage").then(m => ({ default: m.ReadinessPage })));
+const BlueprintPage = lazy(() => import("./pages/BlueprintPage").then(m => ({ default: m.BlueprintPage })));
+const ReportPage = lazy(() => import("./pages/ReportPage").then(m => ({ default: m.ReportPage })));
+const SettingsPage = lazy(() => import("./pages/SettingsPage").then(m => ({ default: m.SettingsPage })));
+const AccountPage = lazy(() => import("./pages/AccountPage").then(m => ({ default: m.AccountPage })));
+const IntegrationsPage = lazy(() => import("./pages/IntegrationsPage").then(m => ({ default: m.IntegrationsPage })));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage").then(m => ({ default: m.NotFoundPage })));
+
+const PageFallback: React.FC = () => (
+  <div className="p-8 flex items-center justify-center space-x-2 text-xs text-zinc-400 font-mono">
+    <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+    <span>Loading view...</span>
+  </div>
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,35 +43,41 @@ const ProtectedLayout: React.FC = () => {
 
   return (
     <Layout>
-      <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/projects/:id/core-audit" element={<CoreAuditPage />} />
-        <Route path="/projects/:id/impact-audit" element={<ImpactAuditPage />} />
-        <Route path="/projects/:id/readiness" element={<ReadinessPage />} />
-        <Route path="/projects/:id/blueprint" element={<BlueprintPage />} />
-        <Route path="/projects/:id/report" element={<ReportPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/account" element={<AccountPage />} />
-        <Route path="/integrations" element={<IntegrationsPage />} />
-        {/* Custom 404 inside protected area */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/projects/:id/core-audit" element={<CoreAuditPage />} />
+          <Route path="/projects/:id/impact-audit" element={<ImpactAuditPage />} />
+          <Route path="/projects/:id/readiness" element={<ReadinessPage />} />
+          <Route path="/projects/:id/blueprint" element={<BlueprintPage />} />
+          <Route path="/projects/:id/report" element={<ReportPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/account" element={<AccountPage />} />
+          <Route path="/integrations" element={<IntegrationsPage />} />
+          {/* Custom 404 inside protected area */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
     </Layout>
   );
 };
 
 export const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <HashRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/*" element={<ProtectedLayout />} />
-          {/* Global 404 for anything completely outside the app */}
-          <Route path="/404" element={<NotFoundPage />} />
-        </Routes>
-      </HashRouter>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <HashRouter>
+          <Suspense fallback={<PageFallback />}>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/*" element={<ProtectedLayout />} />
+              {/* Global 404 for anything completely outside the app */}
+              <Route path="/404" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
+        </HashRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

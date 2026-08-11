@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { LayoutGrid, LogOut } from "lucide-react";
 import { useUiStore } from "../../store/useUiStore";
 import { useAuthStore } from "../../store/useAuthStore";
+import { FeedbackWidget } from "../common/FeedbackWidget";
 
 export const Header: React.FC = () => {
   const location = useLocation();
@@ -65,6 +66,9 @@ export const Header: React.FC = () => {
 
         {/* Right: Actions */}
         <div className="flex items-center space-x-2">
+          {/* Feedback Widget */}
+          <FeedbackWidget />
+
           {/* Logout Button */}
           <button
             onClick={logout}

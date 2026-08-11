@@ -12,7 +12,14 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+  // Neon free tier: max 10 connections. Serverless: keep pool tight.
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL!,
+    max: 1,    // 1 connection per serverless function instance
+    min: 0,    // release immediately when idle
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 5_000,
+  });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,

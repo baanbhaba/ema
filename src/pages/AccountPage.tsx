@@ -1,5 +1,5 @@
 import React from "react";
-import { CircuitBoard, BadgeCheck, UsersRound, Activity, FolderGit, ShieldCheck } from "lucide-react";
+import { CircuitBoard, BadgeCheck, UsersRound, Activity, FolderGit, ShieldCheck, Cpu } from "lucide-react";
 import { Card } from "../components/common/Card";
 import { useAuthStore } from "../store/useAuthStore";
 import { useQuery } from "@tanstack/react-query";
@@ -74,7 +74,7 @@ export const AccountPage: React.FC = () => {
       </Card>
 
       {/* Usage Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div
           className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 space-y-2"
           role="region"
@@ -97,6 +97,15 @@ export const AccountPage: React.FC = () => {
             {activeProjects.length}
           </span>
           <p className="text-[11px] text-zinc-500 font-sans">In-progress migrations</p>
+        </div>
+
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 space-y-2">
+          <div className="flex items-center justify-between text-xs text-zinc-400">
+            <span>LLM Token Usage</span>
+            <Cpu className="w-4 h-4 text-amber-500" />
+          </div>
+          <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 block">Active</span>
+          <p className="text-[11px] text-zinc-500 font-sans">Tracked via AI Proxy Audit</p>
         </div>
 
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 space-y-2">
@@ -130,7 +139,7 @@ export const AccountPage: React.FC = () => {
             type="button"
             className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition-colors"
             onClick={() => {
-              // Team invite coming in a future release
+              // Team invite feature placeholder
             }}
           >
             <UsersRound className="w-3.5 h-3.5" />
