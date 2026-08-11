@@ -13,6 +13,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // ── ROUTE: upload ────────────────────────────────────────────────────────
+    if (route === "upload") {
+      if (req.method !== "POST") {
+        res.setHeader("Allow", ["POST"]);
+        return res.status(405).json({ error: "Use POST to upload source code" });
+      }
+      const { fileName, rawCode, code } = req.body || {};
+      const sourceCode = rawCode || code;
+      if (!sourceCode) return res.status(400).json({ error: "Source code is required" });
+
+      const name = fileName || "Main.java";
+
+      const uploaded = await prisma.uploadedSource.create({
+        data: {
+          projectId: id,
+          fileName: name,
+          rawCode: sourceCode,
+          language: "java",
+        },
+      });
+
+      await prisma.project.update({
+        where: { id },
+        data: { stage: "analyzing" },
+      }).catch(() => null);
+
+      return res.status(200).json({ success: true, uploaded_source: uploaded });
+    }
+
     // ── ROUTE: audit ─────────────────────────────────────────────────────────
     if (route === "audit") {
       if (req.method !== "GET") {

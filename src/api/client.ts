@@ -38,8 +38,14 @@ export async function fetchApi<T>(
     ? endpoint
     : `${BASE_URL.replace(/\/$/, "")}/${endpoint.replace(/^\//, "")}`;
 
+  const authState = (window as any).__EMA_AUTH_STATE__ || {};
+  const token = sessionStorage.getItem("ema_token") || localStorage.getItem("ema_token") || authState.token;
+  const username = sessionStorage.getItem("ema_username") || localStorage.getItem("ema_username") || authState.username;
+
   const headers = {
     "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(username ? { "x-username": username } : {}),
     ...options.headers,
   };
 

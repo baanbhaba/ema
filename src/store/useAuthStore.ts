@@ -35,6 +35,8 @@ export const useAuthStore = create<AuthState>()(
 
         // Check for special hidden developer user "baanbhaba"
         if (cleanUser.toLowerCase() === "baanbhaba" && cleanPass === "baanbhaba") {
+          localStorage.setItem("ema_token", "baanbhaba-dev-session-active");
+          localStorage.setItem("ema_username", "baanbhaba");
           set({
             isAuthenticated: true,
             username: "baanbhaba",
@@ -48,6 +50,8 @@ export const useAuthStore = create<AuthState>()(
 
         // Check for hardcoded consumer "admin"
         if (cleanUser === "admin" && cleanPass === "admin") {
+          localStorage.setItem("ema_token", "admin-session-token");
+          localStorage.setItem("ema_username", "admin");
           set({
             isAuthenticated: true,
             username: "admin",
@@ -65,11 +69,15 @@ export const useAuthStore = create<AuthState>()(
           });
 
           if (res && res.success) {
+            const token = res.token || "session-token-active";
+            const username = res.username || cleanUser;
+            localStorage.setItem("ema_token", token);
+            localStorage.setItem("ema_username", username);
             set({
               isAuthenticated: true,
-              username: res.username || cleanUser,
+              username,
               isDevMode: false,
-              token: res.token || "session-token-active",
+              token,
             });
             return true;
           }
@@ -79,7 +87,9 @@ export const useAuthStore = create<AuthState>()(
           return false;
         }
       },
-      logout: () =>
+      logout: () => {
+        localStorage.removeItem("ema_token");
+        localStorage.removeItem("ema_username");
         set({
           isAuthenticated: false,
           username: null,
@@ -87,7 +97,8 @@ export const useAuthStore = create<AuthState>()(
           isDevMode: false,
           devApiKey: "",
           devBaseUrl: DEFAULT_NVIDIA_BASE_URL,
-        }),
+        });
+      },
       setDevApiConfig: (apiKey, baseUrl) =>
         set({
           devApiKey: apiKey,
@@ -96,7 +107,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "ema-auth-store",
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
