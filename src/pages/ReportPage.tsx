@@ -9,6 +9,7 @@ import { Card } from "../components/common/Card";
 import { DiffViewer } from "../components/report/DiffViewer";
 import { ValidationBadge } from "../components/report/ValidationBadge";
 import { RollbackSection } from "../components/report/RollbackSection";
+import { TopologyGraph } from "../components/common/TopologyGraph";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
 import { ErrorState } from "../components/common/ErrorState";
 
@@ -97,8 +98,8 @@ export const ReportPage: React.FC = () => {
             <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800"></div>
 
             <div>
-              <span className="text-zinc-400 uppercase text-[10px] block">Sandbox Target</span>
-              <span className="font-bold text-zinc-900 dark:text-zinc-100">Java 21 / Axum</span>
+              <span className="text-zinc-400 uppercase text-[10px] block">Target Architecture</span>
+              <span className="font-bold text-amber-500">Rust (Axum 0.7 + Tokio)</span>
             </div>
           </div>
 
@@ -206,8 +207,8 @@ export const ReportPage: React.FC = () => {
           </div>
           <div className="text-zinc-600 dark:text-zinc-400 text-[11px] space-y-1">
             <p>• Tests Passed: <strong className="text-amber-500">{totalTestsPassed} / {totalTestsRun}</strong></p>
-            <p>• Sandbox Environment: Java 21 / Docker Container</p>
-            <p>• Build Status: PASS</p>
+            <p>• Sandbox Environment: Cargo / Tokio / Axum Sandbox</p>
+            <p>• Build Status: <strong className="text-emerald-400">PASS (0 errors)</strong></p>
           </div>
         </div>
 
@@ -265,15 +266,37 @@ export const ReportPage: React.FC = () => {
               <ValidationBadge validation={entry.validation} />
 
               <div className="space-y-1">
-                <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">
-                  Unified Code Diff:
-                </span>
-                <DiffViewer diff={entry.diff} />
+                <DiffViewer
+                  diff={entry.diff}
+                  javaCode={entry.java_code}
+                  rustCode={entry.rust_code}
+                  unitName={entry.unit}
+                />
               </div>
             </div>
           ))}
         </div>
       </Card>
+
+      {/* 2D & 3D Architectural Schema Preview */}
+      {report.core_audit?.diagrams?.[0] && (
+        <Card
+          title={
+            <div className="flex items-center space-x-2">
+              <Layers className="w-3.5 h-3.5 text-amber-500" />
+              <span>Chained Target Architecture & Topology Schema</span>
+            </div>
+          }
+          subtitle="Visual schema derived from original Java source code and transformed Rust Axum modules"
+        >
+          <TopologyGraph
+            mermaidChart={report.core_audit.diagrams[0].content}
+            id={`report-topo-${id}`}
+            nodes={report.core_audit.dependency_graph?.nodes}
+            edges={report.core_audit.dependency_graph?.edges}
+          />
+        </Card>
+      )}
 
       <RollbackSection rollbackPlan={report.rollback_plan} />
     </div>

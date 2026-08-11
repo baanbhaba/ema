@@ -135,6 +135,8 @@ export const ValidationResultSchema = z.object({
 export const MigrationReportEntrySchema = z.object({
   unit: z.string(),
   diff: z.string(),
+  java_code: z.string().optional(),
+  rust_code: z.string().optional(),
   validation: ValidationResultSchema,
   approved_by: z.string(),
   approved_at: z.string(),
