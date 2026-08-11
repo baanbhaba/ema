@@ -64,33 +64,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       audit = detectJavaImpactAudit(javaCode, fileName);
     }
 
-    // ── Persist to DB (resilient to connection glitches) ───────────────────
+    // ── Persist to DB ──────────────────────────────────────────────────────
     if (project_id) {
-      try {
-        await prisma.impactAudit.upsert({
-          where: { projectId: project_id },
-          update: {
-            apiSurface: audit.api_surface,
-            databaseImpacts: audit.database_impacts,
-            configImpacts: audit.config_impacts,
-            dependencyRisks: audit.dependency_risks,
-            blastRadius: audit.blast_radius,
-            confidence: audit.confidence,
-          },
-          create: {
-            projectId: project_id,
-            apiSurface: audit.api_surface,
-            databaseImpacts: audit.database_impacts,
-            configImpacts: audit.config_impacts,
-            dependencyRisks: audit.dependency_risks,
-            blastRadius: audit.blast_radius,
-            confidence: audit.confidence,
-          },
-        });
-        await refreshProjectReadiness(project_id).catch(() => null);
-      } catch (dbErr) {
-        console.warn("Failed to persist impact audit to DB (non-critical):", dbErr);
-      }
+      await prisma.impactAudit.upsert({
+        where: { projectId: project_id },
+        update: {
+          apiSurface: audit.api_surface,
+          databaseImpacts: audit.database_impacts,
+          configImpacts: audit.config_impacts,
+          dependencyRisks: audit.dependency_risks,
+          blastRadius: audit.blast_radius,
+          confidence: audit.confidence,
+        },
+        create: {
+          projectId: project_id,
+          apiSurface: audit.api_surface,
+          databaseImpacts: audit.database_impacts,
+          configImpacts: audit.config_impacts,
+          dependencyRisks: audit.dependency_risks,
+          blastRadius: audit.blast_radius,
+          confidence: audit.confidence,
+        },
+      });
+      await refreshProjectReadiness(project_id);
     }
 
     return res.status(200).json(audit);

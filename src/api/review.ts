@@ -4,10 +4,8 @@ import { fetchApi } from "./client";
 import { useAuthStore } from "../store/useAuthStore";
 import { generateBlueprintWithNvidia } from "./nvidiaEngine";
 import { getProjectSourceCode } from "./project";
-import { MOCK_BLUEPRINTS } from "./mockData";
 
-let localBlueprintsStore: Record<string, Blueprint> = { ...MOCK_BLUEPRINTS };
-
+let localBlueprintsStore: Record<string, Blueprint> = {};
 
 export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
   const { isDevMode } = useAuthStore.getState();
