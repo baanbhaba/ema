@@ -84,24 +84,48 @@ export const createProject = async (data: {
 }): Promise<ProjectSummary> => {
   const { isDevMode } = useAuthStore.getState();
 
+  const codeToSave = (data.javaCode && data.javaCode.trim().length > 0)
+    ? data.javaCode
+    : "";
+
+  let initialReadiness = 0;
+  if (codeToSave) {
+    const fileName = `${data.name.replace(/[^a-zA-Z0-9_]/g, "")}.java`;
+    const detectedStack = detectJavaStack(codeToSave);
+    const detectedUsages = detectJavaDeprecatedUsages(codeToSave, fileName);
+    const coreAudit: CoreAudit = {
+      architecture_summary: "",
+      detected_stack: detectedStack,
+      deprecated_usages: detectedUsages,
+      dependency_graph: { nodes: [], edges: [] },
+      diagrams: [],
+      confidence: 0.72,
+    };
+    const impactAudit = detectJavaImpactAudit(codeToSave, fileName);
+    const readiness = calculateReadinessScore(coreAudit, impactAudit, null);
+    initialReadiness = readiness.overall;
+  }
+
   const id = `proj-${Date.now().toString(36)}`;
   const newSummary: ProjectSummary = {
     id,
     name: data.name,
     repo_url: data.repo_url || "N/A",
-    stage: "ingesting",
-    readiness_score: 90,
+    stage: codeToSave ? "analyzing" : "ingesting",
+    readiness_score: initialReadiness,
     last_updated: new Date().toISOString(),
     java_from: "Java 8",
     java_to: "Java 21 / Rust Axum",
   };
   localProjectsStore[id] = newSummary;
 
-  const codeToSave = (data.javaCode && data.javaCode.trim().length > 0)
-    ? data.javaCode
-    : `public class ${data.name.replace(/\s+/g, "")} {\n    public static void main(String[] args) {\n        System.out.println("Executing ${data.name}");\n    }\n}`;
-
-  savePersistedSourceCode(id, codeToSave);
+  if (codeToSave) {
+    savePersistedSourceCode(id, codeToSave);
+  } else {
+    // Save minimal placeholder structure
+    const defaultPlaceholder = `public class ${data.name.replace(/\s+/g, "")} {\n    public static void main(String[] args) {\n        System.out.println("Executing ${data.name}");\n    }\n}`;
+    savePersistedSourceCode(id, defaultPlaceholder);
+  }
 
   if (isDevMode) {
     return ProjectSummarySchema.parse(newSummary);

@@ -2,6 +2,12 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { prisma } from "../../src/lib/prisma";
 import { generateRustCodeFromJava } from "../../src/api/transform";
 import { mapProjectToSummary } from "../../src/server/projectMapping";
+import {
+  detectJavaStack,
+  detectJavaDeprecatedUsages,
+  detectJavaImpactAudit,
+  calculateReadinessScore,
+} from "../../src/lib/analysis";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "GET") {
@@ -29,12 +35,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: "Project name is required" });
       }
 
+      let initialReadiness = 0;
+      if (javaCode && javaCode.trim()) {
+        const fileName = `${name.replace(/[^a-zA-Z0-9_]/g, "")}.java`;
+        const detectedStack = detectJavaStack(javaCode);
+        const deprecatedUsages = detectJavaDeprecatedUsages(javaCode, fileName);
+        const core = {
+          id: "",
+          projectId: "",
+          architecture_summary: "",
+          architectureSummary: "",
+          detected_stack: detectedStack,
+          detectedStack,
+          deprecated_usages: deprecatedUsages,
+          deprecatedUsages,
+          dependency_graph: { nodes: [], edges: [] },
+          dependencyGraph: { nodes: [], edges: [] },
+          diagrams: [],
+          confidence: 0.72,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        const impact = detectJavaImpactAudit(javaCode, fileName);
+        const readiness = calculateReadinessScore(core, impact, null);
+        initialReadiness = readiness.overall;
+      }
+
       const project = await prisma.project.create({
         data: {
           name,
           repoUrl: repoUrl || repo_url || "",
-          stage: stage || "core_audit",
-          readinessScore: 85,
+          stage: stage || (javaCode ? "analyzing" : "ingesting"),
+          readinessScore: initialReadiness,
           uploadedSources: javaCode
             ? {
                 create: [
