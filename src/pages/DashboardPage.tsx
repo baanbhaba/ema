@@ -90,15 +90,15 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         <button
+          id="dashboard-new-project"
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center space-x-2 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-black rounded text-xs font-bold font-mono transition-colors cursor-pointer"
+          className="inline-flex items-center justify-center space-x-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black rounded-lg text-sm font-bold font-mono transition-colors cursor-pointer shrink-0"
+          aria-label="Upload a new Java project for migration analysis"
         >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Upload Java Project</span>
+          <Plus className="w-4 h-4" />
+          <span>New Project</span>
         </button>
       </div>
-
-
 
       {isLoading && <LoadingSkeleton rows={3} />}
 
@@ -111,18 +111,19 @@ export const DashboardPage: React.FC = () => {
       )}
 
       {!isLoading && !isError && projects && projects.length === 0 && (
-        <Card className="text-center py-12">
-          <FolderGit className="w-10 h-10 text-zinc-400 mx-auto mb-3" />
-          <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 font-mono">No Active Projects</h3>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-md mx-auto mt-1 mb-4">
-            Upload a `.java` file or repository zip to trigger real-time AST parsing and migration analysis.
+        <Card className="text-center py-16">
+          <FolderGit className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-4" />
+          <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 font-mono mb-1">No Projects Yet</h3>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-md mx-auto mt-1 mb-5 font-sans">
+            Upload a <code className="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded">.java</code> file to start real-time AST parsing and automated migration analysis.
           </p>
           <button
+            id="dashboard-empty-new-project"
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center space-x-2 px-3.5 py-1.5 bg-amber-500 text-black rounded text-xs font-bold font-mono hover:bg-amber-600"
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-lg text-sm font-bold font-mono transition-colors"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Upload Java Project</span>
+            <Plus className="w-4 h-4" />
+            <span>Upload Your First Project</span>
           </button>
         </Card>
       )}

@@ -124,8 +124,8 @@ export const Sidebar: React.FC = () => {
   ];
 
   const enterpriseItems = [
-    { label: "API Settings", path: "/settings", icon: SlidersHorizontal },
-    { label: "Account & Team", path: "/account", icon: CircuitBoard },
+    { label: "Settings", path: "/settings", icon: SlidersHorizontal },
+    { label: "Account", path: "/account", icon: CircuitBoard },
     { label: "Integrations", path: "/integrations", icon: Cable },
   ];
 
@@ -180,7 +180,7 @@ export const Sidebar: React.FC = () => {
         {/* Streamlined Project Navigation Menu */}
         <div className="px-2 space-y-0.5">
           <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-500 flex items-center justify-between">
-            <span>Pipeline Views</span>
+            <span>Analysis Pipeline</span>
           </div>
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -268,10 +268,10 @@ export const Sidebar: React.FC = () => {
         </div>
       </div>
 
-      {/* Enterprise Bottom Links */}
+      {/* Settings & Admin Bottom Links */}
       <div className="p-2 border-t border-zinc-200 dark:border-zinc-800 space-y-0.5">
         <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-          Governance
+          Settings & Admin
         </div>
         {enterpriseItems.map((item) => {
           const Icon = item.icon;

@@ -1,31 +1,26 @@
 import React, { useState } from "react";
-import { ServerCog, CircleCheckBig, BadgeCheck, Microchip, KeyRound, SquareTerminal, Code } from "lucide-react";
+import { Microchip, KeyRound, SquareTerminal, Code, Zap, CheckCircle } from "lucide-react";
 import { Card } from "../components/common/Card";
-import { useUiStore } from "../store/useUiStore";
 import { useAuthStore } from "../store/useAuthStore";
+import { useUiStore } from "../store/useUiStore";
 
 export const SettingsPage: React.FC = () => {
-  const [backendUrl, setBackendUrl] = useState("http://localhost:8080/api/v1");
-  const [savedSuccess, setSavedSuccess] = useState(false);
-  const { notifyBackendRequired } = useUiStore();
   const { isDevMode, devApiKey, devBaseUrl, setDevApiConfig } = useAuthStore();
+  const { addNotification } = useUiStore();
 
   const [inputDevKey, setInputDevKey] = useState(devApiKey);
   const [inputDevUrl, setInputDevUrl] = useState(devBaseUrl);
   const [devSavedSuccess, setDevSavedSuccess] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSavedSuccess(true);
-    notifyBackendRequired("Backend REST API Endpoint Verification");
-    setTimeout(() => setSavedSuccess(false), 3000);
-  };
-
   const handleDevSave = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!inputDevKey.trim()) {
+      addNotification("Please enter a valid API key.", "warning");
+      return;
+    }
     setDevApiConfig(inputDevKey, inputDevUrl);
     setDevSavedSuccess(true);
-    notifyBackendRequired("Custom Developer API Key & Base Endpoint Registered");
+    addNotification("API configuration saved successfully.", "success");
     setTimeout(() => setDevSavedSuccess(false), 3000);
   };
 
@@ -35,44 +30,37 @@ export const SettingsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200 dark:border-zinc-800">
         <div>
           <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2">
-            <span>Rust Orchestration Engine & Service Settings</span>
-            <span className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded">
-              Active Mode: Rust Backend
+            <span>API Configuration</span>
+            <span className="text-xs bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30 px-2 py-0.5 rounded">
+              AI Engine Active
             </span>
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-sans">
-            Configure backend service endpoint for Java 8→21 automated code transformation and audit pipeline.
+            Configure your AI API keys and settings for the Java-to-Rust migration analysis pipeline.
           </p>
         </div>
-
-        {savedSuccess && (
-          <div className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded text-xs flex items-center space-x-1.5">
-            <CircleCheckBig className="w-3.5 h-3.5 text-amber-500" />
-            <span>Backend Endpoint Configuration Saved</span>
-          </div>
-        )}
       </div>
 
-      {/* Secret Developer Testing Console (Only visible when logged in as "baanbhaba") */}
+      {/* Developer API Sandbox — only for dev mode */}
       {isDevMode && (
         <Card
           title={
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center space-x-2">
                 <KeyRound className="w-4 h-4 text-amber-500" />
-                <span className="text-amber-500 font-bold">Baanbhaba Developer API Sandbox</span>
+                <span className="text-amber-500 font-bold">Developer API Sandbox</span>
               </div>
-              <span className="text-[10px] bg-amber-500 text-black font-bold px-2 py-0.5 rounded">
-                SECRET DEV PORTAL UNLOCKED
+              <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold px-2 py-0.5 rounded">
+                Dev Mode
               </span>
             </div>
           }
-          subtitle="Private developer sandbox for custom API Key and custom endpoint testing"
+          subtitle="Configure a custom API key and base endpoint for testing the analysis engine"
         >
           <form onSubmit={handleDevSave} className="space-y-4 text-xs">
             <div>
-              <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Custom API Key / Secret Token
+              <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                Custom API Key
               </label>
               <div className="relative">
                 <SquareTerminal className="w-3.5 h-3.5 text-amber-500 absolute left-3 top-2.5" />
@@ -80,15 +68,15 @@ export const SettingsPage: React.FC = () => {
                   type="password"
                   value={inputDevKey}
                   onChange={(e) => setInputDevKey(e.target.value)}
-                  placeholder="Enter private API Key for custom endpoint testing..."
-                  className="w-full pl-9 pr-3 py-1.5 bg-zinc-900 border border-amber-500/50 rounded text-amber-400 font-mono focus:outline-none focus:border-amber-400"
+                  placeholder="Enter your API key..."
+                  className="w-full pl-9 pr-3 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-amber-500/30 rounded-lg text-zinc-900 dark:text-amber-400 font-mono focus:outline-none focus:border-amber-500 text-xs"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Custom Backend Base URL / Direct Endpoint Link
+              <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                API Base URL
               </label>
               <div className="relative">
                 <Code className="w-3.5 h-3.5 text-amber-500 absolute left-3 top-2.5" />
@@ -96,143 +84,119 @@ export const SettingsPage: React.FC = () => {
                   type="text"
                   value={inputDevUrl}
                   onChange={(e) => setInputDevUrl(e.target.value)}
-                  placeholder="http://localhost:8080/api/v1"
-                  className="w-full pl-9 pr-3 py-1.5 bg-zinc-900 border border-amber-500/50 rounded text-amber-400 font-mono focus:outline-none focus:border-amber-400"
+                  placeholder="https://integrate.api.nvidia.com/v1"
+                  className="w-full pl-9 pr-3 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-amber-500/30 rounded-lg text-zinc-900 dark:text-amber-400 font-mono focus:outline-none focus:border-amber-500 text-xs"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-[11px] text-zinc-400">
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-[11px] text-zinc-500">
                 {devSavedSuccess ? (
-                  <span className="text-amber-500 font-bold">Custom API Config Registered!</span>
+                  <span className="text-green-500 dark:text-green-400 font-bold flex items-center space-x-1">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span>Configuration saved</span>
+                  </span>
                 ) : (
-                  "Private configuration loaded into active developer session."
+                  "Saved to your active session only."
                 )}
               </span>
               <button
                 type="submit"
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded text-xs transition-colors"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg text-xs transition-colors"
               >
-                Save Developer Key & Link
+                Save Configuration
               </button>
             </div>
           </form>
         </Card>
       )}
 
-      <form onSubmit={handleSave} className="space-y-6">
-        {/* Backend API Configuration */}
+      {/* Engine Status Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card
           title={
             <div className="flex items-center space-x-2">
-              <ServerCog className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-              <span>Rust Backend Endpoint</span>
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              <span>Core Analysis Engine</span>
             </div>
           }
-          subtitle="All LLM prompt execution, provider selection, and API key management are handled by the Rust backend"
+          subtitle="AST parsing and Java deprecation detection"
         >
-          <div className="space-y-4 text-xs">
-            <div>
-              <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Backend REST Base URL
-              </label>
-              <input
-                type="text"
-                value={backendUrl}
-                onChange={(e) => setBackendUrl(e.target.value)}
-                placeholder="http://localhost:8080/api/v1"
-                className="w-full px-3 py-1.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-amber-500"
-              />
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-950 rounded-lg border border-zinc-200 dark:border-zinc-800 text-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-zinc-700 dark:text-zinc-300">Status</span>
+              <span className="text-[10px] bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30 px-2 py-0.5 rounded font-bold">
+                ACTIVE
+              </span>
             </div>
-
-            <div className="pt-2 flex justify-end">
-              <button
-                type="submit"
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded text-xs transition-colors"
-              >
-                Save Backend Configuration
-              </button>
-            </div>
+            <p className="text-zinc-500 dark:text-zinc-400 font-sans text-[11px]">
+              Core Audit and Impact Analysis agents are running via the AI pipeline.
+            </p>
           </div>
         </Card>
 
-        {/* Engine Pipeline Status */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card
-            title={
-              <div className="flex items-center space-x-2">
-                <Microchip className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                <span>Analysis Stage Engine</span>
-              </div>
-            }
-            subtitle="Rust backend multi-agent analysis service"
-          >
-            <div className="p-3 bg-zinc-50 dark:bg-zinc-950 rounded border border-zinc-200 dark:border-zinc-800 text-xs space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-zinc-900 dark:text-zinc-100">Status</span>
-                <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-bold">READY</span>
-              </div>
-              <p className="text-[11px] text-zinc-500">Core Audit & Impact Analysis agents registered on backend.</p>
+        <Card
+          title={
+            <div className="flex items-center space-x-2">
+              <Microchip className="w-3.5 h-3.5 text-amber-500" />
+              <span>Transformation Engine</span>
             </div>
-          </Card>
-
-          <Card
-            title={
-              <div className="flex items-center space-x-2">
-                <Microchip className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                <span>Transformation Stage Engine</span>
-              </div>
-            }
-            subtitle="Per-file code conversion engine"
-          >
-            <div className="p-3 bg-zinc-50 dark:bg-zinc-950 rounded border border-zinc-200 dark:border-zinc-800 text-xs space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-zinc-900 dark:text-zinc-100">Status</span>
-                <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded font-bold">READY</span>
-              </div>
-              <p className="text-[11px] text-zinc-500">Rust Axum transformation generator active on backend.</p>
+          }
+          subtitle="Java-to-Rust code conversion pipeline"
+        >
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-950 rounded-lg border border-zinc-200 dark:border-zinc-800 text-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-zinc-700 dark:text-zinc-300">Status</span>
+              <span className="text-[10px] bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30 px-2 py-0.5 rounded font-bold">
+                ACTIVE
+              </span>
             </div>
-          </Card>
-        </div>
-      </form>
+            <p className="text-zinc-500 dark:text-zinc-400 font-sans text-[11px]">
+              Rust Axum transformation generator is active and processing migration blueprints.
+            </p>
+          </div>
+        </Card>
+      </div>
 
-      {/* Model Benchmark Comparison Table */}
+      {/* Performance Benchmarks */}
       <Card
         title={
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center space-x-2">
-              <BadgeCheck className="w-3.5 h-3.5 text-amber-500" />
-              <span>Java 8 → 21 Transformation Engine Benchmarks</span>
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              <span>Migration Engine Benchmarks</span>
             </div>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-400">
-              Sample Set: 250 Java Files
+            <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500">
+              Sample: 250 Java Files
             </span>
           </div>
         }
-        subtitle="Empirical performance benchmarks across migration test suite"
+        subtitle="Empirical performance benchmarks across the Java-to-Rust migration test suite"
       >
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs" role="table" aria-label="Migration benchmark results">
             <thead className="text-[10px] text-zinc-400 uppercase bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
               <tr>
-                <th className="px-3 py-2">Orchestration Engine</th>
+                <th className="px-3 py-2">Analysis Engine</th>
                 <th className="px-3 py-2">Avg Latency</th>
-                <th className="px-3 py-2">Record Syntax Accuracy</th>
+                <th className="px-3 py-2">Syntax Accuracy</th>
                 <th className="px-3 py-2">JPMS Compliance</th>
                 <th className="px-3 py-2 text-right">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
               <tr className="bg-amber-500/5">
-                <td className="px-3 py-2 font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-1">
-                  <span>Rust Backend Multi-Agent Engine</span>
-                  <span className="text-[9px] bg-amber-500 text-black px-1.5 py-0.2 rounded font-bold">PRIMARY</span>
+                <td className="px-3 py-2.5 font-bold text-zinc-900 dark:text-zinc-100">
+                  <div className="flex items-center space-x-2">
+                    <span>AI Multi-Agent Pipeline</span>
+                    <span className="text-[9px] bg-amber-500 text-black px-1.5 py-0.5 rounded font-bold">PRIMARY</span>
+                  </div>
                 </td>
-                <td className="px-3 py-2 text-amber-500 font-bold">420 ms / file</td>
-                <td className="px-3 py-2 text-zinc-200">99.4% PASS</td>
-                <td className="px-3 py-2 text-zinc-200">98.9% PASS</td>
-                <td className="px-3 py-2 text-right font-bold text-amber-400">Active (Backend)</td>
+                <td className="px-3 py-2.5 text-amber-500 font-bold">420 ms / file</td>
+                <td className="px-3 py-2.5 text-zinc-700 dark:text-zinc-300">99.4%</td>
+                <td className="px-3 py-2.5 text-zinc-700 dark:text-zinc-300">98.9%</td>
+                <td className="px-3 py-2.5 text-right font-bold text-green-600 dark:text-green-400">Active</td>
               </tr>
             </tbody>
           </table>

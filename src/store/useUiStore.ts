@@ -115,6 +115,6 @@ export const useUiStore = create<UiState>((set, get) => ({
       notifications: state.notifications.filter((n) => n.id !== id),
     })),
   notifyBackendRequired: (featureName) => {
-    get().addNotification(`Backend Required: ${featureName}`, "warning");
+    get().addNotification(`${featureName} requires API connectivity.`, "info");
   },
 }));

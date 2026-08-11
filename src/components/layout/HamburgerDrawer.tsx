@@ -20,13 +20,19 @@ export const HamburgerDrawer: React.FC = () => {
     queryFn: getProjects,
   });
 
-  if (!isHamburgerOpen) return null;
-
   const match = location.pathname.match(/\/projects\/([^/]+)/);
   const activeProjects = projects && projects.length > 0 ? projects : [];
   const savedProjectId = sessionStorage.getItem("ema_selected_project_id");
   const selectedProjectId = (match ? match[1] : savedProjectId) || (activeProjects[0] ? activeProjects[0].id : "proj-payment-gateway");
   const selectedProject = activeProjects.find((p) => p.id === selectedProjectId) || activeProjects[0];
+
+  const { data: projectDetails } = useQuery({
+    queryKey: ["project-details", selectedProjectId],
+    queryFn: () => getProjectDetails(selectedProjectId),
+    enabled: !!selectedProjectId,
+  });
+
+  if (!isHamburgerOpen) return null;
 
   const handleProjectSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const targetId = e.target.value;
@@ -67,11 +73,6 @@ export const HamburgerDrawer: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ["projects"] });
   };
 
-  const { data: projectDetails } = useQuery({
-    queryKey: ["project-details", selectedProjectId],
-    queryFn: () => getProjectDetails(selectedProjectId),
-    enabled: !!selectedProjectId,
-  });
 
   const isRouteUnlocked = (label: string): boolean => {
     if (label === "Blueprint Review") return true;
@@ -104,10 +105,10 @@ export const HamburgerDrawer: React.FC = () => {
   ];
 
   const primaryNavItems = [
-    { label: "Projects Dashboard", path: "/", icon: MonitorPlay },
-    { label: "API Settings", path: "/settings", icon: SlidersHorizontal },
-    { label: "Account & Team", path: "/account", icon: CircuitBoard },
-    { label: "Integrations & Sandbox", path: "/integrations", icon: Cable },
+    { label: "Dashboard", path: "/", icon: MonitorPlay },
+    { label: "Settings", path: "/settings", icon: SlidersHorizontal },
+    { label: "Account", path: "/account", icon: CircuitBoard },
+    { label: "Integrations", path: "/integrations", icon: Cable },
   ];
 
   return (
@@ -123,7 +124,7 @@ export const HamburgerDrawer: React.FC = () => {
             <div className="flex items-center space-x-2">
               <img src="/cpu.png" alt="ALCHEMI Logo" className="w-6 h-6 rounded object-cover shadow-xs" />
               <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100 tracking-wider">
-                ALCHEMI CONTROL PANEL
+                Navigation Menu
               </span>
             </div>
 
@@ -191,7 +192,7 @@ export const HamburgerDrawer: React.FC = () => {
           {/* Streamlined Project Pipeline Menu */}
           <div className="space-y-1">
             <span className="text-[10px] text-amber-600 dark:text-amber-500 uppercase tracking-widest block px-2 mb-1 font-bold">
-              Project Pipeline Options
+              Analysis Pipeline
             </span>
             {projectNavItems.map((item) => {
               const Icon = item.icon;
@@ -278,7 +279,7 @@ export const HamburgerDrawer: React.FC = () => {
           {/* Global Enterprise Nav */}
           <div className="space-y-1 pt-3 border-t border-zinc-200 dark:border-zinc-800">
             <span className="text-[10px] text-zinc-500 uppercase tracking-widest block px-2 mb-1 font-bold">
-              System Control
+              Settings & Admin
             </span>
             {primaryNavItems.map((item) => {
               const Icon = item.icon;

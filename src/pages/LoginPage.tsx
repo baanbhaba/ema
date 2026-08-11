@@ -1,158 +1,179 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ScanLine, AlertCircle, CircuitBoard, MoveRight, Sun, Moon, ShieldEllipsis } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, MoveRight, Sun, Moon, Cpu } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useUiStore } from "../store/useUiStore";
-import { Button } from "../components/common/Button";
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
   const { isDarkMode, toggleDarkMode } = useUiStore();
 
-  // Force light mode on login screen start
+  // Sync dark mode with document
   useEffect(() => {
     if (isDarkMode) {
-      toggleDarkMode();
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
     }
-  }, []);
+  }, [isDarkMode]);
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
-    setIsSubmitting(true);
 
+    if (!username.trim() || !password.trim()) {
+      setErrorMsg("Please enter your username and password.");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const success = await login(username, password);
       if (success) {
         navigate("/");
       } else {
-        setErrorMsg("Authentication failed. Invalid username or password.");
+        setErrorMsg("Invalid username or password. Please try again.");
       }
     } catch (_err) {
-      setErrorMsg("Authentication error. Please try again.");
+      setErrorMsg("An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-mono flex flex-col justify-center items-center p-4 transition-colors">
-      {/* Theme Toggle Top Right */}
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans flex flex-col justify-center items-center p-4 transition-colors">
+      {/* Theme Toggle */}
       <div className="absolute top-4 right-4">
         <button
           type="button"
           onClick={toggleDarkMode}
-          className="p-2 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:border-amber-500 transition-colors flex items-center space-x-2 text-xs shadow-2xs cursor-pointer"
+          className="p-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-amber-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors shadow-xs"
+          aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
         >
           {isDarkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-amber-500" />}
-          <span>{isDarkMode ? "Light Mode" : "Dark Mode"}</span>
         </button>
       </div>
 
-      {/* Brand Header */}
-      <div className="w-full max-w-md space-y-6 text-center">
-        <div className="flex items-center justify-center space-x-3">
-          <img src="/cpu.png" alt="ALCHEMI Logo" className="w-12 h-12 rounded-lg object-cover shadow-md" />
-          <span className="font-bold text-2xl tracking-wider text-zinc-900 dark:text-white">ALCHEMI</span>
+      <div className="w-full max-w-sm space-y-8">
+        {/* Brand */}
+        <div className="text-center space-y-3">
+          <div className="flex items-center justify-center">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+              <img src="/cpu.png" alt="ALCHEMI" className="w-9 h-9 rounded-lg object-cover" />
+            </div>
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-wide text-zinc-900 dark:text-white font-mono">
+              ALCHEMI
+            </h1>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+              Enterprise Migration Platform
+            </p>
+          </div>
         </div>
 
-        <div>
-          <h1 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest">
-            Legacy Code Transformation Platform
-          </h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 font-sans">
-            AI Code Modernization Engine (Java 8 → Rust Axum / Java 21)
-          </p>
-        </div>
-
-        {/* Clean Login Box */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 text-left space-y-5 shadow-xl transition-colors">
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800 text-xs">
-            <span className="font-bold text-zinc-800 dark:text-zinc-200 flex items-center space-x-2">
-              <ScanLine className="w-4 h-4 text-amber-500" />
-              <span>SECURE ACCESS</span>
-            </span>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold flex items-center space-x-1">
-              <ShieldEllipsis className="w-3 h-3 text-amber-500" />
-              <span>Enterprise</span>
-            </span>
+        {/* Login Card */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-lg space-y-5 transition-colors">
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+              Sign in to your account
+            </h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Enter your credentials to access the platform.
+            </p>
           </div>
 
           {errorMsg && (
-            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-md text-xs text-red-600 dark:text-red-400 flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span className="font-sans text-[11px]">{errorMsg}</span>
+            <div
+              role="alert"
+              className="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg text-sm text-red-700 dark:text-red-400 flex items-start space-x-2"
+            >
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{errorMsg}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-            <div>
-              <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Username</label>
-              <div className="relative">
-                <CircuitBoard className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="e.g. admin"
-                  className="w-full pl-9 pr-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-md text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-amber-500"
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            <div className="space-y-1.5">
+              <label
+                htmlFor="login-username"
+                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
+                Username
+              </label>
+              <input
+                id="login-username"
+                type="text"
+                required
+                autoComplete="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username"
+                className="w-full px-3.5 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-colors"
+              />
             </div>
 
-            <div>
-              <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Password</label>
+            <div className="space-y-1.5">
+              <label
+                htmlFor="login-password"
+                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
+                Password
+              </label>
               <div className="relative">
-                <ScanLine className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
                 <input
-                  type="password"
+                  id="login-password"
+                  type={showPassword ? "text" : "password"}
                   required
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-9 pr-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-md text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-amber-500"
+                  placeholder="Enter your password"
+                  className="w-full px-3.5 py-2.5 pr-10 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-colors"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
-            <Button
+            <button
+              id="login-submit"
               type="submit"
-              variant="primary"
-              size="md"
-              fullWidth
-              isLoading={isSubmitting}
-              icon={MoveRight}
-              iconPosition="right"
+              disabled={isSubmitting}
+              className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-semibold text-sm rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
             >
-              Authenticate & Enter Engine
-            </Button>
+              {isSubmitting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In</span>
+                  <MoveRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
           </form>
         </div>
 
-        {/* Credential hint */}
-        <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg px-4 py-3 text-left text-[10px] font-mono space-y-1.5">
-          <div className="text-zinc-500 uppercase tracking-widest mb-2 text-[9px]">Authorized Accounts</div>
-          <div className="flex items-center justify-between text-zinc-400">
-            <span className="text-amber-500 font-bold">admin</span>
-            <span className="text-zinc-600 mx-2">───</span>
-            <span>Consumer · Standard Access</span>
-          </div>
-          <div className="flex items-center justify-between text-zinc-400">
-            <span className="text-green-400 font-bold">baanbhaba</span>
-            <span className="text-zinc-600 mx-2">───</span>
-            <span>Dev Mode · Full AI Engine</span>
-          </div>
-        </div>
-
-        <p className="text-[10px] text-zinc-400 dark:text-zinc-600 font-sans">
-          ALCHEMI Code Transformation Engine • Secure Session
+        {/* Footer */}
+        <p className="text-center text-xs text-zinc-400 dark:text-zinc-600">
+          ALCHEMI Code Transformation Engine &mdash; Secure Session
         </p>
       </div>
     </div>

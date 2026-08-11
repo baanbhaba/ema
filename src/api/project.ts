@@ -22,6 +22,7 @@ import {
   calculateReadinessScore,
   calculateConsensus,
 } from "../lib/analysis";
+import { MOCK_PROJECTS, MOCK_CORE_AUDITS, MOCK_IMPACT_AUDITS } from "./mockData";
 
 export {
   detectJavaStack,
@@ -31,10 +32,15 @@ export {
   calculateConsensus as calculateDynamicConsensus,
 } from "../lib/analysis";
 
-let localProjectsStore: Record<string, ProjectSummary> = {};
+let localProjectsStore: Record<string, ProjectSummary> = MOCK_PROJECTS.reduce((acc, p) => {
+  acc[p.id] = p;
+  return acc;
+}, {} as Record<string, ProjectSummary>);
+
 let sourceCodeStore: Record<string, string> = {};
-let liveCoreAudits: Record<string, CoreAudit> = {};
-let liveImpactAudits: Record<string, ImpactAudit> = {};
+let liveCoreAudits: Record<string, CoreAudit> = { ...MOCK_CORE_AUDITS };
+let liveImpactAudits: Record<string, ImpactAudit> = { ...MOCK_IMPACT_AUDITS };
+
 
 const getPersistedSourceCode = (projectId: string): string => {
   if (sourceCodeStore[projectId]) return sourceCodeStore[projectId];

@@ -3,7 +3,6 @@ import type { BlueprintStep } from "../../types/contracts";
 import { Badge } from "../common/Badge";
 import { Check, X, Edit2, ChevronDown, ChevronRight, TriangleAlert, Sparkles } from "lucide-react";
 import { useUiStore } from "../../store/useUiStore";
-import { useAuthStore } from "../../store/useAuthStore";
 import { triggerTransformation } from "../../api/transform";
 import { getProjectSourceCode } from "../../api/project";
 
@@ -28,8 +27,7 @@ export const StepCard: React.FC<StepCardProps> = ({
   onOpenEditModal,
   allSteps,
 }) => {
-  const { viewedSteps, markStepViewed, notifyBackendRequired } = useUiStore();
-  const { isDevMode } = useAuthStore();
+  const { viewedSteps, markStepViewed } = useUiStore();
   const isViewed = (viewedSteps[projectId] || []).includes(step.id);
 
   const [transformedRustCode, setTransformedRustCode] = useState<string | null>(null);
@@ -63,9 +61,6 @@ export const StepCard: React.FC<StepCardProps> = ({
   const handleRunTransformation = async () => {
     setIsTransforming(true);
     setTransformError(null);
-    if (!isDevMode) {
-      notifyBackendRequired("Live Code Transformation Engine");
-    }
     try {
       const res = await triggerTransformation(projectId, step.id);
       setTransformedRustCode(res.transformed_code);
