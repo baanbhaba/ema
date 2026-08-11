@@ -103,8 +103,6 @@ export const createProject = async (data: {
   repo_url: string;
   javaCode?: string;
 }): Promise<ProjectSummary> => {
-  const { isDevMode } = useAuthStore.getState();
-
   const codeToSave = (data.javaCode && data.javaCode.trim().length > 0)
     ? data.javaCode
     : "";
