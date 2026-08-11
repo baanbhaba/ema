@@ -361,6 +361,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return {
           unit: file,
           diff: `${diffHeader}${diffBody}`,
+          java_code: rawJava,
+          rust_code: rustCode,
           validation: {
             unit: file,
             build_status: s.status === "rejected" ? "fail" : "pass",
