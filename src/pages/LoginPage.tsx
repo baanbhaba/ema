@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, Eye, EyeOff, MoveRight, Sun, Moon, Cpu } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, MoveRight, Sun, Moon } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useUiStore } from "../store/useUiStore";
 

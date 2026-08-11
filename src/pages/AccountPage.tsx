@@ -14,7 +14,7 @@ export const AccountPage: React.FC = () => {
   });
 
   const projectCount = projects?.length ?? 0;
-  const activeProjects = projects?.filter((p) => p.stage !== "complete") ?? [];
+  const activeProjects = projects?.filter((p) => p.stage !== "done") ?? [];
 
   return (
     <div className="space-y-6 font-mono">
