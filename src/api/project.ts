@@ -15,6 +15,7 @@ import {
 import { fetchApi } from "./client";
 import { analyzeCoreWithNvidia, analyzeImpactWithNvidia } from "./nvidiaEngine";
 import { useAuthStore } from "../store/useAuthStore";
+import { getTransformedCode } from "./transform";
 import {
   detectJavaStack,
   detectJavaDeprecatedUsages,
@@ -205,7 +206,12 @@ export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
   // Return in-memory cache
   if (liveCoreAudits[projectId]) return liveCoreAudits[projectId];
 
-  const code = getPersistedSourceCode(projectId);
+  const javaCode = getPersistedSourceCode(projectId);
+  const transformedRust = getTransformedCode(projectId);
+  const combinedContext = transformedRust
+    ? `LEGACY JAVA SOURCE CODE:\n${javaCode}\n\nTRANSFORMED RUST MODULES FROM BLUEPRINT REVIEW:\n${transformedRust}`
+    : javaCode;
+
   const proj = localProjectsStore[projectId];
   const srcMap = getProjectSourceCode(projectId);
   const fileName = Object.keys(srcMap)[0] || `${proj?.name || "Main"}.java`;
@@ -213,7 +219,7 @@ export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
   // ── Tier 1: Dev mode — direct NVIDIA NIM call ──────────────────────────────
   if (isDevMode) {
     const name = proj?.name || "Uploaded Project";
-    const aiResult = await analyzeCoreWithNvidia(name, code);
+    const aiResult = await analyzeCoreWithNvidia(name, combinedContext);
     if (aiResult) {
       liveCoreAudits[projectId] = CoreAuditSchema.parse(aiResult);
       return liveCoreAudits[projectId];
@@ -224,7 +230,7 @@ export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
   try {
     const data = await fetchApi<CoreAudit>("/analyze/core", {
       method: "POST",
-      body: JSON.stringify({ project_id: projectId, code }),
+      body: JSON.stringify({ project_id: projectId, code: combinedContext }),
     });
     const parsed = CoreAuditSchema.parse(data);
     liveCoreAudits[projectId] = parsed;
@@ -280,7 +286,12 @@ export const getImpactAudit = async (projectId: string): Promise<ImpactAudit> =>
 
   if (liveImpactAudits[projectId]) return liveImpactAudits[projectId];
 
-  const code = getPersistedSourceCode(projectId);
+  const javaCode = getPersistedSourceCode(projectId);
+  const transformedRust = getTransformedCode(projectId);
+  const combinedContext = transformedRust
+    ? `LEGACY JAVA SOURCE CODE:\n${javaCode}\n\nTRANSFORMED RUST MODULES FROM BLUEPRINT REVIEW:\n${transformedRust}`
+    : javaCode;
+
   const proj = localProjectsStore[projectId];
   const srcMap = getProjectSourceCode(projectId);
   const fileName = Object.keys(srcMap)[0] || `${proj?.name || "Main"}.java`;
@@ -288,7 +299,7 @@ export const getImpactAudit = async (projectId: string): Promise<ImpactAudit> =>
   // ── Tier 1: Dev mode — direct NVIDIA NIM call ──────────────────────────────
   if (isDevMode) {
     const name = proj?.name || "Uploaded Project";
-    const aiResult = await analyzeImpactWithNvidia(name, code);
+    const aiResult = await analyzeImpactWithNvidia(name, combinedContext);
     if (aiResult) {
       liveImpactAudits[projectId] = ImpactAuditSchema.parse(aiResult);
       return liveImpactAudits[projectId];
@@ -299,7 +310,7 @@ export const getImpactAudit = async (projectId: string): Promise<ImpactAudit> =>
   try {
     const data = await fetchApi<ImpactAudit>("/analyze/impact", {
       method: "POST",
-      body: JSON.stringify({ project_id: projectId, code }),
+      body: JSON.stringify({ project_id: projectId, code: combinedContext }),
     });
     const parsed = ImpactAuditSchema.parse(data);
     liveImpactAudits[projectId] = parsed;

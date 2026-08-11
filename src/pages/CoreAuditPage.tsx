@@ -6,8 +6,10 @@ import { getCoreAudit } from "../api/client";
 import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
 import { MermaidDiagram } from "../components/common/MermaidDiagram";
+import { TopologyGraph } from "../components/common/TopologyGraph";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
 import { ErrorState } from "../components/common/ErrorState";
+import { getTransformedCode } from "../api/transform";
 
 export const CoreAuditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -138,18 +140,21 @@ export const CoreAuditPage: React.FC = () => {
           title={
             <div className="flex items-center space-x-2">
               <Globe className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-              <span>Dependency Graph (petgraph)</span>
+              <span>Chained Architecture Topology Schema</span>
             </div>
           }
-          subtitle="Architectural topology flow"
+          subtitle="2D Flowchart & 3D Interactive Topology derived from source code & transformed Rust modules"
         >
           <div className="space-y-4">
             {audit.diagrams.map((diag, idx) => (
               <div key={idx}>
-                <div className="text-[10px] font-mono text-zinc-400 mb-1 uppercase">
-                  Type: {diag.type} diagram
-                </div>
-                <MermaidDiagram chart={diag.content} id={`core-diag-${idx}`} />
+                <TopologyGraph
+                  mermaidChart={diag.content}
+                  id={`core-diag-${idx}`}
+                  nodes={audit.dependency_graph?.nodes}
+                  edges={audit.dependency_graph?.edges}
+                  transformedCode={getTransformedCode(id || "")}
+                />
               </div>
             ))}
           </div>
