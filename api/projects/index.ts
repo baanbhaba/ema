@@ -29,7 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === "POST") {
     try {
-      const { name, repoUrl, repo_url, stage, javaCode } = req.body || {};
+      const { id, name, repoUrl, repo_url, stage, javaCode } = req.body || {};
 
       if (!name) {
         return res.status(400).json({ error: "Project name is required" });
@@ -63,6 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const project = await prisma.project.create({
         data: {
+          id: id || undefined,
           name,
           repoUrl: repoUrl || repo_url || "",
           stage: stage || (javaCode ? "analyzing" : "ingesting"),

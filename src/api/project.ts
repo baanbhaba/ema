@@ -149,7 +149,7 @@ export const createProject = async (data: {
   try {
     const res = await fetchApi<ProjectSummary>("/projects", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify({ id, ...data }),
     });
     if (res && res.id) {
       localProjectsStore[res.id] = res;

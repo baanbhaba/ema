@@ -95,6 +95,10 @@
       "destination": "/api/projects/:id?route=audit"
     },
     {
+      "source": "/api/v1/projects/:id/upload",
+      "destination": "/api/projects/:id?route=upload"
+    },
+    {
       "source": "/api/v1/projects/:id",
       "destination": "/api/projects/:id"
     },
