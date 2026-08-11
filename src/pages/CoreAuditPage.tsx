@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ScanSearch, RadioTower, Microchip, Globe, FileTerminal, Check } from "lucide-react";
+import { ScanSearch, RadioTower, Microchip, Globe, FileTerminal, Check, MoveRight } from "lucide-react";
 import { getCoreAudit } from "../api/client";
 import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
@@ -240,6 +240,20 @@ export const CoreAuditPage: React.FC = () => {
           </div>
         </div>
       </Card>
+
+      <div className="pt-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-center font-mono">
+        <span className="text-[10px] text-zinc-500">Step 2 of 5: Core Audit Complete</span>
+        <button
+          onClick={() => {
+            sessionStorage.setItem("ema_unlocked_impact-audit", "true");
+            navigate(`/projects/${id}/impact-audit`);
+          }}
+          className="inline-flex items-center space-x-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 rounded font-bold text-xs transition-colors"
+        >
+          <span>Proceed & Unlock Impact Audit</span>
+          <MoveRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   );
 };

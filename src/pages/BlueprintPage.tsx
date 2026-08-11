@@ -308,17 +308,16 @@ export const BlueprintPage: React.FC = () => {
         </div>
       </Card>
 
-      {approvedCount > 0 && (
-        <div className="pt-2 flex justify-end font-mono">
-          <button
-            onClick={() => navigate(`/projects/${id}/report`)}
-            className="inline-flex items-center space-x-1.5 px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 rounded font-bold text-xs hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-          >
-            <span>View Generated Migration Report</span>
-            <MoveRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
+      <div className="pt-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-center font-mono">
+        <span className="text-[10px] text-zinc-500">Step 1 of 5: Blueprint Review Complete</span>
+        <button
+          onClick={() => navigate(`/projects/${id}/core-audit`)}
+          className="inline-flex items-center space-x-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 rounded font-bold text-xs transition-colors"
+        >
+          <span>Proceed to Core Audit</span>
+          <MoveRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
 
       <StepRejectModal
         isOpen={!!rejectModalStepId}

@@ -44,8 +44,9 @@ export const ReportPage: React.FC = () => {
 
   const blueprintSteps = projectDetails?.blueprint?.steps || [];
   const allApproved = blueprintSteps.length > 0 && blueprintSteps.every((s: any) => s.status === "approved");
+  const reportUnlocked = allApproved || sessionStorage.getItem("ema_unlocked_report") === "true";
 
-  if (projectDetails && !allApproved) {
+  if (projectDetails && !reportUnlocked) {
     return (
       <ErrorState
         title="Stage Locked"

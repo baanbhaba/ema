@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Bolt, Database, Sliders, TriangleAlert, ChevronDown, ChevronRight, Layers, ScanText } from "lucide-react";
+import { Bolt, Database, Sliders, TriangleAlert, ChevronDown, ChevronRight, Layers, ScanText, MoveRight } from "lucide-react";
 import { getImpactAudit, getProjectDetails } from "../api/client";
 import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
@@ -40,7 +40,8 @@ export const ImpactAuditPage: React.FC = () => {
 
   if (isLoading) return <LoadingSkeleton rows={4} />;
 
-  if (projectDetails && !projectDetails.core_audit) {
+  const coreDone = !!projectDetails?.core_audit || sessionStorage.getItem("ema_unlocked_impact-audit") === "true";
+  if (projectDetails && !coreDone) {
     return (
       <ErrorState
         title="Stage Locked"
@@ -326,6 +327,20 @@ export const ImpactAuditPage: React.FC = () => {
           })}
         </div>
       </Card>
+
+      <div className="pt-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-center font-mono">
+        <span className="text-[10px] text-zinc-500">Step 3 of 5: Impact Audit Complete</span>
+        <button
+          onClick={() => {
+            sessionStorage.setItem("ema_unlocked_readiness", "true");
+            navigate(`/projects/${id}/readiness`);
+          }}
+          className="inline-flex items-center space-x-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 rounded font-bold text-xs transition-colors"
+        >
+          <span>Proceed & Unlock Readiness & Consensus</span>
+          <MoveRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   );
 };

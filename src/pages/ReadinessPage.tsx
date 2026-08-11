@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { RefreshCcw, CircleCheckBig, HelpCircle, BarChart3, Layers, Scale } from "lucide-react";
+import { RefreshCcw, CircleCheckBig, HelpCircle, BarChart3, Layers, Scale, MoveRight } from "lucide-react";
 import { getReadinessScore, getConsensusResult, getProjectDetails } from "../api/client";
 import { Card } from "../components/common/Card";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
@@ -91,7 +91,8 @@ export const ReadinessPage: React.FC = () => {
 
   if (isLoadingScore || isLoadingConsensus) return <LoadingSkeleton rows={4} />;
 
-  if (projectDetails && (!projectDetails.core_audit || !projectDetails.impact_audit)) {
+  const prevDone = (!!projectDetails?.core_audit && !!projectDetails?.impact_audit) || sessionStorage.getItem("ema_unlocked_readiness") === "true";
+  if (projectDetails && !prevDone) {
     return (
       <ErrorState
         title="Stage Locked"
@@ -257,6 +258,20 @@ export const ReadinessPage: React.FC = () => {
           )}
         </div>
       </Card>
+
+      <div className="pt-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-center font-mono">
+        <span className="text-[10px] text-zinc-500">Step 4 of 5: Consensus Achieved</span>
+        <button
+          onClick={() => {
+            sessionStorage.setItem("ema_unlocked_report", "true");
+            navigate(`/projects/${id}/report`);
+          }}
+          className="inline-flex items-center space-x-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 rounded font-bold text-xs transition-colors"
+        >
+          <span>Proceed & Unlock Migration Report</span>
+          <MoveRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   );
 };
