@@ -5,7 +5,6 @@ import { ScanSearch, RadioTower, Microchip, Globe, FileTerminal, Check, MoveRigh
 import { getCoreAudit } from "../api/client";
 import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
-import { MermaidDiagram } from "../components/common/MermaidDiagram";
 import { TopologyGraph } from "../components/common/TopologyGraph";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
 import { ErrorState } from "../components/common/ErrorState";

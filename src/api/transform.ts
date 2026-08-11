@@ -8,6 +8,30 @@ export interface TransformationResponse {
   status: "completed" | "failed" | "in_progress";
 }
 
+let liveTransformations: Record<string, Record<string, string>> = {};
+
+export const getTransformedCode = (projectId: string, stepId?: string): string => {
+  try {
+    const key = `ema_transformed_${projectId}`;
+    const existing = JSON.parse(sessionStorage.getItem(key) || "{}");
+    if (stepId) return existing[stepId] || liveTransformations[projectId]?.[stepId] || "";
+    return Object.values(existing).join("\n\n") || Object.values(liveTransformations[projectId] || {}).join("\n\n");
+  } catch {
+    return Object.values(liveTransformations[projectId] || {}).join("\n\n");
+  }
+};
+
+export const saveTransformedCode = (projectId: string, stepId: string, code: string) => {
+  if (!liveTransformations[projectId]) liveTransformations[projectId] = {};
+  liveTransformations[projectId][stepId] = code;
+  try {
+    const key = `ema_transformed_${projectId}`;
+    const existing = JSON.parse(sessionStorage.getItem(key) || "{}");
+    existing[stepId] = code;
+    sessionStorage.setItem(key, JSON.stringify(existing));
+  } catch {}
+};
+
 
 export const isJavaSourceCode = (code: string): boolean => {
   if (!code || code.trim().length === 0) return false;

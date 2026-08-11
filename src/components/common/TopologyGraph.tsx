@@ -9,12 +9,6 @@ interface NodeItem {
   status: "legacy" | "migrated" | "pending";
 }
 
-interface EdgeItem {
-  from: string;
-  to: string;
-  label?: string;
-}
-
 interface TopologyGraphProps {
   mermaidChart: string;
   id: string;

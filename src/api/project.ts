@@ -240,15 +240,15 @@ export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
     // Uses the actual uploaded Java code, not hardcoded Spring Boot placeholders.
     console.warn(`[OFFLINE] Backend /analyze/core unavailable — running local static analysis on uploaded code.`);
 
-    const detectedStack = code.trim()
-      ? detectJavaStack(code)
+    const detectedStack = javaCode.trim()
+      ? detectJavaStack(javaCode)
       : [{ technology: "Java", version: "unknown", status: "deprecated" as const }];
 
-    const detectedUsages = code.trim()
-      ? detectJavaDeprecatedUsages(code, fileName)
+    const detectedUsages = javaCode.trim()
+      ? detectJavaDeprecatedUsages(javaCode, fileName)
       : [];
 
-    const classNames = [...(code.matchAll(/(?:public\s+)?class\s+(\w+)/g))].map(m => m[1]);
+    const classNames = [...(javaCode.matchAll(/(?:public\s+)?class\s+(\w+)/g))].map(m => m[1]);
     const nodes = classNames.length > 0
       ? classNames
       : [fileName.replace(/\.java$/, ""), "Service", "Repository"];
@@ -263,14 +263,14 @@ export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
       : `graph TD\n  Source["${proj?.name || "Java App"}"] --> Target["Java 21 / Rust Axum"]`;
 
     const result: CoreAudit = {
-      architecture_summary: code.trim()
+      architecture_summary: javaCode.trim()
         ? `Static analysis of '${fileName}'. Detected ${classNames.length} class(es), ${detectedUsages.length} deprecated API usage(s), ${detectedStack.length} technology component(s). Backend AI analysis unavailable — results reflect deterministic static scanning only.`
         : `No Java source uploaded for project '${proj?.name || projectId}'. Upload source code to enable analysis.`,
       detected_stack: detectedStack,
       deprecated_usages: detectedUsages,
       dependency_graph: { nodes, edges },
       diagrams: [{ type: "component", format: "mermaid", content: diagramContent }],
-      confidence: code.trim() ? 0.72 : 0.1,
+      confidence: javaCode.trim() ? 0.72 : 0.1,
     };
 
     liveCoreAudits[projectId] = CoreAuditSchema.parse(result);
@@ -319,8 +319,8 @@ export const getImpactAudit = async (projectId: string): Promise<ImpactAudit> =>
     // ── Tier 3: Real local static analysis ────────────────────────────────────
     console.warn(`[OFFLINE] Backend /analyze/impact unavailable — running local static analysis on uploaded code.`);
 
-    if (code.trim()) {
-      const dynamicImpact = detectJavaImpactAudit(code, fileName);
+    if (javaCode.trim()) {
+      const dynamicImpact = detectJavaImpactAudit(javaCode, fileName);
       const parsed = ImpactAuditSchema.parse(dynamicImpact);
       liveImpactAudits[projectId] = parsed;
       return parsed;
