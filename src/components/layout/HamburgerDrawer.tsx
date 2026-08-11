@@ -74,17 +74,24 @@ export const HamburgerDrawer: React.FC = () => {
   });
 
   const isRouteUnlocked = (label: string): boolean => {
-    if (!projectDetails) return label === "Blueprint Review" || label === "Core Audit";
-    const coreDone = !!projectDetails.core_audit;
-    const impactDone = !!projectDetails.impact_audit;
-    const blueprintSteps = projectDetails.blueprint?.steps || [];
-    const allApproved = blueprintSteps.length > 0 && blueprintSteps.every((s: any) => s.status === "approved");
-
     if (label === "Blueprint Review") return true;
     if (label === "Core Audit") return true;
-    if (label === "Impact Audit") return coreDone;
-    if (label === "Readiness & Consensus") return coreDone && impactDone;
-    if (label === "Migration Report") return coreDone && impactDone && allApproved;
+
+    const manualImpact = sessionStorage.getItem("ema_unlocked_impact-audit") === "true";
+    const manualReadiness = sessionStorage.getItem("ema_unlocked_readiness") === "true";
+    const manualReport = sessionStorage.getItem("ema_unlocked_report") === "true";
+
+    if (label === "Impact Audit") {
+      return manualImpact || manualReadiness || manualReport || !!projectDetails?.core_audit;
+    }
+    if (label === "Readiness & Consensus") {
+      return manualReadiness || manualReport || (!!projectDetails?.core_audit && !!projectDetails?.impact_audit);
+    }
+    if (label === "Migration Report") {
+      const blueprintSteps = projectDetails?.blueprint?.steps || [];
+      const allApproved = blueprintSteps.length > 0 && blueprintSteps.every((s: any) => s.status === "approved");
+      return manualReport || (!!projectDetails?.core_audit && !!projectDetails?.impact_audit && allApproved);
+    }
     return true;
   };
 
