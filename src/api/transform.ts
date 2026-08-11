@@ -1,5 +1,6 @@
 import { fetchApi } from "./client";
 import { getProjectSourceCode } from "./project";
+import { updateBlueprintStep } from "./review";
 import { sanitizeRustCode } from "../utils/exportRustCode";
 
 export interface TransformationResponse {
@@ -32,7 +33,6 @@ export const saveTransformedCode = (projectId: string, stepId: string, code: str
   } catch {}
 };
 
-
 export const isJavaSourceCode = (code: string): boolean => {
   if (!code || code.trim().length === 0) return false;
   const javaPattern = /\b(class|interface|enum|public|private|protected|import\s+java|package|void|static\s+void\s+main|System\.out|@SpringBootApplication|@RestController|@Service|@Component|@Entity|@Table|@Id|@Column)\b/;
@@ -44,8 +44,8 @@ export const generateRustCodeFromJava = (javaCode: string, _stepId: string): str
     return `// ERROR: Invalid input. Please provide valid Java source code for legacy migration.`;
   }
 
-  const classMatch = javaCode.match(/public\s+class\s+([A-Za-z0-9_]+)/) || javaCode.match(/class\s+([A-Za-z0-9_]+)/);
-  const className = classMatch ? classMatch[1] : "MigratedModule";
+  const classMatch = javaCode.match(/(?:public\s+)?class\s+([A-Za-z0-9_]+)/) || javaCode.match(/class\s+([A-Za-z0-9_]+)/);
+  const className = classMatch ? classMatch[1] : "MigratedService";
 
   const isCoffeeBot = javaCode.includes("CoffeeBot") || javaCode.includes("map[x][y] != 'C'") || javaCode.includes("Coffee found");
 
@@ -129,27 +129,124 @@ fn main() {
 }`;
   }
 
-  return `pub struct ${className} {
-    pub id: String,
-    pub status: String,
+  // Parse Spring Boot / REST controller annotations & endpoints
+  const isRestController = javaCode.includes("@RestController") || javaCode.includes("@RequestMapping") || javaCode.includes("@GetMapping") || javaCode.includes("@PostMapping");
+
+  // Extract fields from Java class: e.g. private String paymentId; private double amount;
+  const fieldMatches = [...javaCode.matchAll(/(?:private|protected|public)\s+([A-Za-z0-9_<>]+)\s+([A-Za-z0-9_]+);/g)];
+  const fields = fieldMatches.map((m) => {
+    const type = m[1];
+    const name = m[2];
+    let rustType = "String";
+    if (type.includes("int") || type.includes("Integer")) rustType = "i64";
+    else if (type.includes("double") || type.includes("Float")) rustType = "f64";
+    else if (type.includes("boolean") || type.includes("Boolean")) rustType = "bool";
+    else if (type.includes("List")) rustType = "Vec<String>";
+    else if (type.includes("Map")) rustType = "std::collections::HashMap<String, String>";
+    return { name, rustType };
+  });
+
+  // Extract methods: e.g. public ResponseEntity processPayment(PaymentRequest req)
+  const methodMatches = [...javaCode.matchAll(/(?:public|private)\s+([A-Za-z0-9_<>]+)\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)/g)];
+  const methods = methodMatches
+    .map((m) => {
+      const returnType = m[1];
+      const methodName = m[2].replace(/([A-Z])/g, "_$1").toLowerCase();
+      return { name: methodName, returnType };
+    })
+    .filter((m) => m.name !== "main" && !m.name.startsWith("_"));
+
+  if (isRestController) {
+    const rustFields = fields.length > 0
+      ? fields.map((f) => `    pub ${f.name}: ${f.rustType},`).join("\n")
+      : `    pub request_id: String,\n    pub status: String,`;
+
+    return `use axum::{routing::{get, post}, Router, Json, response::IntoResponse};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ${className}Payload {
+${rustFields}
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ${className}Response {
+    pub success: bool,
+    pub message: String,
+    pub payload: Option<${className}Payload>,
+}
+
+pub async fn handle_${className.toLowerCase()}_process(
+    Json(payload): Json<${className}Payload>,
+) -> impl IntoResponse {
+    let response = ${className}Response {
+        success: true,
+        message: format!("Successfully executed Axum handler for ${className}"),
+        payload: Some(payload),
+    };
+    Json(response)
+}
+
+pub fn create_${className.toLowerCase()}_router() -> Router {
+    Router::new()
+        .route("/api/v1/${className.toLowerCase()}", post(handle_${className.toLowerCase()}_process))
+}`;
+  }
+
+  // Model as domain Service or Data Model
+  const rustFields = fields.length > 0
+    ? fields.map((f) => `    pub ${f.name}: ${f.rustType},`).join("\n")
+    : `    pub id: String,\n    pub created_at: String,\n    pub is_active: bool,`;
+
+  const rustMethods = methods.map((m) => {
+    return `    pub async fn ${m.name}(&mut self) -> Result<String, String> {
+        Ok(format!("Executed ${m.name} successfully in ${className}"))
+    }`;
+  }).join("\n\n");
+
+  return `use serde::{Serialize, Deserialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ${className} {
+${rustFields}
 }
 
 impl ${className} {
-    pub fn new(id: impl Into<String>) -> Self {
+    pub fn new() -> Self {
         Self {
-            id: id.into(),
-            status: "ACTIVE".to_string(),
+${fields.length > 0 ? fields.map((f) => `            ${f.name}: ${f.rustType === "String" ? 'String::new()' : f.rustType === "bool" ? 'true' : '0'}`).join(",\n") : '            id: "ID_INITIALIZED".to_string(),\n            created_at: "2026-08-11T00:00:00Z".to_string(),\n            is_active: true'}
         }
     }
+
+${rustMethods || `    pub async fn execute_${className.toLowerCase()}_task(&mut self) -> Result<String, String> {\n        Ok(format!("Processing task for ${className}"))\n    }`}
 }`;
 };
 
 export const triggerTransformation = async (
   projectId: string,
-  stepId: string
+  stepId: string,
+  fileOrCode?: string
 ): Promise<TransformationResponse> => {
   const sourceCodeMap = getProjectSourceCode(projectId);
-  const javaCode = Object.values(sourceCodeMap).join("\n") || "";
+  let javaCode = "";
+  if (fileOrCode && sourceCodeMap[fileOrCode]) {
+    javaCode = sourceCodeMap[fileOrCode];
+  } else if (fileOrCode && fileOrCode.includes("class ")) {
+    javaCode = fileOrCode;
+  } else {
+    // Find file matching stepId or step index
+    const keys = Object.keys(sourceCodeMap);
+    const stepIdx = parseInt(stepId.replace(/[^0-9]/g, ""), 10) - 1;
+    if (!isNaN(stepIdx) && stepIdx >= 0 && keys[stepIdx]) {
+      javaCode = sourceCodeMap[keys[stepIdx]];
+    } else {
+      javaCode = Object.values(sourceCodeMap)[0] || "";
+    }
+  }
+
+  if (!isJavaSourceCode(javaCode)) {
+    javaCode = Object.values(sourceCodeMap).join("\n") || "";
+  }
 
   if (!isJavaSourceCode(javaCode)) {
     return {
@@ -186,6 +283,8 @@ export const triggerTransformation = async (
       const data = await res.json();
       const rawCode = data.choices?.[0]?.message?.content || "";
       const cleanCode = sanitizeRustCode(rawCode);
+      saveTransformedCode(projectId, stepId, cleanCode);
+      updateBlueprintStep(projectId, stepId, { target_pattern: cleanCode }).catch(() => {});
       return { step_id: stepId, transformed_code: cleanCode, status: "completed" };
     }
   } catch (err) {
@@ -194,15 +293,22 @@ export const triggerTransformation = async (
 
   // Try Vercel serverless function
   try {
-    return await fetchApi<TransformationResponse>(
+    const backendResult = await fetchApi<TransformationResponse>(
       `/projects/${projectId}/transform`,
       {
         method: "POST",
         body: JSON.stringify({ stepId }),
       }
     );
+    if (backendResult?.transformed_code) {
+      saveTransformedCode(projectId, stepId, backendResult.transformed_code);
+      updateBlueprintStep(projectId, stepId, { target_pattern: backendResult.transformed_code }).catch(() => {});
+    }
+    return backendResult;
   } catch (_err) {
     const mockTransformed = generateRustCodeFromJava(javaCode, stepId);
+    saveTransformedCode(projectId, stepId, mockTransformed);
+    updateBlueprintStep(projectId, stepId, { target_pattern: mockTransformed }).catch(() => {});
     return { step_id: stepId, transformed_code: mockTransformed, status: "completed" };
   }
 };

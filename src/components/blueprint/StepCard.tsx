@@ -62,7 +62,7 @@ export const StepCard: React.FC<StepCardProps> = ({
     setIsTransforming(true);
     setTransformError(null);
     try {
-      const res = await triggerTransformation(projectId, step.id);
+      const res = await triggerTransformation(projectId, step.id, step.file_or_module);
       setTransformedRustCode(res.transformed_code);
       step.target_pattern = res.transformed_code;
     } catch (err) {
