@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Columns, AlignJustify, Check, Copy, ChevronDown, ChevronRight, ShieldCheck, Zap, Cpu, MemoryStick, Terminal } from "lucide-react";
+import { Columns, AlignJustify, Check, Copy, ChevronDown, ChevronRight, ShieldCheck, Cpu, MemoryStick, Terminal } from "lucide-react";
 
 interface DiffViewerProps {
   diff: string;
