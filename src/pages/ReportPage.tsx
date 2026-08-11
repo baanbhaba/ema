@@ -289,7 +289,11 @@ export const ReportPage: React.FC = () => {
       </Card>
 
       {/* Executive Infrastructure Benchmarks Visualizer */}
-      <BenchmarkVisualizer projectName={projectDetails?.name || id || "Migrated Service"} />
+      <BenchmarkVisualizer
+        projectName={projectDetails?.name || id || "Migrated Service"}
+        javaCode={report.entries.map((e) => e.java_code || "").join("\n")}
+        rustCode={report.entries.map((e) => e.rust_code || "").join("\n")}
+      />
 
       {/* 2D & 3D Architectural Schema Preview */}
       {report.core_audit?.diagrams?.[0] && (
