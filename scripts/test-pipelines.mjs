@@ -51,7 +51,7 @@ const mockPrisma = {
     },
   },
   project: {
-    create: async ({ data, include }) => {
+    create: async ({ data }) => {
       const projectId = `proj-${Date.now().toString(36)}`;
       const newProj = {
         id: projectId,
@@ -242,8 +242,7 @@ async function runTests() {
   const coreHandler = (await import("../api/analyze/core.ts")).default;
   const impactHandler = (await import("../api/analyze/impact.ts")).default;
   const projectsHandler = (await import("../api/projects/index.ts")).default;
-  const assessmentHandler = (await import("../api/projects/[id]/assessment.ts")).default;
-  const reportHandler = (await import("../api/projects/[id]/report.ts")).default;
+  const projectDetailsAndRouteHandler = (await import("../api/projects/[id]/index.ts")).default;
 
   // ── 1. Secure Authentication Tests ─────────────────────────────────────────
   console.log("\n🔑 Testing authentication security...");
@@ -333,10 +332,10 @@ async function runTests() {
   // Test 5a: Readiness calculation
   const reqReadiness = {
     method: "GET",
-    query: { id: projectId, kind: "readiness" }
+    query: { id: projectId, route: "readiness" }
   };
   const resReadiness = new MockResponse();
-  await assessmentHandler(reqReadiness, resReadiness);
+  await projectDetailsAndRouteHandler(reqReadiness, resReadiness);
   
   const readiness = resReadiness.body;
   if (resReadiness.statusCode === 200 && readiness) {
@@ -348,10 +347,10 @@ async function runTests() {
   // Test 5b: Consensus calculation
   const reqConsensus = {
     method: "GET",
-    query: { id: projectId, kind: "consensus" }
+    query: { id: projectId, route: "consensus" }
   };
   const resConsensus = new MockResponse();
-  await assessmentHandler(reqConsensus, resConsensus);
+  await projectDetailsAndRouteHandler(reqConsensus, resConsensus);
   
   const consensus = resConsensus.body;
   if (resConsensus.statusCode === 200 && consensus) {
@@ -364,10 +363,10 @@ async function runTests() {
   console.log("\n📄 Testing Migration Report Generation...");
   const reqReport = {
     method: "GET",
-    query: { id: projectId }
+    query: { id: projectId, route: "report" }
   };
   const resReport = new MockResponse();
-  await reportHandler(reqReport, resReport);
+  await projectDetailsAndRouteHandler(reqReport, resReport);
   
   const report = resReport.body;
   if (resReport.statusCode === 200 && report) {

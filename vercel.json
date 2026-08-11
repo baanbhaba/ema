@@ -28,43 +28,43 @@
     },
     {
       "source": "/api/v1/projects/:id/blueprint/steps/:stepId/approve",
-      "destination": "/api/projects/:id/blueprint/steps/:stepId?action=approve"
+      "destination": "/api/projects/:id?route=step-approve&stepId=:stepId"
     },
     {
       "source": "/api/v1/projects/:id/blueprint/steps/:stepId/reject",
-      "destination": "/api/projects/:id/blueprint/steps/:stepId?action=reject"
+      "destination": "/api/projects/:id?route=step-reject&stepId=:stepId"
     },
     {
       "source": "/api/v1/projects/:id/blueprint/steps/:stepId",
-      "destination": "/api/projects/:id/blueprint/steps/:stepId"
+      "destination": "/api/projects/:id?route=step-patch&stepId=:stepId"
     },
     {
       "source": "/api/v1/projects/:id/blueprint/approve-all",
-      "destination": "/api/projects/:id/blueprint"
+      "destination": "/api/projects/:id?route=blueprint-approve-all"
     },
     {
       "source": "/api/v1/projects/:id/blueprint",
-      "destination": "/api/projects/:id/blueprint"
+      "destination": "/api/projects/:id?route=blueprint"
     },
     {
       "source": "/api/v1/projects/:id/readiness",
-      "destination": "/api/projects/:id/assessment?kind=readiness"
+      "destination": "/api/projects/:id?route=readiness"
     },
     {
       "source": "/api/v1/projects/:id/consensus",
-      "destination": "/api/projects/:id/assessment?kind=consensus"
+      "destination": "/api/projects/:id?route=consensus"
     },
     {
       "source": "/api/v1/projects/:id/report",
-      "destination": "/api/projects/:id/report"
+      "destination": "/api/projects/:id?route=report"
     },
     {
       "source": "/api/v1/projects/:id/transform",
-      "destination": "/api/projects/:id/transform"
+      "destination": "/api/projects/:id?route=transform"
     },
     {
       "source": "/api/v1/projects/:id/audit",
-      "destination": "/api/projects/:id/audit"
+      "destination": "/api/projects/:id?route=audit"
     },
     {
       "source": "/api/v1/projects/:id",
