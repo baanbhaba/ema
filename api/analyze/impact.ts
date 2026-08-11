@@ -20,7 +20,7 @@ breaking_change_risk and severity must be one of: low | medium | high.`;
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
-    return res.status(405).end("Method Not Allowed");
+    return res.status(405).json({ error: `Method ${req.method} not allowed. Use POST.` });
   }
 
   const { project_id, code, ingestion_manifest } = req.body || {};
@@ -34,44 +34,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         where: { id: project_id },
         include: { uploadedSources: true },
       });
-      if (project) {
-        fileName = project.uploadedSources[0]?.fileName || `${project.name}.java`;
-        javaCode = project.uploadedSources[0]?.rawCode || "";
+      if (!project) {
+        return res.status(404).json({ error: `Project '${project_id}' not found` });
       }
+      fileName = project.uploadedSources[0]?.fileName || `${project.name}.java`;
+      javaCode = project.uploadedSources[0]?.rawCode || "";
     }
 
     if (!javaCode && typeof ingestion_manifest === "string") {
       javaCode = ingestion_manifest;
     }
 
+    if (!javaCode.trim()) {
+      return res.status(400).json({
+        error: "No Java source code provided. Include 'code' in the request body or upload source via project creation.",
+      });
+    }
+
+    // ── Tier 1: AI analysis ────────────────────────────────────────────────
     let audit: any = null;
 
-    if (javaCode.trim()) {
-      audit = await completeJson(IMPACT_SYSTEM_PROMPT, javaCode, { maxTokens: 1800 });
-      if (audit && !Array.isArray(audit.api_surface)) {
-        audit = null;
-      }
+    audit = await completeJson(IMPACT_SYSTEM_PROMPT, javaCode, { maxTokens: 1800 });
+    if (audit && !Array.isArray(audit.api_surface)) {
+      audit = null;
     }
 
+    // ── Tier 2: Static impact analysis on real uploaded code ───────────────
     if (!audit) {
-      audit = javaCode.trim()
-        ? detectJavaImpactAudit(javaCode, fileName)
-        : {
-            api_surface: [
-              {
-                endpoint_or_interface: `${fileName} (CLI / Core Entrypoint)`,
-                consumers: ["Internal Process / Orchestration Runner"],
-                breaking_change_risk: "low",
-              },
-            ],
-            database_impacts: [{ component: "In-Memory / File State", risk: "low", notes: "No SQL/JPA drivers detected." }],
-            config_impacts: [{ component: "Environment Configuration", risk: "low", notes: "Standard environment parameterization." }],
-            dependency_risks: [],
-            blast_radius: [{ change: `Modernize ${fileName}`, affected_files: [fileName], severity: "low" }],
-            confidence: 0.9,
-          };
+      audit = detectJavaImpactAudit(javaCode, fileName);
     }
 
+    // ── Persist to DB ──────────────────────────────────────────────────────
     if (project_id) {
       await prisma.impactAudit.upsert({
         where: { projectId: project_id },
@@ -97,8 +90,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     return res.status(200).json(audit);
-  } catch (error) {
+  } catch (error: any) {
     console.error("POST /api/analyze/impact error:", error);
-    return res.status(500).json({ error: "Failed to execute impact analysis" });
+    return res.status(500).json({
+      error: "Impact analysis failed",
+      detail: error?.message || "Unknown server error",
+    });
   }
 }

@@ -63,12 +63,24 @@
       "destination": "/api/projects/:id/transform"
     },
     {
+      "source": "/api/v1/projects/:id/audit",
+      "destination": "/api/projects/:id/audit"
+    },
+    {
       "source": "/api/v1/projects/:id",
       "destination": "/api/projects/:id"
     },
     {
       "source": "/api/v1/projects",
       "destination": "/api/projects"
+    },
+    {
+      "source": "/api/v1/:path*",
+      "destination": "/api/404"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/404"
     },
     {
       "source": "/((?!api/|assets/|favicon.ico).*)",

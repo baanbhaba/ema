@@ -18,9 +18,28 @@ function hashPassword(password) {
 }
 
 async function main() {
-  const demo = await prisma.user.upsert({
+  // ── Admin consumer account ─────────────────────────────────────────────────
+  // Credentials: admin / admin
+  // Role: admin (standard consumer, no dev mode)
+  const admin = await prisma.user.upsert({
+    where: { username: "admin" },
+    update: { passwordHash: hashPassword("admin") },
+    create: {
+      username: "admin",
+      email: "admin@alchemi.dev",
+      passwordHash: hashPassword("admin"),
+      role: "admin",
+    },
+  });
+  console.log(`✅ Seeded admin user:      ${admin.username} (${admin.id})`);
+
+  // ── Dev superuser account ──────────────────────────────────────────────────
+  // Credentials: baanbhaba / baanbhaba
+  // Role: developer (triggers devMode in frontend — full NVIDIA NIM access)
+  // Note: This account is also hardcoded client-side and never requires DB auth.
+  const dev = await prisma.user.upsert({
     where: { username: "baanbhaba" },
-    update: { passwordHash: hashPassword("baanbhaba") },
+    update: { passwordHash: hashPassword("baanbhaba"), role: "developer" },
     create: {
       username: "baanbhaba",
       email: "baanbhaba@alchemi.dev",
@@ -28,7 +47,12 @@ async function main() {
       role: "developer",
     },
   });
-  console.log(`Seeded demo user: ${demo.username} (${demo.id})`);
+  console.log(`✅ Seeded dev user:        ${dev.username} (${dev.id})`);
+
+  console.log("\n── ALCHEMI Account Summary ────────────────────────────────");
+  console.log("  Consumer (admin):  username=admin     password=admin");
+  console.log("  Dev (superuser):   username=baanbhaba password=baanbhaba");
+  console.log("────────────────────────────────────────────────────────────\n");
 }
 
 main()

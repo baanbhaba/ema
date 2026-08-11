@@ -12,6 +12,7 @@ import { ReportPage } from "./pages/ReportPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { AccountPage } from "./pages/AccountPage";
 import { IntegrationsPage } from "./pages/IntegrationsPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 import { useAuthStore } from "./store/useAuthStore";
 
 const queryClient = new QueryClient({
@@ -42,7 +43,8 @@ const ProtectedLayout: React.FC = () => {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/integrations" element={<IntegrationsPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Custom 404 inside protected area */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Layout>
   );
@@ -55,6 +57,8 @@ export const App: React.FC = () => {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/*" element={<ProtectedLayout />} />
+          {/* Global 404 for anything completely outside the app */}
+          <Route path="/404" element={<NotFoundPage />} />
         </Routes>
       </HashRouter>
     </QueryClientProvider>

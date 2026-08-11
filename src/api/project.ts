@@ -13,12 +13,6 @@ import {
   ReadinessScoreSchema,
 } from "../types/contracts";
 import { fetchApi } from "./client";
-import {
-  MOCK_CORE_AUDITS,
-  MOCK_IMPACT_AUDITS,
-  MOCK_CONSENSUS,
-  MOCK_READINESS_SCORES,
-} from "./mockData";
 import { analyzeCoreWithNvidia, analyzeImpactWithNvidia } from "./nvidiaEngine";
 import { useAuthStore } from "../store/useAuthStore";
 import {
@@ -29,8 +23,6 @@ import {
   calculateConsensus,
 } from "../lib/analysis";
 
-import { MOCK_PROJECTS } from "./mockData";
-
 export {
   detectJavaStack,
   detectJavaDeprecatedUsages,
@@ -39,10 +31,7 @@ export {
   calculateConsensus as calculateDynamicConsensus,
 } from "../lib/analysis";
 
-let localProjectsStore: Record<string, ProjectSummary> = MOCK_PROJECTS.reduce(
-  (acc, proj) => ({ ...acc, [proj.id]: proj }),
-  {}
-);
+let localProjectsStore: Record<string, ProjectSummary> = {};
 let sourceCodeStore: Record<string, string> = {};
 let liveCoreAudits: Record<string, CoreAudit> = {};
 let liveImpactAudits: Record<string, ImpactAudit> = {};
@@ -75,7 +64,6 @@ const savePersistedSourceCode = (projectId: string, code: string) => {
 export const getProjects = async (): Promise<ProjectSummary[]> => {
   const { isDevMode } = useAuthStore.getState();
 
-  // If in dev mode (user 'baanbhaba'), bypass backend rerouting entirely and use client state
   if (isDevMode) {
     return Object.values(localProjectsStore).map((p) => ProjectSummarySchema.parse(p));
   }
@@ -84,7 +72,7 @@ export const getProjects = async (): Promise<ProjectSummary[]> => {
     const data = await fetchApi<ProjectSummary[]>("/projects");
     return data.map((item) => ProjectSummarySchema.parse(item));
   } catch (_err) {
-    console.warn("[MOCK_FALLBACK] Backend /projects endpoint unavailable; returning local projects.");
+    console.warn("[OFFLINE] Backend /projects unavailable — returning local store.");
     return Object.values(localProjectsStore).map((p) => ProjectSummarySchema.parse(p));
   }
 };
@@ -126,7 +114,7 @@ export const createProject = async (data: {
     });
     return ProjectSummarySchema.parse(res);
   } catch (_err) {
-    console.warn("[MOCK_FALLBACK] Backend /projects POST endpoint unavailable; creating project in local state.");
+    console.warn("[OFFLINE] Backend /projects POST unavailable — creating in local store.");
     return ProjectSummarySchema.parse(newSummary);
   }
 };
@@ -139,40 +127,40 @@ export const deleteProject = async (projectId: string): Promise<boolean> => {
   delete liveCoreAudits[projectId];
   delete liveImpactAudits[projectId];
 
-  if (isDevMode) {
-    return true;
-  }
+  if (isDevMode) return true;
 
   try {
-    await fetchApi<{ success: boolean }>(`/projects/${projectId}`, {
-      method: "DELETE",
-    });
+    await fetchApi<{ success: boolean }>(`/projects/${projectId}`, { method: "DELETE" });
     return true;
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend DELETE /projects/${projectId} endpoint unavailable; removing from local state.`);
+    console.warn(`[OFFLINE] Backend DELETE /projects/${projectId} unavailable — removed from local store.`);
     return true;
   }
 };
 
 export const getProjectSourceCode = (projectId: string): Record<string, string> => {
   const code = getPersistedSourceCode(projectId);
-  if (code) {
-    return { "Main.java": code };
-  }
+  if (code) return { "Main.java": code };
   return {};
 };
+
+// ── Core Audit ─────────────────────────────────────────────────────────────────
+// Priority: 1) Live AI (NVIDIA) in devMode, 2) Backend POST /analyze/core,
+// 3) Local static analysis of the ACTUAL uploaded code (no predefined mocks).
 
 export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
   const { isDevMode } = useAuthStore.getState();
 
-  if (liveCoreAudits[projectId]) {
-    return liveCoreAudits[projectId];
-  }
+  // Return in-memory cache
+  if (liveCoreAudits[projectId]) return liveCoreAudits[projectId];
 
   const code = getPersistedSourceCode(projectId);
+  const proj = localProjectsStore[projectId];
+  const srcMap = getProjectSourceCode(projectId);
+  const fileName = Object.keys(srcMap)[0] || `${proj?.name || "Main"}.java`;
 
+  // ── Tier 1: Dev mode — direct NVIDIA NIM call ──────────────────────────────
   if (isDevMode) {
-    const proj = localProjectsStore[projectId];
     const name = proj?.name || "Uploaded Project";
     const aiResult = await analyzeCoreWithNvidia(name, code);
     if (aiResult) {
@@ -181,65 +169,73 @@ export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
     }
   }
 
+  // ── Tier 2: Backend (Vercel function → AI or static analysis) ─────────────
   try {
     const data = await fetchApi<CoreAudit>("/analyze/core", {
       method: "POST",
       body: JSON.stringify({ project_id: projectId, code }),
     });
-    return CoreAuditSchema.parse(data);
+    const parsed = CoreAuditSchema.parse(data);
+    liveCoreAudits[projectId] = parsed;
+    return parsed;
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend /analyze/core endpoint unavailable for project ${projectId}; returning audit.`);
-    const proj = localProjectsStore[projectId];
-    const srcMap = getProjectSourceCode(projectId);
-    const fileName = Object.keys(srcMap)[0] || `${proj?.name || "Main"}.java`;
-    const detectedUsages = code ? detectJavaDeprecatedUsages(code, fileName) : [];
-    const detectedStack = code ? detectJavaStack(code) : [
-      { technology: "Java", version: "1.8.0", status: "eol" as const },
-      { technology: "Spring Boot", version: "2.4.0", status: "eol" as const },
-    ];
+    // ── Tier 3: Real local static analysis — NO fake predefined data ──────────
+    // Uses the actual uploaded Java code, not hardcoded Spring Boot placeholders.
+    console.warn(`[OFFLINE] Backend /analyze/core unavailable — running local static analysis on uploaded code.`);
 
-    const mock = MOCK_CORE_AUDITS[projectId] || {
-      architecture_summary: `Architecture analysis for ${proj?.name || "Uploaded Project"}. Legacy Java application scanned cleanly for modernization.`,
+    const detectedStack = code.trim()
+      ? detectJavaStack(code)
+      : [{ technology: "Java", version: "unknown", status: "deprecated" as const }];
+
+    const detectedUsages = code.trim()
+      ? detectJavaDeprecatedUsages(code, fileName)
+      : [];
+
+    const classNames = [...(code.matchAll(/(?:public\s+)?class\s+(\w+)/g))].map(m => m[1]);
+    const nodes = classNames.length > 0
+      ? classNames
+      : [fileName.replace(/\.java$/, ""), "Service", "Repository"];
+
+    const edges = nodes.length > 1
+      ? nodes.slice(0, -1).map((n, i) => ({ from: n, to: nodes[i + 1] }))
+      : [];
+
+    // Diagram based on what we actually detected
+    const diagramContent = classNames.length > 0
+      ? `graph TD\n${classNames.map((c, i) => i === 0 ? `  ${c}[${c}]` : `  ${classNames[i - 1]} --> ${c}`).join("\n")}`
+      : `graph TD\n  Source["${proj?.name || "Java App"}"] --> Target["Java 21 / Rust Axum"]`;
+
+    const result: CoreAudit = {
+      architecture_summary: code.trim()
+        ? `Static analysis of '${fileName}'. Detected ${classNames.length} class(es), ${detectedUsages.length} deprecated API usage(s), ${detectedStack.length} technology component(s). Backend AI analysis unavailable — results reflect deterministic static scanning only.`
+        : `No Java source uploaded for project '${proj?.name || projectId}'. Upload source code to enable analysis.`,
       detected_stack: detectedStack,
-      deprecated_usages: detectedUsages.length > 0 ? detectedUsages : [
-        {
-          file: fileName,
-          line: 15,
-          pattern: "javax.persistence.*",
-          recommended_replacement: "jakarta.persistence.*",
-        },
-      ],
-      dependency_graph: {
-        nodes: [proj?.name || "Application", "ServiceModule", "RepositoryModule"],
-        edges: [
-          { from: proj?.name || "Application", to: "ServiceModule" },
-          { from: "ServiceModule", to: "RepositoryModule" },
-        ],
-      },
-      diagrams: [
-        {
-          type: "component",
-          format: "mermaid",
-          content: `graph TD\n  App[${proj?.name || "Java 8 App"}] --> Target[Java 21 / Rust Axum Target]`,
-        },
-      ],
-      confidence: 0.90,
+      deprecated_usages: detectedUsages,
+      dependency_graph: { nodes, edges },
+      diagrams: [{ type: "component", format: "mermaid", content: diagramContent }],
+      confidence: code.trim() ? 0.72 : 0.1,
     };
-    return CoreAuditSchema.parse(mock);
+
+    liveCoreAudits[projectId] = CoreAuditSchema.parse(result);
+    return liveCoreAudits[projectId];
   }
 };
+
+// ── Impact Audit ───────────────────────────────────────────────────────────────
+// Same 3-tier pattern. No predefined mocks — uses detectJavaImpactAudit on real code.
 
 export const getImpactAudit = async (projectId: string): Promise<ImpactAudit> => {
   const { isDevMode } = useAuthStore.getState();
 
-  if (liveImpactAudits[projectId]) {
-    return liveImpactAudits[projectId];
-  }
+  if (liveImpactAudits[projectId]) return liveImpactAudits[projectId];
 
   const code = getPersistedSourceCode(projectId);
+  const proj = localProjectsStore[projectId];
+  const srcMap = getProjectSourceCode(projectId);
+  const fileName = Object.keys(srcMap)[0] || `${proj?.name || "Main"}.java`;
 
+  // ── Tier 1: Dev mode — direct NVIDIA NIM call ──────────────────────────────
   if (isDevMode) {
-    const proj = localProjectsStore[projectId];
     const name = proj?.name || "Uploaded Project";
     const aiResult = await analyzeImpactWithNvidia(name, code);
     if (aiResult) {
@@ -248,61 +244,59 @@ export const getImpactAudit = async (projectId: string): Promise<ImpactAudit> =>
     }
   }
 
+  // ── Tier 2: Backend ────────────────────────────────────────────────────────
   try {
     const data = await fetchApi<ImpactAudit>("/analyze/impact", {
       method: "POST",
       body: JSON.stringify({ project_id: projectId, code }),
     });
-    return ImpactAuditSchema.parse(data);
+    const parsed = ImpactAuditSchema.parse(data);
+    liveImpactAudits[projectId] = parsed;
+    return parsed;
   } catch (_err) {
-    console.warn(`[MOCK_FALLBACK] Backend /analyze/impact endpoint unavailable for project ${projectId}; returning impact analysis.`);
-    const proj = localProjectsStore[projectId];
-    const srcMap = getProjectSourceCode(projectId);
-    const fileName = Object.keys(srcMap)[0] || `${proj?.name || "Main"}.java`;
-    const dynamicImpact = code ? detectJavaImpactAudit(code, fileName) : null;
+    // ── Tier 3: Real local static analysis ────────────────────────────────────
+    console.warn(`[OFFLINE] Backend /analyze/impact unavailable — running local static analysis on uploaded code.`);
 
-    const mock = MOCK_IMPACT_AUDITS[projectId] || dynamicImpact || {
-      api_surface: [
-        {
-          endpoint_or_interface: `API Surface (${proj?.name || "Service"})`,
-          consumers: ["Frontend Clients"],
-          breaking_change_risk: "medium",
-        },
-      ],
-      database_impacts: [
-        {
-          component: "JPA / Hibernate Dialect",
-          risk: "medium",
-          notes: "Upgrade from Hibernate 5 to 6 requiring Jakarta EE namespace update.",
-        },
-      ],
-      config_impacts: [
-        {
-          component: "Application Configuration",
-          risk: "low",
-          notes: "Migrate application.properties to Spring Boot 3 format.",
-        },
-      ],
-      dependency_risks: [
-        {
-          library: "Spring Web",
-          current_version: "2.4.0",
-          target_version: "3.2.0",
-          known_breaking_changes: ["javax.servlet to jakarta.servlet package relocation"],
-        },
-      ],
-      blast_radius: [
-        {
-          change: `Migrate ${proj?.name || "Project"} to Java 21 / Axum`,
-          affected_files: [`${proj?.name || "Service"}.java`],
-          severity: "medium",
-        },
-      ],
-      confidence: 0.88,
+    if (code.trim()) {
+      const dynamicImpact = detectJavaImpactAudit(code, fileName);
+      const parsed = ImpactAuditSchema.parse(dynamicImpact);
+      liveImpactAudits[projectId] = parsed;
+      return parsed;
+    }
+
+    // No code uploaded at all — minimal honest result
+    const result: ImpactAudit = {
+      api_surface: [{
+        endpoint_or_interface: `${proj?.name || "Project"} (no source uploaded)`,
+        consumers: ["Unknown"],
+        breaking_change_risk: "low",
+      }],
+      database_impacts: [{
+        component: "Unknown — no source uploaded",
+        risk: "low",
+        notes: "Upload Java source code to enable impact analysis.",
+      }],
+      config_impacts: [{
+        component: "Unknown — no source uploaded",
+        risk: "low",
+        notes: "Upload Java source code to enable config impact analysis.",
+      }],
+      dependency_risks: [],
+      blast_radius: [{
+        change: "Source not uploaded",
+        affected_files: [],
+        severity: "low",
+      }],
+      confidence: 0.1,
     };
-    return ImpactAuditSchema.parse(mock);
+
+    liveImpactAudits[projectId] = ImpactAuditSchema.parse(result);
+    return liveImpactAudits[projectId];
   }
 };
+
+// ── Consensus ──────────────────────────────────────────────────────────────────
+// Always computed from real core + impact audit data. No predefined mock results.
 
 export const getConsensusResult = async (projectId: string): Promise<ConsensusResult> => {
   const { isDevMode } = useAuthStore.getState();
@@ -312,12 +306,8 @@ export const getConsensusResult = async (projectId: string): Promise<ConsensusRe
       const data = await fetchApi<ConsensusResult>(`/projects/${projectId}/consensus`);
       return ConsensusResultSchema.parse(data);
     } catch (_err) {
-      console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/consensus endpoint unavailable; computing dynamic consensus.`);
+      console.warn(`[OFFLINE] Backend /projects/${projectId}/consensus unavailable — computing from local audits.`);
     }
-  }
-
-  if (MOCK_CONSENSUS[projectId] && projectId === "proj-legacy-monolith") {
-    return ConsensusResultSchema.parse(MOCK_CONSENSUS[projectId]);
   }
 
   const srcMap = getProjectSourceCode(projectId);
@@ -331,6 +321,9 @@ export const getConsensusResult = async (projectId: string): Promise<ConsensusRe
   return ConsensusResultSchema.parse(dynamicConsensus);
 };
 
+// ── Readiness Score ────────────────────────────────────────────────────────────
+// Always computed from real core + impact data. No predefined mock scores.
+
 export const getReadinessScore = async (projectId: string): Promise<ReadinessScore> => {
   const { isDevMode } = useAuthStore.getState();
 
@@ -339,12 +332,8 @@ export const getReadinessScore = async (projectId: string): Promise<ReadinessSco
       const data = await fetchApi<ReadinessScore>(`/projects/${projectId}/readiness`);
       return ReadinessScoreSchema.parse(data);
     } catch (_err) {
-      console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/readiness endpoint unavailable; computing dynamic readiness score.`);
+      console.warn(`[OFFLINE] Backend /projects/${projectId}/readiness unavailable — computing from local audits.`);
     }
-  }
-
-  if (MOCK_READINESS_SCORES[projectId] && projectId === "proj-legacy-monolith") {
-    return ReadinessScoreSchema.parse(MOCK_READINESS_SCORES[projectId]);
   }
 
   const coreAudit = await getCoreAudit(projectId).catch(() => null);

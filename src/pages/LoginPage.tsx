@@ -136,6 +136,21 @@ export const LoginPage: React.FC = () => {
           </form>
         </div>
 
+        {/* Credential hint */}
+        <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg px-4 py-3 text-left text-[10px] font-mono space-y-1.5">
+          <div className="text-zinc-500 uppercase tracking-widest mb-2 text-[9px]">Authorized Accounts</div>
+          <div className="flex items-center justify-between text-zinc-400">
+            <span className="text-amber-500 font-bold">admin</span>
+            <span className="text-zinc-600 mx-2">───</span>
+            <span>Consumer · Standard Access</span>
+          </div>
+          <div className="flex items-center justify-between text-zinc-400">
+            <span className="text-green-400 font-bold">baanbhaba</span>
+            <span className="text-zinc-600 mx-2">───</span>
+            <span>Dev Mode · Full AI Engine</span>
+          </div>
+        </div>
+
         <p className="text-[10px] text-zinc-400 dark:text-zinc-600 font-sans">
           ALCHEMI Code Transformation Engine • Secure Session
         </p>
