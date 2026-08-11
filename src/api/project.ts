@@ -77,6 +77,33 @@ export const getProjects = async (): Promise<ProjectSummary[]> => {
   }
 };
 
+export const getProjectDetails = async (projectId: string): Promise<any> => {
+  const { isDevMode } = useAuthStore.getState();
+
+  if (isDevMode) {
+    return {
+      ...localProjectsStore[projectId],
+      uploaded_sources: getProjectSourceCode(projectId),
+      core_audit: liveCoreAudits[projectId] || null,
+      impact_audit: liveImpactAudits[projectId] || null,
+      blueprint: null,
+    };
+  }
+
+  try {
+    return await fetchApi<any>(`/projects/${projectId}`);
+  } catch (_err) {
+    console.warn(`[OFFLINE] Backend GET /projects/${projectId} unavailable.`);
+    return {
+      ...localProjectsStore[projectId],
+      uploaded_sources: getProjectSourceCode(projectId),
+      core_audit: liveCoreAudits[projectId] || null,
+      impact_audit: liveImpactAudits[projectId] || null,
+      blueprint: null,
+    };
+  }
+};
+
 export const createProject = async (data: {
   name: string;
   repo_url: string;

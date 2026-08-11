@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { X, MonitorPlay, Layers, Bolt, BarChart3, GitPullRequest, FileCheck2, SlidersHorizontal, CircuitBoard, Cable, Sun, Moon, BadgeCheck, LogOut, ChevronDown, FolderGit, CloudDownload, FileTerminal, RefreshCcw, Sparkles } from "lucide-react";
+import { X, MonitorPlay, Layers, Bolt, BarChart3, GitPullRequest, FileCheck2, SlidersHorizontal, CircuitBoard, Cable, Sun, Moon, BadgeCheck, LogOut, ChevronDown, FolderGit, CloudDownload, FileTerminal, RefreshCcw, Sparkles, Lock } from "lucide-react";
 import { useUiStore } from "../../store/useUiStore";
 import { useAuthStore } from "../../store/useAuthStore";
-import { getProjects, getBlueprint } from "../../api/client";
+import { getProjects, getBlueprint, getProjectDetails } from "../../api/client";
 import { downloadCombinedRustProject, downloadCargoToml } from "../../utils/exportRustCode";
 
 export const HamburgerDrawer: React.FC = () => {
@@ -67,11 +67,32 @@ export const HamburgerDrawer: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ["projects"] });
   };
 
+  const { data: projectDetails } = useQuery({
+    queryKey: ["project-details", selectedProjectId],
+    queryFn: () => getProjectDetails(selectedProjectId),
+    enabled: !!selectedProjectId,
+  });
+
+  const isRouteUnlocked = (label: string): boolean => {
+    if (!projectDetails) return label === "Blueprint Review" || label === "Core Audit";
+    const coreDone = !!projectDetails.core_audit;
+    const impactDone = !!projectDetails.impact_audit;
+    const blueprintSteps = projectDetails.blueprint?.steps || [];
+    const allApproved = blueprintSteps.length > 0 && blueprintSteps.every((s: any) => s.status === "approved");
+
+    if (label === "Blueprint Review") return true;
+    if (label === "Core Audit") return true;
+    if (label === "Impact Audit") return coreDone;
+    if (label === "Readiness & Consensus") return coreDone && impactDone;
+    if (label === "Migration Report") return coreDone && impactDone && allApproved;
+    return true;
+  };
+
   const projectNavItems = [
+    { label: "Blueprint Review", path: `/projects/${selectedProjectId}/blueprint`, icon: GitPullRequest },
     { label: "Core Audit", path: `/projects/${selectedProjectId}/core-audit`, icon: Layers },
     { label: "Impact & Blast Radius", path: `/projects/${selectedProjectId}/impact-audit`, icon: Bolt },
     { label: "Readiness & Consensus", path: `/projects/${selectedProjectId}/readiness`, icon: BarChart3 },
-    { label: "Blueprint Review", path: `/projects/${selectedProjectId}/blueprint`, icon: GitPullRequest },
     { label: "Migration Report", path: `/projects/${selectedProjectId}/report`, icon: FileCheck2 },
   ];
 
@@ -168,6 +189,31 @@ export const HamburgerDrawer: React.FC = () => {
             {projectNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
+              const unlocked = isRouteUnlocked(item.label);
+              const { addNotification } = useUiStore.getState();
+
+              if (!unlocked) {
+                return (
+                  <button
+                    key={item.path}
+                    type="button"
+                    onClick={() =>
+                      addNotification(
+                        `Stage Locked: Please complete the previous pipeline views in order: 1. Blueprint Review -> 2. Core Audit -> 3. Impact Audit -> 4. Readiness & Consensus -> 5. Migration Report.`,
+                        "warning"
+                      )
+                    }
+                    className="w-full flex items-center justify-between px-3 py-2 rounded text-xs transition-colors text-zinc-400 dark:text-zinc-600 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/40 cursor-pointer text-left font-mono border-0 bg-transparent"
+                  >
+                    <div className="flex items-center space-x-2.5">
+                      <Icon className="w-4 h-4 shrink-0 opacity-40 text-zinc-400 dark:text-zinc-600" />
+                      <span>{item.label}</span>
+                    </div>
+                    <Lock className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-600 shrink-0" />
+                  </button>
+                );
+              }
+
               return (
                 <Link
                   key={item.path}

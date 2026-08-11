@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ScanSearch, RadioTower, Microchip, Globe, FileTerminal, Check } from "lucide-react";
 import { getCoreAudit } from "../api/client";
@@ -11,6 +11,7 @@ import { ErrorState } from "../components/common/ErrorState";
 
 export const CoreAuditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"file" | "pattern">("file");
 
@@ -25,6 +26,12 @@ export const CoreAuditPage: React.FC = () => {
     queryFn: () => getCoreAudit(id || ""),
     enabled: !!id,
   });
+
+  useEffect(() => {
+    if (isError && error && (error as any).status === 404) {
+      navigate("/404", { replace: true });
+    }
+  }, [isError, error, navigate]);
 
   if (isLoading) return <LoadingSkeleton rows={4} />;
   if (isError) {

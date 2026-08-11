@@ -1,8 +1,8 @@
-import React from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshCcw, CircleCheckBig, HelpCircle, BarChart3, Layers, Scale } from "lucide-react";
-import { getReadinessScore, getConsensusResult } from "../api/client";
+import { getReadinessScore, getConsensusResult, getProjectDetails } from "../api/client";
 import { Card } from "../components/common/Card";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
 import { ErrorState } from "../components/common/ErrorState";
@@ -50,6 +50,13 @@ const DIMENSION_METADATA: Record<
 
 export const ReadinessPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  const { data: projectDetails } = useQuery({
+    queryKey: ["project-details", id],
+    queryFn: () => getProjectDetails(id || ""),
+    enabled: !!id,
+  });
 
   const {
     data: scoreData,
@@ -75,7 +82,23 @@ export const ReadinessPage: React.FC = () => {
     enabled: !!id,
   });
 
+  useEffect(() => {
+    const errObj = errorScore || errorConsensus;
+    if ((isErrorScore || isErrorConsensus) && errObj && (errObj as any).status === 404) {
+      navigate("/404", { replace: true });
+    }
+  }, [isErrorScore, isErrorConsensus, errorScore, errorConsensus, navigate]);
+
   if (isLoadingScore || isLoadingConsensus) return <LoadingSkeleton rows={4} />;
+
+  if (projectDetails && (!projectDetails.core_audit || !projectDetails.impact_audit)) {
+    return (
+      <ErrorState
+        title="Stage Locked"
+        message="Core Audit and Impact Audit must be executed before access to Readiness & Consensus is granted."
+      />
+    );
+  }
 
   if (isErrorScore || isErrorConsensus) {
     return (

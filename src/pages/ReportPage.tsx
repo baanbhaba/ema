@@ -1,8 +1,9 @@
-import React from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { FileCheck2, Clock, UserCheck, Code, FileTerminal, Package, Layers, Settings2, CircleCheckBig, TriangleAlert, CloudDownload } from "lucide-react";
 import { getMigrationReport } from "../api/report";
+import { getProjectDetails } from "../api/client";
 import { downloadCombinedRustProject, downloadCargoToml } from "../utils/exportRustCode";
 import { Card } from "../components/common/Card";
 import { DiffViewer } from "../components/report/DiffViewer";
@@ -13,6 +14,13 @@ import { ErrorState } from "../components/common/ErrorState";
 
 export const ReportPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  const { data: projectDetails } = useQuery({
+    queryKey: ["project-details", id],
+    queryFn: () => getProjectDetails(id || ""),
+    enabled: !!id,
+  });
 
   const {
     data: report,
@@ -26,7 +34,25 @@ export const ReportPage: React.FC = () => {
     enabled: !!id,
   });
 
+  useEffect(() => {
+    if (isError && error && (error as any).status === 404) {
+      navigate("/404", { replace: true });
+    }
+  }, [isError, error, navigate]);
+
   if (isLoading) return <LoadingSkeleton rows={4} />;
+
+  const blueprintSteps = projectDetails?.blueprint?.steps || [];
+  const allApproved = blueprintSteps.length > 0 && blueprintSteps.every((s: any) => s.status === "approved");
+
+  if (projectDetails && !allApproved) {
+    return (
+      <ErrorState
+        title="Stage Locked"
+        message="All steps in the Blueprint Review must be Approved before generating the final Migration Report."
+      />
+    );
+  }
   if (isError) {
     return (
       <ErrorState

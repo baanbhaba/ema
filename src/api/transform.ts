@@ -171,8 +171,11 @@ export const triggerTransformation = async (
   // Try Vercel serverless function
   try {
     return await fetchApi<TransformationResponse>(
-      `/projects/${projectId}/steps/${stepId}/transform`,
-      { method: "POST" }
+      `/projects/${projectId}/transform`,
+      {
+        method: "POST",
+        body: JSON.stringify({ stepId }),
+      }
     );
   } catch (_err) {
     const mockTransformed = generateRustCodeFromJava(javaCode, stepId);

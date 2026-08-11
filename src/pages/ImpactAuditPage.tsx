@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Bolt, Database, Sliders, TriangleAlert, ChevronDown, ChevronRight, Layers, ScanText } from "lucide-react";
-import { getImpactAudit } from "../api/client";
+import { getImpactAudit, getProjectDetails } from "../api/client";
 import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
@@ -10,8 +10,15 @@ import { ErrorState } from "../components/common/ErrorState";
 
 export const ImpactAuditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [expandedDependency, setExpandedDependency] = useState<string | null>(null);
   const [expandedBlastIndex, setExpandedBlastIndex] = useState<number | null>(null);
+
+  const { data: projectDetails } = useQuery({
+    queryKey: ["project-details", id],
+    queryFn: () => getProjectDetails(id || ""),
+    enabled: !!id,
+  });
 
   const {
     data: impact,
@@ -25,7 +32,23 @@ export const ImpactAuditPage: React.FC = () => {
     enabled: !!id,
   });
 
+  useEffect(() => {
+    if (isError && error && (error as any).status === 404) {
+      navigate("/404", { replace: true });
+    }
+  }, [isError, error, navigate]);
+
   if (isLoading) return <LoadingSkeleton rows={4} />;
+
+  if (projectDetails && !projectDetails.core_audit) {
+    return (
+      <ErrorState
+        title="Stage Locked"
+        message="Core Audit must be executed before access to Impact Audit is granted."
+      />
+    );
+  }
+
   if (isError) {
     return (
       <ErrorState

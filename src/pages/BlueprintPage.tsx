@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { GitPullRequest, CircleCheckBig, Expand, Shrink, AlertCircle, MoveRight, Eye, Info, Sparkles } from "lucide-react";
@@ -53,6 +53,12 @@ export const BlueprintPage: React.FC = () => {
     queryFn: () => getBlueprint(id || ""),
     enabled: !!id,
   });
+
+  useEffect(() => {
+    if (isError && error && (error as any).status === 404) {
+      navigate("/404", { replace: true });
+    }
+  }, [isError, error, navigate]);
 
   const regenerateMutation = useMutation({
     mutationFn: () => regenerateBlueprintWithNvidiaAI(id || ""),
