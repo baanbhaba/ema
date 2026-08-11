@@ -14,7 +14,8 @@ let liveTransformations: Record<string, Record<string, string>> = {};
 export const getTransformedCode = (projectId: string, stepId?: string): string => {
   try {
     const key = `ema_transformed_${projectId}`;
-    const existing = JSON.parse(sessionStorage.getItem(key) || "{}");
+    const raw = localStorage.getItem(key) || sessionStorage.getItem(key) || "{}";
+    const existing = JSON.parse(raw);
     if (stepId) return existing[stepId] || liveTransformations[projectId]?.[stepId] || "";
     return Object.values(existing).join("\n\n") || Object.values(liveTransformations[projectId] || {}).join("\n\n");
   } catch {
@@ -27,8 +28,10 @@ export const saveTransformedCode = (projectId: string, stepId: string, code: str
   liveTransformations[projectId][stepId] = code;
   try {
     const key = `ema_transformed_${projectId}`;
-    const existing = JSON.parse(sessionStorage.getItem(key) || "{}");
+    const raw = localStorage.getItem(key) || sessionStorage.getItem(key) || "{}";
+    const existing = JSON.parse(raw);
     existing[stepId] = code;
+    localStorage.setItem(key, JSON.stringify(existing));
     sessionStorage.setItem(key, JSON.stringify(existing));
   } catch {}
 };

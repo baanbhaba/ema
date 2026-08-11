@@ -40,7 +40,7 @@ let liveImpactAudits: Record<string, ImpactAudit> = {};
 const getPersistedSourceCode = (projectId: string): string => {
   if (sourceCodeStore[projectId]) return sourceCodeStore[projectId];
   try {
-    const raw = sessionStorage.getItem("ema_source_code_store");
+    const raw = localStorage.getItem("ema_source_code_store") || sessionStorage.getItem("ema_source_code_store");
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed[projectId]) {
@@ -55,44 +55,37 @@ const getPersistedSourceCode = (projectId: string): string => {
 const savePersistedSourceCode = (projectId: string, code: string) => {
   sourceCodeStore[projectId] = code;
   try {
-    const raw = sessionStorage.getItem("ema_source_code_store") || "{}";
+    const raw = localStorage.getItem("ema_source_code_store") || sessionStorage.getItem("ema_source_code_store") || "{}";
     const parsed = JSON.parse(raw);
     parsed[projectId] = code;
+    localStorage.setItem("ema_source_code_store", JSON.stringify(parsed));
     sessionStorage.setItem("ema_source_code_store", JSON.stringify(parsed));
   } catch (_e) {}
 };
 
 export const getProjects = async (): Promise<ProjectSummary[]> => {
-  const { isDevMode } = useAuthStore.getState();
-
-  if (isDevMode) {
-    return Object.values(localProjectsStore).map((p) => ProjectSummarySchema.parse(p));
-  }
-
   try {
     const data = await fetchApi<ProjectSummary[]>("/projects");
-    return data.map((item) => ProjectSummarySchema.parse(item));
+    if (Array.isArray(data) && data.length > 0) {
+      data.forEach((p) => { localProjectsStore[p.id] = p; });
+      return data.map((item) => ProjectSummarySchema.parse(item));
+    }
   } catch (_err) {
     console.warn("[OFFLINE] Backend /projects unavailable — returning local store.");
-    return Object.values(localProjectsStore).map((p) => ProjectSummarySchema.parse(p));
   }
+  return Object.values(localProjectsStore).map((p) => ProjectSummarySchema.parse(p));
 };
 
 export const getProjectDetails = async (projectId: string): Promise<any> => {
-  const { isDevMode } = useAuthStore.getState();
-
-  if (isDevMode) {
-    return {
-      ...localProjectsStore[projectId],
-      uploaded_sources: getProjectSourceCode(projectId),
-      core_audit: liveCoreAudits[projectId] || null,
-      impact_audit: liveImpactAudits[projectId] || null,
-      blueprint: null,
-    };
-  }
-
   try {
-    return await fetchApi<any>(`/projects/${projectId}`);
+    const details = await fetchApi<any>(`/projects/${projectId}`);
+    if (details && details.uploaded_sources && Array.isArray(details.uploaded_sources)) {
+      const primary = details.uploaded_sources[0];
+      if (primary && primary.rawCode) {
+        savePersistedSourceCode(projectId, primary.rawCode);
+      }
+    }
+    return details;
   } catch (_err) {
     console.warn(`[OFFLINE] Backend GET /projects/${projectId} unavailable.`);
     return {
@@ -155,20 +148,20 @@ export const createProject = async (data: {
     savePersistedSourceCode(id, defaultPlaceholder);
   }
 
-  if (isDevMode) {
-    return ProjectSummarySchema.parse(newSummary);
-  }
-
   try {
     const res = await fetchApi<ProjectSummary>("/projects", {
       method: "POST",
       body: JSON.stringify(data),
     });
-    return ProjectSummarySchema.parse(res);
+    if (res && res.id) {
+      localProjectsStore[res.id] = res;
+      if (codeToSave) savePersistedSourceCode(res.id, codeToSave);
+      return ProjectSummarySchema.parse(res);
+    }
   } catch (_err) {
     console.warn("[OFFLINE] Backend /projects POST unavailable — creating in local store.");
-    return ProjectSummarySchema.parse(newSummary);
   }
+  return ProjectSummarySchema.parse(newSummary);
 };
 
 export const deleteProject = async (projectId: string): Promise<boolean> => {
@@ -188,6 +181,19 @@ export const deleteProject = async (projectId: string): Promise<boolean> => {
     console.warn(`[OFFLINE] Backend DELETE /projects/${projectId} unavailable — removed from local store.`);
     return true;
   }
+};
+
+export const uploadProjectSourceCode = async (projectId: string, code: string): Promise<boolean> => {
+  savePersistedSourceCode(projectId, code);
+  try {
+    await fetchApi(`/projects/${projectId}/upload`, {
+      method: "POST",
+      body: JSON.stringify({ rawCode: code }),
+    });
+  } catch (_err) {
+    console.warn(`[STORAGE] Upload to backend DB failed for ${projectId}, saved in local storage fallback.`);
+  }
+  return true;
 };
 
 export const getProjectSourceCode = (projectId: string): Record<string, string> => {
