@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { prisma } from "../../src/lib/prisma";
 import { detectJavaImpactAudit } from "../../src/lib/analysis";
-import { completeJson } from "../lib/llm";
-import { refreshProjectReadiness } from "../lib/auditMapping";
+import { completeJson } from "../../src/server/llm";
+import { refreshProjectReadiness } from "../../src/server/auditMapping";
 
 const IMPACT_SYSTEM_PROMPT = `
 You are the Impact Analysis Agent in ALCHEMI (Automated Legacy Code Transformation Engine).

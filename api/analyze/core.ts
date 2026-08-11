@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { prisma } from "../../src/lib/prisma";
 import { detectJavaStack, detectJavaDeprecatedUsages } from "../../src/lib/analysis";
-import { completeJson } from "../lib/llm";
-import { refreshProjectReadiness } from "../lib/auditMapping";
+import { completeJson } from "../../src/server/llm";
+import { refreshProjectReadiness } from "../../src/server/auditMapping";
 
 const CORE_SYSTEM_PROMPT = `
 You are the Core Analysis Agent in ALCHEMI (Automated Legacy Code Transformation Engine).

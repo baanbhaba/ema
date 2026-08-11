@@ -48,11 +48,11 @@
     },
     {
       "source": "/api/v1/projects/:id/readiness",
-      "destination": "/api/projects/:id/readiness"
+      "destination": "/api/projects/:id/assessment?kind=readiness"
     },
     {
       "source": "/api/v1/projects/:id/consensus",
-      "destination": "/api/projects/:id/consensus"
+      "destination": "/api/projects/:id/assessment?kind=consensus"
     },
     {
       "source": "/api/v1/projects/:id/report",

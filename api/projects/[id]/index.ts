@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { prisma } from "../../../src/lib/prisma";
-import { mapProjectToSummary } from "../../lib/projectMapping";
+import { mapProjectToSummary } from "../../../src/server/projectMapping";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;

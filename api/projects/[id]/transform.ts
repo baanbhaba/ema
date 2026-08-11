@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { prisma } from "../../../src/lib/prisma";
 import { generateRustCodeFromJava } from "../../../src/api/transform";
-import { refreshProjectReadiness } from "../../lib/auditMapping";
+import { refreshProjectReadiness } from "../../../src/server/auditMapping";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;
