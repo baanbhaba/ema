@@ -47,49 +47,6 @@ export const generateRustCodeFromJava = (javaCode: string, _stepId: string): str
   const classMatch = javaCode.match(/(?:public\s+)?class\s+([A-Za-z0-9_]+)/) || javaCode.match(/class\s+([A-Za-z0-9_]+)/);
   const className = classMatch ? classMatch[1] : "MigratedService";
 
-  const isCoffeeBot = javaCode.includes("CoffeeBot") || javaCode.includes("map[x][y] != 'C'") || javaCode.includes("Coffee found");
-
-  if (isCoffeeBot) {
-    return `use rand::Rng;
-use std::io::{self, Write};
-
-const SIZE: usize = 8;
-
-fn main() {
-    let mut map = [['.'; SIZE]; SIZE];
-    let mut rng = rand::rng();
-
-    let coffee_x = rng.random_range(0..SIZE);
-    let coffee_y = rng.random_range(0..SIZE);
-    map[coffee_x][coffee_y] = 'C';
-
-    let mut x = rng.random_range(0..SIZE);
-    let mut y = rng.random_range(0..SIZE);
-
-    print!("🤖 CoffeeBot activated... Initializing grid");
-    io::stdout().flush().unwrap();
-    println!();
-
-    let mut moves = 0;
-    while map[x][y] != 'C' && moves < 100 {
-        match rng.random_range(0..4) {
-            0 => x = x.saturating_sub(1),
-            1 => x = (x + 1).min(SIZE - 1),
-            2 => y = y.saturating_sub(1),
-            _ => y = (y + 1).min(SIZE - 1),
-        }
-        moves += 1;
-        println!("Move {:2} -> ({}, {})", moves, x, y);
-    }
-
-    if map[x][y] == 'C' {
-        println!("☕ Coffee found after {} moves!", moves);
-    } else {
-        println!("😴 Battery died before coffee was found.");
-    }
-}`;
-  }
-
   const isMainApp = javaCode.includes("static void main") || javaCode.includes("public static void main");
 
   if (isMainApp) {

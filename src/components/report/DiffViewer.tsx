@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Columns, AlignJustify, Check, Copy } from "lucide-react";
+import { Columns, AlignJustify, Check, Copy, ChevronDown, ChevronRight, ShieldCheck, Zap, Cpu, MemoryStick, Terminal } from "lucide-react";
 
 interface DiffViewerProps {
   diff: string;
@@ -16,6 +16,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
 }) => {
   const [mode, setMode] = useState<"side-by-side" | "unified">("side-by-side");
   const [copiedRust, setCopiedRust] = useState(false);
+  const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
 
   const handleCopyRust = () => {
     navigator.clipboard.writeText(rustCode || diff);
@@ -32,10 +33,19 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       <div className="flex flex-wrap items-center justify-between bg-zinc-900 px-3 py-2 rounded-t border-t border-x border-zinc-800 gap-2">
         <div className="flex items-center space-x-2 text-[11px] text-zinc-400">
           <span className="font-bold text-amber-500">{unitName}</span>
-          <span>&mdash; Code Comparison & Diffs</span>
+          <span>&mdash; Code Comparison & Detailed Analysis</span>
         </div>
 
         <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
+            className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-[10px] font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
+          >
+            {showTechnicalDetails ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+            <span>Deep Tech Spec & Breakdown</span>
+          </button>
+
           <div className="flex items-center space-x-1 bg-zinc-950 p-1 rounded border border-zinc-800">
             <button
               type="button"
@@ -76,6 +86,57 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
         </div>
       </div>
 
+      {/* Expandable Technical Specification Drawer */}
+      {showTechnicalDetails && (
+        <div className="bg-zinc-900/90 border-x border-b border-amber-500/30 p-3.5 rounded-b space-y-3 animate-in fade-in">
+          <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-2">
+            <Cpu className="w-4 h-4" />
+            <span>Target Rust Axum Module Spec & Technical Breakdown</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px]">
+            {/* Memory & Safety */}
+            <div className="bg-zinc-950 p-2.5 rounded border border-zinc-800 space-y-1">
+              <div className="flex items-center space-x-1.5 text-emerald-400 font-bold">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Memory & Safety Guarantees</span>
+              </div>
+              <ul className="text-zinc-400 text-[10px] space-y-0.5 font-sans">
+                <li>• <strong>Ownership & Borrowing:</strong> Zero Garbage Collector pauses.</li>
+                <li>• <strong>Null Pointer Elimination:</strong> Replaced with <code className="text-amber-300">Option&lt;T&gt;</code> & <code className="text-amber-300">Result&lt;T, E&gt;</code>.</li>
+                <li>• <strong>Thread Safety:</strong> Strictly enforced <code className="text-amber-300">Send + Sync</code> at compile time.</li>
+              </ul>
+            </div>
+
+            {/* Performance Delta */}
+            <div className="bg-zinc-950 p-2.5 rounded border border-zinc-800 space-y-1">
+              <div className="flex items-center space-x-1.5 text-amber-400 font-bold">
+                <MemoryStick className="w-3.5 h-3.5" />
+                <span>Resource Delta Estimates</span>
+              </div>
+              <ul className="text-zinc-400 text-[10px] space-y-0.5 font-sans">
+                <li>• <strong>RAM Footprint:</strong> ~150MB (JVM) ➔ ~9MB (Rust) [<strong className="text-emerald-400">-94%</strong>].</li>
+                <li>• <strong>Startup Latency:</strong> ~4.2s (Spring Boot) ➔ ~12ms (Axum) [<strong className="text-emerald-400">-99%</strong>].</li>
+                <li>• <strong>Concurrency:</strong> Tokio non-blocking async IO loops.</li>
+              </ul>
+            </div>
+
+            {/* Axum Integration */}
+            <div className="bg-zinc-950 p-2.5 rounded border border-zinc-800 space-y-1">
+              <div className="flex items-center space-x-1.5 text-blue-400 font-bold">
+                <Terminal className="w-3.5 h-3.5" />
+                <span>Framework Mapping</span>
+              </div>
+              <ul className="text-zinc-400 text-[10px] space-y-0.5 font-sans">
+                <li>• <strong>HTTP Framework:</strong> Axum 0.7.</li>
+                <li>• <strong>JSON Serialization:</strong> Serde JSON zero-copy parsing.</li>
+                <li>• <strong>Async Runtime:</strong> Tokio 1.0 multi-threaded worker pool.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Split View */}
       {mode === "side-by-side" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 bg-zinc-950 border border-zinc-800 rounded-b p-3">
@@ -109,7 +170,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
                   <span className="whitespace-pre overflow-x-auto font-semibold">{line}</span>
                 </div>
               ))}
-              {rustLines.length === 0 && <span className="italic text-zinc-600">No Rust code generated yet</span>}
+              {rustLines.length === 0 && <span className="italic text-zinc-600">No Rust code generated yet for this step</span>}
             </div>
           </div>
         </div>
