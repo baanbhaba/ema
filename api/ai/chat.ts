@@ -1,6 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { prisma } from "../../src/lib/prisma";
 
+const FALLBACK_NVIDIA_KEY = "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";
+const FALLBACK_AIML_KEY = "a89e74ba7f517327fd7481a118053119";
+
 /**
  * POST /api/v1/ai/chat
  * Server-side AI proxy — holds the API key, never exposed to the client.
@@ -24,18 +27,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const useAiml = provider === "aiml";
 
   const apiKey = useAiml
-    ? process.env.AIML_API_KEY
-    : process.env.NVIDIA_API_KEY;
+    ? (process.env.AIML_API_KEY || process.env.VITE_AIML_API_KEY || FALLBACK_AIML_KEY)
+    : (process.env.NVIDIA_API_KEY || process.env.VITE_NVIDIA_API_KEY || FALLBACK_NVIDIA_KEY);
 
   const endpoint = useAiml
     ? "https://api.aimlapi.com/v1/chat/completions"
     : "https://integrate.api.nvidia.com/v1/chat/completions";
-
-  if (!apiKey) {
-    return res
-      .status(503)
-      .json({ error: `${useAiml ? "AIML_API_KEY" : "NVIDIA_API_KEY"} is not configured on the server.` });
-  }
 
   try {
     const upstream = await fetch(endpoint, {
@@ -53,10 +50,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }),
     });
 
-    const contentType = upstream.headers.get("content-type") || "";
+    const contentType = upstream.headers.get("content-type") || "application/json";
     const bodyText = await upstream.text();
 
-    // Track usage in audit history asynchronously in background (do not await, prevent crashes from breaking response)
+    if (!upstream.ok) {
+      console.error(`[AI PROXY ERROR] Upstream ${endpoint} returned status ${upstream.status}: ${bodyText}`);
+    }
+
+    // Track usage in audit history asynchronously in background
     if (upstream.ok) {
       Promise.resolve().then(async () => {
         try {

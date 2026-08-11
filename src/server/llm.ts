@@ -1,14 +1,18 @@
 const DEFAULT_MODEL = "meta/llama-3.1-70b-instruct";
 
+const FALLBACK_NVIDIA_KEY = "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";
+const FALLBACK_AIML_KEY = "a89e74ba7f517327fd7481a118053119";
+
 export async function completeJson<T>(
   systemPrompt: string,
   userContent: string,
   opts?: { temperature?: number; maxTokens?: number }
 ): Promise<T | null> {
-  const apiKey = process.env.NVIDIA_API_KEY || process.env.AIML_API_KEY;
-  if (!apiKey) return null;
+  const nvidiaKey = process.env.NVIDIA_API_KEY || process.env.VITE_NVIDIA_API_KEY;
+  const aimlKey = process.env.AIML_API_KEY || process.env.VITE_AIML_API_KEY;
+  const apiKey = nvidiaKey || aimlKey || FALLBACK_NVIDIA_KEY;
 
-  const endpoint = process.env.NVIDIA_API_KEY
+  const endpoint = (nvidiaKey || FALLBACK_NVIDIA_KEY)
     ? "https://integrate.api.nvidia.com/v1/chat/completions"
     : "https://api.aimlapi.com/v1/chat/completions";
 
