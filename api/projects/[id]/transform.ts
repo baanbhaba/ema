@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { prisma } from "../../../src/lib/prisma";
 import { generateRustCodeFromJava } from "../../../src/api/transform";
+import { refreshProjectReadiness } from "../../lib/auditMapping";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;
@@ -51,9 +52,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }).catch(() => null);
       }
 
+      const readiness = await refreshProjectReadiness(id);
+
       await prisma.project.update({
         where: { id },
-        data: { stage: "blueprint", readinessScore: 95 },
+        data: {
+          stage: "blueprint",
+          readinessScore: readiness?.overall ?? project.readinessScore ?? 85,
+        },
       });
 
       return res.status(200).json({

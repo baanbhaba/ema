@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { prisma } from "../../src/lib/prisma";
 import { generateRustCodeFromJava } from "../../src/api/transform";
+import { mapProjectToSummary } from "../lib/projectMapping";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "GET") {
@@ -13,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           readinessAssessment: true,
         },
       });
-      return res.status(200).json(projects);
+      return res.status(200).json(projects.map(mapProjectToSummary));
     } catch (error) {
       console.error("GET /api/projects error:", error);
       return res.status(500).json({ error: "Failed to fetch projects" });
@@ -22,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === "POST") {
     try {
-      const { name, repoUrl, stage, javaCode } = req.body || {};
+      const { name, repoUrl, repo_url, stage, javaCode } = req.body || {};
 
       if (!name) {
         return res.status(400).json({ error: "Project name is required" });
@@ -31,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const project = await prisma.project.create({
         data: {
           name,
-          repoUrl: repoUrl || "",
+          repoUrl: repoUrl || repo_url || "",
           stage: stage || "core_audit",
           readinessScore: 85,
           uploadedSources: javaCode
@@ -70,7 +71,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
       });
 
-      return res.status(201).json(project);
+      return res.status(201).json(mapProjectToSummary(project));
     } catch (error) {
       console.error("POST /api/projects error:", error);
       return res.status(500).json({ error: "Failed to create project" });

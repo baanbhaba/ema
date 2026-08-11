@@ -8,12 +8,30 @@ export const getSimulateApiError = () => simulateErrorsGlobal;
 
 export const BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || "/api/v1";
 
+const USE_MOCKS = (import.meta as any).env?.VITE_USE_MOCKS === "true";
+
+export class ApiError extends Error {
+  status: number;
+  url: string;
+
+  constructor(status: number, message: string, url: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.url = url;
+  }
+}
+
 export async function fetchApi<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  if (USE_MOCKS) {
+    throw new ApiError(0, "VITE_USE_MOCKS=true: backend calls bypassed in favor of mock data", endpoint);
+  }
+
   if (simulateErrorsGlobal) {
-    throw new Error("Simulated Backend API Error: 503 Service Unavailable");
+    throw new ApiError(503, "Simulated Backend API Error: 503 Service Unavailable", endpoint);
   }
 
   const url = endpoint.startsWith("http")
@@ -32,8 +50,10 @@ export async function fetchApi<T>(
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => "");
-    throw new Error(
-      `Backend Request Failed (${response.status}): ${errorText || response.statusText}`
+    throw new ApiError(
+      response.status,
+      `Backend Request Failed (${response.status}): ${errorText || response.statusText}`,
+      url
     );
   }
 
@@ -41,15 +61,17 @@ export async function fetchApi<T>(
   const text = await response.text();
 
   if (text.trim().startsWith("<") || (contentType && !contentType.includes("application/json") && text.trim().startsWith("<!DOCTYPE"))) {
-    throw new Error(
-      `Backend Request Failed (HTML Fallback): Endpoint '${url}' returned HTML instead of JSON (Vercel SPA rewrite).`
+    throw new ApiError(
+      502,
+      `Backend Request Failed (HTML Fallback): Endpoint '${url}' returned HTML instead of JSON (Vercel SPA rewrite).`,
+      url
     );
   }
 
   try {
     return JSON.parse(text);
   } catch {
-    throw new Error(`Backend Request Failed: Response from '${url}' was not valid JSON.`);
+    throw new ApiError(502, `Backend Request Failed: Response from '${url}' was not valid JSON.`, url);
   }
 }
 
@@ -57,4 +79,3 @@ export * from "./project";
 export * from "./review";
 export * from "./transform";
 export * from "./report";
-

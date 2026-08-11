@@ -26,7 +26,8 @@ struct AppState {
 #[derive(Deserialize)]
 struct AnalyzeRequest {
     project_id: Option<String>,
-    ingestion_manifest: String,
+    ingestion_manifest: Option<String>,
+    code: Option<String>,
     deepseek_api_key: Option<String>,
     model: Option<String>,
 }
@@ -105,8 +106,14 @@ async fn run_core_analysis(
 
     let agent = CoreAnalysisAgent::new(api_key, payload.model);
 
+    let manifest = payload
+        .code
+        .clone()
+        .or(payload.ingestion_manifest.clone())
+        .unwrap_or_default();
+
     let audit = agent
-        .analyze(&payload.ingestion_manifest)
+        .analyze(&manifest)
         .await
         .map_err(|err| (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()))?;
 
@@ -116,7 +123,7 @@ async fn run_core_analysis(
             tracing::warn!("Failed to persist CoreAudit for project {}: {}", project_id, e);
         } else {
             tracing::info!("CoreAudit persisted for project {}", project_id);
-            if let Err(e) = repository::update_project_stage(&state.db, project_id, "readiness", 92).await {
+            if let Err(e) = repository::update_project_stage(&state.db, project_id, "readiness").await {
                 tracing::warn!("Failed to update project stage: {}", e);
             }
         }
@@ -137,8 +144,14 @@ async fn run_impact_analysis(
 
     let agent = ImpactAnalysisAgent::new(api_key, payload.model);
 
+    let manifest = payload
+        .code
+        .clone()
+        .or(payload.ingestion_manifest.clone())
+        .unwrap_or_default();
+
     let audit = agent
-        .analyze(&payload.ingestion_manifest)
+        .analyze(&manifest)
         .await
         .map_err(|err| (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()))?;
 

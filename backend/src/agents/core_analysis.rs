@@ -1,4 +1,4 @@
-use crate::models::contracts::{CoreAudit, DeprecatedUsage, DependencyGraph, DetectedStackItem, Diagram};
+use crate::models::contracts::CoreAudit;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
@@ -107,41 +107,7 @@ Analyze the provided Java project manifest and return ONLY valid JSON matching t
             }
         }
 
-        // High-precision fallback for core analysis
-        Ok(CoreAudit {
-            architecture_summary: "AST Manifest analyzed successfully: Legacy Java 8 application detected.".to_string(),
-            detected_stack: vec![
-                DetectedStackItem {
-                    technology: "Java 8 JDK".to_string(),
-                    version: "1.8.0_351".to_string(),
-                    status: "eol".to_string(),
-                },
-                DetectedStackItem {
-                    technology: "Spring Boot Web".to_string(),
-                    version: "2.7.18".to_string(),
-                    status: "deprecated".to_string(),
-                },
-            ],
-            deprecated_usages: vec![
-                DeprecatedUsage {
-                    file: "SimpleMethodExample.java".to_string(),
-                    line: 5,
-                    pattern: "System.out.println()".to_string(),
-                    recommended_replacement: "println!() macro in Rust".to_string(),
-                },
-            ],
-            dependency_graph: DependencyGraph {
-                nodes: vec!["SimpleMethodExample".to_string(), "UserController".to_string()],
-                edges: vec![],
-            },
-            diagrams: vec![
-                Diagram {
-                    r#type: "component".to_string(),
-                    format: "mermaid".to_string(),
-                    content: "graph TD\n  JavaController[Java Spring Controller] -->|Migrate| RustAxum[Rust Axum Router]".to_string(),
-                },
-            ],
-            confidence: 0.95,
-        })
+        // No silent mock fallback — surface the failure so callers can handle it.
+        Err("CoreAnalysisAgent: LLM request failed or returned invalid JSON".into())
     }
 }

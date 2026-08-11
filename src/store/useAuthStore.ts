@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { fetchApi } from "../api/client";
+import { fetchApi, ApiError } from "../api/client";
 
 const DEFAULT_NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1";
 // AIML_API_KEY is now server-side only (no VITE_ prefix, not in the browser bundle)
@@ -63,7 +63,10 @@ export const useAuthStore = create<AuthState>()(
             return true;
           }
           return false;
-        } catch (_err) {
+        } catch (err) {
+          if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+            return false;
+          }
           console.warn("[MOCK_FALLBACK] Backend /auth/login endpoint unavailable; using fallback authentication.");
           if (cleanUser && cleanPass) {
             set({

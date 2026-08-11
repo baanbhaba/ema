@@ -83,36 +83,3 @@ pub struct ImpactAudit {
     pub blast_radius: Vec<BlastRadiusItem>,
     pub confidence: f64,
 }
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Conflict {
-    pub topic: String,
-    pub core_position: String,
-    pub impact_position: String,
-    pub resolved: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ConsensusResult {
-    pub iteration: u32,
-    pub conflicts: Vec<Conflict>,
-    pub unified_confidence: f64,
-    pub should_iterate_again: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ReadinessScoreBreakdown {
-    pub architecture_understanding: u32,
-    pub dependency_resolution: u32,
-    pub api_compatibility: u32,
-    pub configuration_completeness: u32,
-    pub migration_feasibility: u32,
-    pub breaking_change_risk: u32,
-    pub rollback_availability: u32,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ReadinessScore {
-    pub overall: u32,
-    pub breakdown: ReadinessScoreBreakdown,
-}

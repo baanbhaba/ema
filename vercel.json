@@ -15,6 +15,18 @@
       "destination": "/api/ai/chat"
     },
     {
+      "source": "/api/v1/analyze/core",
+      "destination": "/api/analyze/core"
+    },
+    {
+      "source": "/api/v1/analyze/impact",
+      "destination": "/api/analyze/impact"
+    },
+    {
+      "source": "/api/v1/auth/login",
+      "destination": "/api/auth/login"
+    },
+    {
       "source": "/api/v1/projects/:id/blueprint/steps/:stepId/approve",
       "destination": "/api/projects/:id/blueprint/steps/:stepId?action=approve"
     },
@@ -45,10 +57,6 @@
     {
       "source": "/api/v1/projects/:id/report",
       "destination": "/api/projects/:id/report"
-    },
-    {
-      "source": "/api/v1/projects/:id/audit",
-      "destination": "/api/projects/:id/audit"
     },
     {
       "source": "/api/v1/projects/:id/transform",

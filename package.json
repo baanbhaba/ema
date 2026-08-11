@@ -14,7 +14,7 @@
     "dev": "vite",
     "postinstall": "prisma generate",
     "build": "prisma generate && tsc -b && vite build",
-    "vercel-build": "prisma generate && tsc -b && vite build",
+    "vercel-build": "prisma migrate deploy && prisma generate && tsc -b && vite build && prisma db seed",
     "test": "vitest run",
     "lint": "oxlint",
     "preview": "vite preview",

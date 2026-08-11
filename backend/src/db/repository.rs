@@ -93,21 +93,21 @@ pub async fn upsert_impact_audit(
 }
 
 /// Mark a project's stage after analysis completes.
+/// The readiness score is left untouched — it is computed by the
+/// canonical serverless readiness engine, not hardcoded here.
 pub async fn update_project_stage(
     pool: &PgPool,
     project_id: &str,
     stage: &str,
-    readiness_score: i32,
 ) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         UPDATE projects
-        SET stage = $1, "readinessScore" = $2, "updatedAt" = NOW()
-        WHERE id = $3
+        SET stage = $1, "updatedAt" = NOW()
+        WHERE id = $2
         "#,
     )
     .bind(stage)
-    .bind(readiness_score)
     .bind(project_id)
     .execute(pool)
     .await?;

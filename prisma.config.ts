@@ -8,6 +8,9 @@ const dbUrl = process.env.DATABASE_URL!;
 export default defineConfig({
   schema: "./prisma/schema.prisma",
   earlyAccess: true,
+  migrations: {
+    seed: "node prisma/seed.mjs",
+  },
   datasource: {
     url: dbUrl,
     adapter: () => {

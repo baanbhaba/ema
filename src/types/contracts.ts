@@ -152,7 +152,7 @@ export const MigrationReportSchema = z.object({
 export const ProjectSummarySchema = z.object({
   id: z.string(),
   name: z.string(),
-  repo_url: z.string(),
+  repo_url: z.string().default("N/A"),
   stage: z.enum([
     "ingesting",
     "analyzing",

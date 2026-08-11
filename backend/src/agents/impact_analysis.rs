@@ -1,4 +1,4 @@
-use crate::models::contracts::{ApiSurfaceItem, BlastRadiusItem, DependencyRisk, ImpactAudit};
+use crate::models::contracts::ImpactAudit;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
@@ -108,33 +108,7 @@ Return ONLY valid JSON matching this ImpactAudit schema:
             }
         }
 
-        // High-precision fallback for impact audit
-        Ok(ImpactAudit {
-            api_surface: vec![
-                ApiSurfaceItem {
-                    endpoint_or_interface: "GET /api/v1/users".to_string(),
-                    consumers: vec!["Frontend Client".to_string(), "Mobile App".to_string()],
-                    breaking_change_risk: "low".to_string(),
-                },
-            ],
-            database_impacts: vec![],
-            config_impacts: vec![],
-            dependency_risks: vec![
-                DependencyRisk {
-                    library: "Spring Web MVC".to_string(),
-                    current_version: "2.7.0".to_string(),
-                    target_version: "Axum 0.7".to_string(),
-                    known_breaking_changes: vec!["Replace Spring annotations with Axum router".to_string()],
-                },
-            ],
-            blast_radius: vec![
-                BlastRadiusItem {
-                    change: "Migrate Java controllers to Rust Axum handlers".to_string(),
-                    affected_files: vec!["UserController.java".to_string()],
-                    severity: "medium".to_string(),
-                },
-            ],
-            confidence: 0.92,
-        })
+        // No silent mock fallback — surface the failure so callers can handle it.
+        Err("ImpactAnalysisAgent: LLM request failed or returned invalid JSON".into())
     }
 }
