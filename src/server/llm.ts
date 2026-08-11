@@ -31,11 +31,18 @@ export async function completeJson<T>(
       }),
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      const errText = await response.text().catch(() => response.statusText);
+      console.error(`[LLM SERVER ERROR] Upstream API call failed (${response.status}): ${errText}`);
+      throw new Error(`Upstream AI API error (${response.status}): ${errText}`);
+    }
 
     const data: any = await response.json();
     const content: string | undefined = data?.choices?.[0]?.message?.content;
-    if (!content) return null;
+    if (!content) {
+      console.error("[LLM SERVER ERROR] Upstream API returned empty choices or message content.");
+      throw new Error("Upstream AI API returned empty message content");
+    }
 
     const cleaned = content
       .trim()
@@ -45,7 +52,7 @@ export async function completeJson<T>(
 
     return JSON.parse(cleaned) as T;
   } catch (err) {
-    console.warn("LLM structured completion failed:", err);
-    return null;
+    console.error("LLM structured completion failed:", err);
+    throw err;
   }
 }
