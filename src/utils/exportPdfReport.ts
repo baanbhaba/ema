@@ -21,7 +21,7 @@ export function exportPdfReport(
 
   const rawJvmRam = Math.round(64 + javaLines * 0.45 + javaMethods * 2.2);
   const rawRustRam = +(4.5 + rustLines * 0.015 + rustHandlers * 0.38).toFixed(1);
-  const ramReduction = (((rawJvmRam - rawRustRam) / rawJvmRam) * 100).toFixed(1);
+  const ramDeltaPercent = (((rawJvmRam - rawRustRam) / rawJvmRam) * 100).toFixed(1);
 
   const rawJvmReqSec = Math.round(2800 + javaMethods * 160);
   const rawRustReqSec = Math.round(38000 + rustHandlers * 3200 + rustLines * 45);

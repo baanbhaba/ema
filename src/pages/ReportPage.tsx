@@ -105,6 +105,7 @@ export const ReportPage: React.FC = () => {
             </div>
           </div>
 
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => exportPdfReport(projectDetails?.name || id || "Migrated Service", report, blueprintSteps)}

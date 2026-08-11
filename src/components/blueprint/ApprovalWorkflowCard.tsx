@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ShieldCheck, UserCheck, CheckCircle2, Lock, Award, ShieldAlert, Cpu } from "lucide-react";
+import { ShieldCheck, UserCheck, CheckCircle2, Award, Cpu } from "lucide-react";
 import { Card } from "../common/Card";
 
 interface ApprovalWorkflowCardProps {
@@ -27,7 +27,7 @@ export const ApprovalWorkflowCard: React.FC<ApprovalWorkflowCardProps> = ({
           <ShieldCheck className="w-5 h-5 text-amber-500 shrink-0" />
           <div>
             <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              Role-Based Governance & Compliance Sign-Off
+              Role-Based Governance & Compliance Sign-Off ({projectName})
             </h3>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-sans">
               Human-in-the-loop validation policies required before promoting modules to target Rust architecture.
@@ -99,6 +99,14 @@ export const ApprovalWorkflowCard: React.FC<ApprovalWorkflowCardProps> = ({
           <Award className="w-3 h-3" />
           <span>SOC2 Type II Compatible Audit Log</span>
         </span>
+        {onApproveAll && !isFullyApproved && (
+          <button
+            onClick={onApproveAll}
+            className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-black rounded font-bold transition-all cursor-pointer"
+          >
+            Execute Bulk Approval
+          </button>
+        )}
       </div>
     </Card>
   );

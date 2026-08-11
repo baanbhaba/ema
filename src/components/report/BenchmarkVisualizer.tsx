@@ -58,7 +58,7 @@ export const BenchmarkVisualizer: React.FC<BenchmarkVisualizerProps> = ({
           <div className="flex items-center space-x-2">
             <Activity className="w-5 h-5 text-amber-500" />
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2">
-              <span>Empirical Runtime Performance & Cost Profiler</span>
+              <span>Empirical Runtime Performance & Cost Profiler ({projectName})</span>
               <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 rounded font-normal">
                 DYNAMIC CODE PARSING
               </span>
