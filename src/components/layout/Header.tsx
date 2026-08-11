@@ -1,9 +1,11 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { LayoutGrid, LogOut } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useUiStore } from "../../store/useUiStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { FeedbackWidget } from "../common/FeedbackWidget";
+import { getProjects } from "../../api/client";
 
 export const Header: React.FC = () => {
   const location = useLocation();
@@ -12,6 +14,18 @@ export const Header: React.FC = () => {
 
   const projectMatch = location.pathname.match(/\/projects\/([^/]+)/);
   const currentProjectId = projectMatch ? projectMatch[1] : null;
+
+  const { data: projects } = useQuery({
+    queryKey: ["projects"],
+    queryFn: getProjects,
+  });
+
+  const activeProject = projects?.find((p) => p.id === currentProjectId);
+  const displayProjectName = activeProject
+    ? activeProject.name
+    : currentProjectId
+    ? currentProjectId.replace(/^proj-/, "").replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+    : null;
 
   // Route display name mapping for breadcrumb
   const routeLabel = (() => {
@@ -37,16 +51,16 @@ export const Header: React.FC = () => {
           </Link>
 
           {/* Breadcrumb */}
-          {(currentProjectId || routeLabel) && (
+          {(displayProjectName || routeLabel) && (
             <>
               <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 hidden sm:block shrink-0" />
               <div className="hidden sm:flex items-center space-x-1.5 text-xs text-zinc-500 dark:text-zinc-400 min-w-0">
-                {currentProjectId && (
-                  <span className="text-zinc-700 dark:text-zinc-300 font-medium truncate max-w-[120px]">
-                    {currentProjectId.replace("proj-", "").replace(/-/g, " ")}
+                {displayProjectName && (
+                  <span className="text-zinc-700 dark:text-zinc-300 font-medium truncate max-w-[180px]">
+                    {displayProjectName}
                   </span>
                 )}
-                {routeLabel && currentProjectId && (
+                {routeLabel && displayProjectName && (
                   <span className="text-zinc-300 dark:text-zinc-600">/</span>
                 )}
                 {routeLabel && (
