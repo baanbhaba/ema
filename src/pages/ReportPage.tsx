@@ -1,15 +1,17 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { FileCheck2, Clock, UserCheck, Code, FileTerminal, Package, Layers, Settings2, CircleCheckBig, TriangleAlert, CloudDownload } from "lucide-react";
+import { FileCheck2, Clock, UserCheck, Code, FileTerminal, Package, Layers, Settings2, CircleCheckBig, TriangleAlert, CloudDownload, Printer } from "lucide-react";
 import { getMigrationReport } from "../api/report";
 import { getProjectDetails } from "../api/client";
 import { downloadCombinedRustProject, downloadCargoToml } from "../utils/exportRustCode";
+import { exportPdfReport } from "../utils/exportPdfReport";
 import { Card } from "../components/common/Card";
 import { DiffViewer } from "../components/report/DiffViewer";
 import { ValidationBadge } from "../components/report/ValidationBadge";
 import { RollbackSection } from "../components/report/RollbackSection";
 import { TopologyGraph } from "../components/common/TopologyGraph";
+import { BenchmarkVisualizer } from "../components/report/BenchmarkVisualizer";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
 import { ErrorState } from "../components/common/ErrorState";
 
@@ -103,7 +105,15 @@ export const ReportPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => exportPdfReport(projectDetails?.name || id || "Migrated Service", report, blueprintSteps)}
+              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded text-xs transition-colors flex items-center space-x-1.5 cursor-pointer shadow-xs"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Export PDF Certificate</span>
+            </button>
+
             <button
               type="button"
               onClick={() => downloadCombinedRustProject(id || "migrated_service", id || "migrated_service", report.blueprint?.steps || [])}
@@ -277,6 +287,9 @@ export const ReportPage: React.FC = () => {
           ))}
         </div>
       </Card>
+
+      {/* Executive Infrastructure Benchmarks Visualizer */}
+      <BenchmarkVisualizer projectName={projectDetails?.name || id || "Migrated Service"} />
 
       {/* 2D & 3D Architectural Schema Preview */}
       {report.core_audit?.diagrams?.[0] && (

@@ -19,6 +19,7 @@ import { StepEditModal } from "../components/blueprint/StepEditModal";
 import { ConfirmBulkApproveModal } from "../components/blueprint/ConfirmBulkApproveModal";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
 import { ErrorState } from "../components/common/ErrorState";
+import { ApprovalWorkflowCard } from "../components/blueprint/ApprovalWorkflowCard";
 import { useUiStore } from "../store/useUiStore";
 
 export const BlueprintPage: React.FC = () => {
@@ -212,6 +213,13 @@ export const BlueprintPage: React.FC = () => {
           </span>
         </div>
       )}
+
+      {/* Role-Based Governance Card */}
+      <ApprovalWorkflowCard
+        projectName={id || "Active Service"}
+        totalSteps={sortedSteps.length}
+        approvedSteps={approvedCount}
+      />
 
       {/* Metrics Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 font-mono text-xs">
