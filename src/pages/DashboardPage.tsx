@@ -130,10 +130,10 @@ export const DashboardPage: React.FC = () => {
         <button
           id="dashboard-new-project"
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center space-x-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black rounded-lg text-sm font-bold font-mono transition-colors cursor-pointer shrink-0"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black rounded-lg text-sm font-bold font-mono transition-colors cursor-pointer shrink-0"
           aria-label="Upload a new Java project for migration analysis"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 mt-[1px]" />
           <span>New Project</span>
         </button>
       </div>
@@ -150,20 +150,20 @@ export const DashboardPage: React.FC = () => {
 
       {!isLoading && !isError && projects && projects.length === 0 && (
         <Card className="text-center py-20 flex flex-col items-center justify-center border-dashed bg-zinc-50/50 dark:bg-zinc-900/20 animate-fade-in">
-          <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900 rounded-full flex items-center justify-center mb-5 shadow-inner border border-zinc-200 dark:border-zinc-800">
+          <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900 rounded-full flex items-center justify-center mb-5 shadow-inner border border-zinc-200 dark:border-zinc-800 mx-auto">
             <FolderGit className="w-8 h-8 text-amber-500" />
           </div>
           <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-200 font-mono mb-2">No Projects Yet</h3>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-md mx-auto mb-6 font-sans leading-relaxed">
-            Upload a <code className="bg-zinc-200/50 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 px-1.5 py-0.5 rounded font-mono text-[11px] border border-zinc-200 dark:border-zinc-700">.java</code> file or a full <code className="bg-zinc-200/50 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 px-1.5 py-0.5 rounded font-mono text-[11px] border border-zinc-200 dark:border-zinc-700">.zip</code> archive to kickstart the AST parsing and automated Rust migration analysis.
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto mb-6 font-sans">
+            Upload your legacy Java code to start the automated Rust migration analysis.
           </p>
           <button
             id="dashboard-empty-new-project"
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center space-x-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black rounded-lg text-sm font-bold font-mono transition-all hover:-translate-y-0.5 shadow-md hover:shadow-lg"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black rounded-lg text-sm font-bold font-mono transition-all hover:-translate-y-0.5 shadow-md hover:shadow-lg"
           >
-            <Plus className="w-4 h-4" />
-            <span>Upload Your First Project</span>
+            <Plus className="w-4 h-4 mt-[1px]" />
+            <span>Upload Project</span>
           </button>
         </Card>
       )}
