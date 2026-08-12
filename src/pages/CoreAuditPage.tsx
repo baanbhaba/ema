@@ -152,7 +152,7 @@ export const CoreAuditPage: React.FC = () => {
                   id={`core-diag-${idx}`}
                   nodes={audit.dependency_graph?.nodes}
                   edges={audit.dependency_graph?.edges}
-                  transformedCode={getTransformedCode(id || "")}
+                  transformedCode={audit.rust_code || getTransformedCode(id || "")}
                 />
               </div>
             ))}

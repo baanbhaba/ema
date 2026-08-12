@@ -38,6 +38,8 @@ export const CoreAuditSchema = z.object({
   dependency_graph: DependencyGraphSchema,
   diagrams: z.array(DiagramSchema),
   confidence: z.number().min(0).max(1),
+  java_code: z.string().optional(),
+  rust_code: z.string().optional(),
 });
 
 export const ApiSurfaceItemSchema = z.object({

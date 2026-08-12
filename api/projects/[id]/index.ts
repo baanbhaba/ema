@@ -405,6 +405,8 @@ ${configImpactNotes || "- Restore application.properties / application.yml confi
           dependency_graph: coreAudit.dependency_graph || coreAudit.dependencyGraph || { nodes: [], edges: [] },
           diagrams: coreAudit.diagrams || [],
           confidence: coreAudit.confidence || 0.95,
+          java_code: rawJava,
+          rust_code: generateRustCodeFromJava(rawJava, "step-1"),
         },
         impact_audit: {
           api_surface: impactAudit.api_surface || impactAudit.apiSurface || [],
@@ -451,10 +453,23 @@ ${configImpactNotes || "- Restore application.properties / application.yml confi
       if (!project) return res.status(404).json({ error: "Project not found" });
 
       const mapped = mapProjectToSummary(project);
+      
+      const primarySource = project.uploadedSources?.[0];
+      const rawJava = primarySource ? primarySource.rawCode : "";
+      
+      let finalCoreAudit = project.coreAudit;
+      if (finalCoreAudit) {
+        finalCoreAudit = {
+          ...(typeof finalCoreAudit === "string" ? JSON.parse(finalCoreAudit as string) : finalCoreAudit),
+          java_code: rawJava,
+          rust_code: generateRustCodeFromJava(rawJava, "step-1"),
+        } as any;
+      }
+
       return res.status(200).json({
         ...mapped,
         uploaded_sources: project.uploadedSources,
-        core_audit: project.coreAudit,
+        core_audit: finalCoreAudit,
         impact_audit: project.impactAudit,
         readiness_assessment: project.readinessAssessment,
         blueprint: project.blueprint,

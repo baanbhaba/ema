@@ -3,6 +3,7 @@ import { prisma } from "../../src/lib/prisma";
 import { detectJavaStack, detectJavaDeprecatedUsages } from "../../src/lib/analysis";
 import { completeJson } from "../../src/server/llm";
 import { refreshProjectReadiness } from "../../src/server/auditMapping";
+import { generateRustCodeFromJava } from "../../src/api/transform";
 
 const CORE_SYSTEM_PROMPT = `
 You are the Core Analysis Agent in ALCHEMI (Automated Legacy Code Transformation Engine).
@@ -109,6 +110,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
       });
       await refreshProjectReadiness(project_id);
+    }
+
+    if (audit) {
+      audit.java_code = javaCode;
+      audit.rust_code = generateRustCodeFromJava(javaCode, "step-1");
     }
 
     return res.status(200).json(audit);
