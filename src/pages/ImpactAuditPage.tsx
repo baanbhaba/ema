@@ -11,7 +11,6 @@ import { ErrorState } from "../components/common/ErrorState";
 export const ImpactAuditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [expandedDependency, setExpandedDependency] = useState<string | null>(null);
   const [expandedBlastIndex, setExpandedBlastIndex] = useState<number | null>(null);
 
   const { data: projectDetails } = useQuery({
@@ -207,65 +206,39 @@ export const ImpactAuditPage: React.FC = () => {
             <span>Dependency Upgrade Risks</span>
           </div>
         }
-        subtitle="Version jumps and known breaking changes"
+        subtitle="Identified risks and mitigation strategies"
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead className="text-[10px] text-zinc-400 uppercase bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
               <tr>
-                <th className="px-3 py-2">Library</th>
-                <th className="px-3 py-2">Current</th>
-                <th className="px-3 py-2">Target</th>
-                <th className="px-3 py-2 text-right">Breaking Changes</th>
+                <th className="px-3 py-2">Dependency</th>
+                <th className="px-3 py-2">Risk</th>
+                <th className="px-3 py-2">Mitigation</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {impact.dependency_risks.map((dep, idx) => {
-                const isExpanded = expandedDependency === dep.library;
-                return (
-                  <React.Fragment key={idx}>
-                    <tr
-                      onClick={() =>
-                        setExpandedDependency(isExpanded ? null : dep.library)
-                      }
-                      className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 cursor-pointer"
-                    >
-                      <td className="px-3 py-2 font-semibold text-zinc-900 dark:text-zinc-100 flex items-center space-x-1.5">
-                        {isExpanded ? (
-                          <ChevronDown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                        ) : (
-                          <ChevronRight className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                        )}
-                        <span>{dep.library}</span>
-                      </td>
-                      <td className="px-3 py-2 text-zinc-500">{dep.current_version}</td>
-                      <td className="px-3 py-2 text-amber-500 font-semibold">{dep.target_version}</td>
-                      <td className="px-3 py-2 text-right font-bold text-zinc-900 dark:text-zinc-100">
-                        {dep.known_breaking_changes.length} changes
-                      </td>
-                    </tr>
-
-                    {isExpanded && (
-                      <tr className="bg-zinc-50 dark:bg-zinc-950">
-                        <td colSpan={4} className="px-5 py-3">
-                          <div className="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded space-y-1">
-                            <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block">
-                              Known Breaking Changes ({dep.current_version} → {dep.target_version}):
-                            </span>
-                            <ul className="list-disc list-inside space-y-0.5 text-xs text-zinc-600 dark:text-zinc-400 font-sans">
-                              {dep.known_breaking_changes.map((bc, bIdx) => (
-                                <li key={bIdx}>{bc}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                );
-              })}
+              {impact.dependency_risks.map((dep, idx) => (
+                <tr
+                  key={idx}
+                  className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+                >
+                  <td className="px-3 py-2 font-semibold text-zinc-900 dark:text-zinc-100">
+                    {dep.dependency || dep.library || "Unknown Dependency"}
+                  </td>
+                  <td className="px-3 py-2">
+                    <Badge variant={(dep.risk as "low" | "medium" | "high") || "low"} />
+                  </td>
+                  <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400 max-w-sm truncate whitespace-normal">
+                    {dep.mitigation || (dep.known_breaking_changes ? dep.known_breaking_changes.join(", ") : "Manual review required")}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
+          {impact.dependency_risks.length === 0 && (
+            <p className="text-xs text-zinc-400 italic p-4 text-center">No significant dependency risks found.</p>
+          )}
         </div>
       </Card>
 

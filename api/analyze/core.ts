@@ -5,7 +5,7 @@ import { completeJson } from "../../src/server/llm";
 import { refreshProjectReadiness } from "../../src/server/auditMapping";
 import { generateRustCodeFromJava } from "../../src/api/transform";
 
-const CORE_SYSTEM_PROMPT = \`You are the CORE ANALYSIS AGENT in ALCHEMI (Automated Legacy Code Transformation Engine),
+const CORE_SYSTEM_PROMPT = `You are the CORE ANALYSIS AGENT in ALCHEMI (Automated Legacy Code Transformation Engine),
 a multi-agent system that migrates legacy Java codebases to idiomatic Rust.
 
 Your SOLE responsibility is static architectural analysis. You do NOT migrate, rewrite,
@@ -81,7 +81,7 @@ ANALYSIS RULES
 - Flag reflection, unsafe casts, native/JNI calls, and finalizers explicitly — these are the highest-risk constructs for a Rust port and must appear in migration_complexity.drivers.
 - Keep diagrams small and readable (≤15 nodes). If the class count exceeds that, diagram only the top-level packages/modules, not every class.
 - Do not include personal opinions, recommendations for business logic changes, or anything outside architecture/stack/dependency scope — that belongs to Impact Analysis or Blueprint.
-\`;
+`;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {

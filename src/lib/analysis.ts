@@ -397,13 +397,13 @@ export function calculateConsensus(
   });
 
   if (depUsages.length > 0 || depRisks.length > 0) {
-    const mainPattern = depUsages[0]?.pattern || depRisks[0]?.library || "Legacy Dependencies";
-    const replacement = depUsages[0]?.recommended_replacement || depRisks[0]?.target_version || "Updated Crates/Packages";
+    const mainPattern = depUsages[0]?.pattern || depRisks[0]?.dependency || depRisks[0]?.library || "Legacy Dependencies";
+    const replacement = depUsages[0]?.recommended_replacement || depRisks[0]?.mitigation || depRisks[0]?.target_version || "Updated Crates/Packages";
     conflicts.push({
       topic: `Modernization Strategy: ${mainPattern}`,
       core_position: `Refactor legacy calls from '${mainPattern}' to '${replacement}'.`,
       impact_position: `Verify backward compatibility and non-breaking upgrade paths across all dependents.`,
-      resolved: depRisks.length === 0 || !depRisks.some((d) => d.known_breaking_changes.length > 1),
+      resolved: depRisks.length === 0 || !depRisks.some((d) => (d.known_breaking_changes?.length ?? 0) > 1),
     });
   }
 

@@ -4,7 +4,7 @@ import { detectJavaImpactAudit } from "../../src/lib/analysis";
 import { completeJson } from "../../src/server/llm";
 import { refreshProjectReadiness } from "../../src/server/auditMapping";
 
-const IMPACT_SYSTEM_PROMPT = \`You are the IMPACT ANALYSIS AGENT in ALCHEMI (Automated Legacy Code Transformation Engine).
+const IMPACT_SYSTEM_PROMPT = `You are the IMPACT ANALYSIS AGENT in ALCHEMI (Automated Legacy Code Transformation Engine).
 Your job is to assess the BLAST RADIUS of migrating the given Java source to Rust — what
 breaks, what needs coordinated changes, and where the operational risk concentrates. You do
 NOT write migration code and you do NOT re-describe the architecture (that's Core Analysis's
@@ -67,7 +67,7 @@ ANALYSIS RULES
 - Treat any use of reflection, dynamic class loading, serialization of arbitrary objects, or JNI as automatic "high" dependency/blast-radius risk — these rarely have a clean Rust equivalent and need explicit human review.
 - For rollout_recommendation: default to "strangler_fig" for anything with external API consumers or a database; use "parallel_run" when correctness parity is critical (e.g. financial calculations) and results can be diffed; reserve "big_bang" for small, low-risk, self-contained CLI utilities with no external consumers.
 - Do not duplicate the dependency_graph or architecture_summary content from Core Analysis — assume the reader already has that document; only add impact-specific information here.
-\`;
+`;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
