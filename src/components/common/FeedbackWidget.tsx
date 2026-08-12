@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { MessageSquare, Send, X, CheckCircle2 } from "lucide-react";
 import { useUiStore } from "../../store/useUiStore";
 
@@ -36,10 +37,10 @@ export const FeedbackWidget: React.FC = () => {
       </button>
 
       {/* Feedback Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-xs overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 w-full max-w-sm text-left inline-block align-middle font-mono space-y-4 shadow-2xl animate-in fade-in zoom-in-95 mx-auto">
+      {isOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm overflow-y-auto flex items-center justify-center">
+          <div className="flex w-full min-h-full items-center justify-center p-4 text-center">
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 w-full max-w-sm text-left inline-block font-mono space-y-4 shadow-2xl animate-in fade-in zoom-in-95 relative">
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
               <div className="flex items-center space-x-2">
                 <MessageSquare className="w-4 h-4 text-amber-500" />
@@ -118,7 +119,8 @@ export const FeedbackWidget: React.FC = () => {
             )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

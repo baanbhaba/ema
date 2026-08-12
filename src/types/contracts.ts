@@ -6,12 +6,14 @@ export const DetectedStackItemSchema = z.object({
   technology: z.string(),
   version: z.string(),
   status: z.enum(["current", "deprecated", "eol"]),
+  evidence: z.string().optional(),
 });
 
 export const DeprecatedUsageSchema = z.object({
   file: z.string(),
   line: z.number(),
   pattern: z.string(),
+  severity: z.enum(["low", "medium", "high"]).optional(),
   recommended_replacement: z.string(),
 });
 
@@ -21,6 +23,7 @@ export const DependencyGraphSchema = z.object({
     z.object({
       from: z.string(),
       to: z.string(),
+      relationship: z.string().optional(),
     })
   ),
 });
@@ -31,12 +34,26 @@ export const DiagramSchema = z.object({
   content: z.string(),
 });
 
+export const ConcurrencyModelSchema = z.object({
+  uses_threads: z.boolean(),
+  uses_executor_service: z.boolean(),
+  shared_mutable_state: z.array(z.string()),
+  notes: z.string(),
+});
+
+export const MigrationComplexitySchema = z.object({
+  score: z.number().min(1).max(10),
+  drivers: z.array(z.string()),
+});
+
 export const CoreAuditSchema = z.object({
   architecture_summary: z.string(),
   detected_stack: z.array(DetectedStackItemSchema),
   deprecated_usages: z.array(DeprecatedUsageSchema),
   dependency_graph: DependencyGraphSchema,
   diagrams: z.array(DiagramSchema),
+  concurrency_model: ConcurrencyModelSchema.optional(),
+  migration_complexity: MigrationComplexitySchema.optional(),
   confidence: z.number().min(0).max(1),
   java_code: z.string().optional(),
   rust_code: z.string().optional(),
@@ -46,6 +63,7 @@ export const ApiSurfaceItemSchema = z.object({
   endpoint_or_interface: z.string(),
   consumers: z.array(z.string()),
   breaking_change_risk: z.enum(["low", "medium", "high"]),
+  risk_reason: z.string().optional(),
 });
 
 export const ImpactItemSchema = z.object({
@@ -56,16 +74,31 @@ export const ImpactItemSchema = z.object({
 });
 
 export const DependencyRiskSchema = z.object({
-  library: z.string(),
-  current_version: z.string(),
-  target_version: z.string(),
-  known_breaking_changes: z.array(z.string()),
+  dependency: z.string().optional(),
+  library: z.string().optional(),
+  risk: z.enum(["low", "medium", "high"]).optional(),
+  mitigation: z.string().optional(),
+  current_version: z.string().optional(),
+  target_version: z.string().optional(),
+  known_breaking_changes: z.array(z.string()).optional(),
+});
+
+export const ConcurrencyAndStateRiskSchema = z.object({
+  issue: z.string(),
+  risk: z.enum(["low", "medium", "high"]),
+  notes: z.string(),
 });
 
 export const BlastRadiusItemSchema = z.object({
   change: z.string(),
   affected_files: z.array(z.string()),
+  affected_systems: z.array(z.string()).optional(),
   severity: z.enum(["low", "medium", "high"]),
+});
+
+export const RolloutRecommendationSchema = z.object({
+  strategy: z.enum(["big_bang", "strangler_fig", "parallel_run"]),
+  reasoning: z.string(),
 });
 
 export const ImpactAuditSchema = z.object({
@@ -73,7 +106,9 @@ export const ImpactAuditSchema = z.object({
   database_impacts: z.array(ImpactItemSchema),
   config_impacts: z.array(ImpactItemSchema),
   dependency_risks: z.array(DependencyRiskSchema),
+  concurrency_and_state_risks: z.array(ConcurrencyAndStateRiskSchema).optional(),
   blast_radius: z.array(BlastRadiusItemSchema),
+  rollout_recommendation: RolloutRecommendationSchema.optional(),
   confidence: z.number().min(0).max(1),
 });
 

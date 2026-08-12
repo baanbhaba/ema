@@ -160,7 +160,7 @@ export const DashboardPage: React.FC = () => {
           <button
             id="dashboard-empty-new-project"
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black rounded-lg text-sm font-bold font-mono transition-all hover:-translate-y-0.5 shadow-md hover:shadow-lg"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black rounded-lg text-sm font-bold font-mono transition-all hover:-translate-y-0.5 shadow-md hover:shadow-lg mx-auto"
           >
             <Plus className="w-4 h-4 mt-[1px]" />
             <span>Upload Project</span>
