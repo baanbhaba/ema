@@ -14,7 +14,7 @@ export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
       localBlueprintsStore[projectId] = data;
       return BlueprintSchema.parse(data);
     }
-  } catch (_err) {
+  } catch {
     console.warn(`[OFFLINE] Backend GET /projects/${projectId}/blueprint unavailable — building local blueprint.`);
   }
 
@@ -26,7 +26,7 @@ export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
     const data = await fetchApi<Blueprint>(`/projects/${projectId}/blueprint`);
     localBlueprintsStore[projectId] = data;
     return BlueprintSchema.parse(data);
-  } catch (_err) {
+  } catch {
     const srcMap = getProjectSourceCode(projectId);
     const codeFiles = Object.keys(srcMap);
     const primaryFile = codeFiles[0] || "src/Main.java";
@@ -92,7 +92,7 @@ export const approveBlueprintStep = async (
       if (idx !== -1) localBlueprintsStore[projectId].steps[idx] = data;
     }
     return BlueprintStepSchema.parse(data);
-  } catch (_err) {
+  } catch {
     const blueprint = await getBlueprint(projectId);
     const step = blueprint.steps.find((s) => s.id === stepId);
     if (!step) throw new Error(`Step '${stepId}' not found`);
@@ -127,7 +127,7 @@ export const rejectBlueprintStep = async (
       if (idx !== -1) localBlueprintsStore[projectId].steps[idx] = data;
     }
     return BlueprintStepSchema.parse(data);
-  } catch (_err) {
+  } catch {
     const blueprint = await getBlueprint(projectId);
     const step = blueprint.steps.find((s) => s.id === stepId);
     if (!step) throw new Error(`Step '${stepId}' not found`);
@@ -159,7 +159,7 @@ export const updateBlueprintStep = async (
       if (idx !== -1) localBlueprintsStore[projectId].steps[idx] = data;
     }
     return BlueprintStepSchema.parse(data);
-  } catch (_err) {
+  } catch {
     const blueprint = await getBlueprint(projectId);
     const stepIndex = blueprint.steps.findIndex((s) => s.id === stepId);
     if (stepIndex === -1) throw new Error(`Step '${stepId}' not found`);
@@ -178,7 +178,7 @@ export const approveAllBlueprintSteps = async (projectId: string): Promise<Bluep
     });
     localBlueprintsStore[projectId] = data;
     return BlueprintSchema.parse(data);
-  } catch (_err) {
+  } catch {
     const blueprint = await getBlueprint(projectId);
     blueprint.steps = blueprint.steps.map((s) => ({
       ...s,

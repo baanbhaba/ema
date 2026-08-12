@@ -43,7 +43,7 @@ globalThis.fetch = async function (input: RequestInfo | URL, init?: RequestInit)
     let parsedBody: any = {};
     try {
       parsedBody = JSON.parse(bodyText);
-    } catch (e) {}
+    } catch {}
 
     const messages = parsedBody.messages || [];
     const systemPrompt = messages.find((m: any) => m.role === "system")?.content || "";

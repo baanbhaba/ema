@@ -6,9 +6,11 @@ export const setSimulateApiError = (enable: boolean) => {
 
 export const getSimulateApiError = () => simulateErrorsGlobal;
 
-export const BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || "/api/v1";
+import { env } from "../config/env";
 
-const USE_MOCKS = (import.meta as any).env?.VITE_USE_MOCKS === "true";
+export const BASE_URL = env.VITE_API_BASE_URL;
+
+const USE_MOCKS = env.VITE_USE_MOCKS === "true";
 
 export class ApiError extends Error {
   status: number;

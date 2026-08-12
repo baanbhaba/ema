@@ -142,10 +142,11 @@ export const AnimatedLogo: React.FC<AnimatedLogoProps> = ({
       }
     })();
 
+    const animState = s.current;
     return () => {
       cancelled = true;
-      cancelAnimationFrame(s.current.rafId);
-      s.current.running = false;
+      cancelAnimationFrame(animState.rafId);
+      animState.running = false;
     };
   }, [loopsBeforeStop, play]);
 

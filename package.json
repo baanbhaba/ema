@@ -1,5 +1,5 @@
 {
-  "name": "alchemi-transformation-engine",
+  "name": "project-alchemi",
   "private": true,
   "version": "1.0.0",
   "description": "ALCHEMI — Automated Legacy Code Transformation Engine (Java to Rust)",

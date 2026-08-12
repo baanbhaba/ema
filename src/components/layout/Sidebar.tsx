@@ -49,7 +49,7 @@ export const Sidebar: React.FC = () => {
     try {
       const blueprint = await getBlueprint(selectedProjectId);
       downloadCombinedRustProject(selectedProjectId, selectedProject?.name || selectedProjectId, blueprint.steps || []);
-    } catch (_err) {
+    } catch {
       console.warn("Failed to download Rust code; fallback export.");
     } finally {
       setIsExporting(false);
@@ -127,6 +127,7 @@ export const Sidebar: React.FC = () => {
     { label: "Settings", path: "/settings", icon: SlidersHorizontal },
     { label: "Account", path: "/account", icon: CircuitBoard },
     { label: "Integrations", path: "/integrations", icon: Cable },
+    { label: "Privacy & Security", path: "/privacy-security", icon: Lock },
   ];
 
   return (

@@ -48,7 +48,7 @@ const getPersistedSourceCode = (projectId: string): string => {
         return parsed[projectId];
       }
     }
-  } catch (_e) {}
+  } catch {}
   return "";
 };
 
@@ -60,7 +60,7 @@ const savePersistedSourceCode = (projectId: string, code: string) => {
     parsed[projectId] = code;
     localStorage.setItem("ema_source_code_store", JSON.stringify(parsed));
     sessionStorage.setItem("ema_source_code_store", JSON.stringify(parsed));
-  } catch (_e) {}
+  } catch {}
 };
 
 export const getProjects = async (): Promise<ProjectSummary[]> => {
@@ -70,7 +70,7 @@ export const getProjects = async (): Promise<ProjectSummary[]> => {
       data.forEach((p) => { localProjectsStore[p.id] = p; });
       return data.map((item) => ProjectSummarySchema.parse(item));
     }
-  } catch (_err) {
+  } catch {
     console.warn("[OFFLINE] Backend /projects unavailable — returning local store.");
   }
   return Object.values(localProjectsStore).map((p) => ProjectSummarySchema.parse(p));
@@ -86,7 +86,7 @@ export const getProjectDetails = async (projectId: string): Promise<any> => {
       }
     }
     return details;
-  } catch (_err) {
+  } catch {
     console.warn(`[OFFLINE] Backend GET /projects/${projectId} unavailable.`);
     return {
       ...localProjectsStore[projectId],
@@ -156,7 +156,7 @@ export const createProject = async (data: {
       if (codeToSave) savePersistedSourceCode(res.id, codeToSave);
       return ProjectSummarySchema.parse(res);
     }
-  } catch (_err) {
+  } catch {
     console.warn("[OFFLINE] Backend /projects POST unavailable — creating in local store.");
   }
   return ProjectSummarySchema.parse(newSummary);
@@ -175,7 +175,7 @@ export const deleteProject = async (projectId: string): Promise<boolean> => {
   try {
     await fetchApi<{ success: boolean }>(`/projects/${projectId}`, { method: "DELETE" });
     return true;
-  } catch (_err) {
+  } catch {
     console.warn(`[OFFLINE] Backend DELETE /projects/${projectId} unavailable — removed from local store.`);
     return true;
   }
@@ -188,7 +188,7 @@ export const uploadProjectSourceCode = async (projectId: string, code: string): 
       method: "POST",
       body: JSON.stringify({ rawCode: code }),
     });
-  } catch (_err) {
+  } catch {
     console.warn(`[STORAGE] Upload to backend DB failed for ${projectId}, saved in local storage fallback.`);
   }
   return true;
@@ -239,7 +239,7 @@ export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
     const parsed = CoreAuditSchema.parse(data);
     liveCoreAudits[projectId] = parsed;
     return parsed;
-  } catch (_err) {
+  } catch {
     // ── Tier 3: Real local static analysis — NO fake predefined data ──────────
     // Uses the actual uploaded Java code, not hardcoded Spring Boot placeholders.
     console.warn(`[OFFLINE] Backend /analyze/core unavailable — running local static analysis on uploaded code.`);
@@ -319,7 +319,7 @@ export const getImpactAudit = async (projectId: string): Promise<ImpactAudit> =>
     const parsed = ImpactAuditSchema.parse(data);
     liveImpactAudits[projectId] = parsed;
     return parsed;
-  } catch (_err) {
+  } catch {
     // ── Tier 3: Real local static analysis ────────────────────────────────────
     console.warn(`[OFFLINE] Backend /analyze/impact unavailable — running local static analysis on uploaded code.`);
 
@@ -371,7 +371,7 @@ export const getConsensusResult = async (projectId: string): Promise<ConsensusRe
     try {
       const data = await fetchApi<ConsensusResult>(`/projects/${projectId}/consensus`);
       return ConsensusResultSchema.parse(data);
-    } catch (_err) {
+    } catch {
       console.warn(`[OFFLINE] Backend /projects/${projectId}/consensus unavailable — computing from local audits.`);
     }
   }
@@ -397,7 +397,7 @@ export const getReadinessScore = async (projectId: string): Promise<ReadinessSco
     try {
       const data = await fetchApi<ReadinessScore>(`/projects/${projectId}/readiness`);
       return ReadinessScoreSchema.parse(data);
-    } catch (_err) {
+    } catch {
       console.warn(`[OFFLINE] Backend /projects/${projectId}/readiness unavailable — computing from local audits.`);
     }
   }

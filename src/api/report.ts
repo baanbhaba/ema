@@ -10,7 +10,7 @@ export const getMigrationReport = async (projectId: string): Promise<MigrationRe
   try {
     const data = await fetchApi<MigrationReport>(`/projects/${projectId}/report`);
     return MigrationReportSchema.parse(data);
-  } catch (_err) {
+  } catch {
     console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/report endpoint unavailable; building synced report from domain APIs.`);
 
     let coreAudit: CoreAudit | null = null;
@@ -18,13 +18,13 @@ export const getMigrationReport = async (projectId: string): Promise<MigrationRe
 
     try {
       coreAudit = await getCoreAudit(projectId);
-    } catch (_e) {
+    } catch {
       console.warn("Unable to fetch core audit for report, using baseline.");
     }
 
     try {
       impactAudit = await getImpactAudit(projectId);
-    } catch (_e) {
+    } catch {
       console.warn("Unable to fetch impact audit for report, using baseline.");
     }
 

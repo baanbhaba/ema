@@ -265,7 +265,7 @@ export const triggerTransformation = async (
       updateBlueprintStep(projectId, stepId, { target_pattern: backendResult.transformed_code }).catch(() => {});
     }
     return backendResult;
-  } catch (_err) {
+  } catch {
     const mockTransformed = generateRustCodeFromJava(javaCode, stepId);
     saveTransformedCode(projectId, stepId, mockTransformed);
     updateBlueprintStep(projectId, stepId, { target_pattern: mockTransformed }).catch(() => {});
@@ -280,7 +280,7 @@ export const getTransformationStatus = async (
     return await fetchApi<{ stage: string; progress: number }>(
       `/projects/${projectId}/transform/status`
     );
-  } catch (_err) {
+  } catch {
     return {
       stage: "transforming",
       progress: 100,

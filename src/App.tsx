@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react";
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Layout } from "./components/layout/Layout";
 import { useAuthStore } from "./store/useAuthStore";
@@ -16,6 +16,7 @@ const ReportPage = lazy(() => import("./pages/ReportPage").then(m => ({ default:
 const SettingsPage = lazy(() => import("./pages/SettingsPage").then(m => ({ default: m.SettingsPage })));
 const AccountPage = lazy(() => import("./pages/AccountPage").then(m => ({ default: m.AccountPage })));
 const IntegrationsPage = lazy(() => import("./pages/IntegrationsPage").then(m => ({ default: m.IntegrationsPage })));
+const PrivacySecurityPage = lazy(() => import("./pages/PrivacySecurityPage").then(m => ({ default: m.PrivacySecurityPage })));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage").then(m => ({ default: m.NotFoundPage })));
 
 const PageFallback: React.FC = () => (
@@ -54,6 +55,7 @@ const ProtectedLayout: React.FC = () => {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/integrations" element={<IntegrationsPage />} />
+          <Route path="/privacy-security" element={<PrivacySecurityPage />} />
           {/* Custom 404 inside protected area */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
@@ -62,11 +64,14 @@ const ProtectedLayout: React.FC = () => {
   );
 };
 
+const isElectron = navigator.userAgent.toLowerCase().includes('electron') || window.location.protocol === 'file:';
+const RouterComponent = isElectron ? HashRouter : BrowserRouter;
+
 export const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <HashRouter>
+        <RouterComponent>
           <Suspense fallback={<PageFallback />}>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
@@ -75,7 +80,7 @@ export const App: React.FC = () => {
               <Route path="/404" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
-        </HashRouter>
+        </RouterComponent>
       </QueryClientProvider>
     </ErrorBoundary>
   );

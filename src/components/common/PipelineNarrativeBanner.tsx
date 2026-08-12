@@ -16,7 +16,7 @@ export interface PipelineStageInfo {
   statusNote: string;
 }
 
-export const PIPELINE_STAGES: PipelineStageInfo[] = [
+const PIPELINE_STAGES: PipelineStageInfo[] = [
   {
     id: 1,
     title: "1. Upload Project",

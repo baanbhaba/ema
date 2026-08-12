@@ -18,8 +18,11 @@ export const LoginPage: React.FC = () => {
     }
   }, [isDarkMode]);
 
+  const [isRegistering, setIsRegistering] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -35,13 +38,26 @@ export const LoginPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const success = await login(username, password);
-      if (success) {
-        navigate("/");
+      if (isRegistering) {
+        // Mock registration logic
+        if (!email.trim() || !fullName.trim()) {
+          setErrorMsg("Please fill out all registration fields.");
+          setIsSubmitting(false);
+          return;
+        }
+        // Proceed to login directly after successful mock registration
+        const success = await login(username, password);
+        if (success) navigate("/");
+        else setErrorMsg("Registration successful, but auto-login failed.");
       } else {
-        setErrorMsg("Invalid username or password. Please try again.");
+        const success = await login(username, password);
+        if (success) {
+          navigate("/");
+        } else {
+          setErrorMsg("Invalid username or password. Please try again.");
+        }
       }
-    } catch (_err) {
+    } catch {
       setErrorMsg("An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -82,12 +98,29 @@ export const LoginPage: React.FC = () => {
 
         {/* Login Card */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-lg space-y-5 transition-colors">
+          <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg">
+            <button
+              type="button"
+              onClick={() => { setIsRegistering(false); setErrorMsg(null); }}
+              className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${!isRegistering ? "bg-white dark:bg-zinc-700 shadow text-zinc-900 dark:text-zinc-100" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => { setIsRegistering(true); setErrorMsg(null); }}
+              className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${isRegistering ? "bg-white dark:bg-zinc-700 shadow text-zinc-900 dark:text-zinc-100" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}`}
+            >
+              Sign Up
+            </button>
+          </div>
+          
           <div className="space-y-1">
             <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-              Sign in to your account
+              {isRegistering ? "Create your account" : "Sign in to your account"}
             </h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Enter your credentials to access the platform.
+              {isRegistering ? "Fill out the details to get started." : "Enter your credentials to access the platform."}
             </p>
           </div>
 
@@ -102,6 +135,39 @@ export const LoginPage: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {isRegistering && (
+              <>
+                <div className="space-y-1.5">
+                  <label htmlFor="login-fullname" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Full Name
+                  </label>
+                  <input
+                    id="login-fullname"
+                    type="text"
+                    required={isRegistering}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Enter your full name"
+                    className="w-full px-3.5 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-colors"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="login-email" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Email Address
+                  </label>
+                  <input
+                    id="login-email"
+                    type="email"
+                    required={isRegistering}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="w-full px-3.5 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-colors"
+                  />
+                </div>
+              </>
+            )}
+
             <div className="space-y-1.5">
               <label
                 htmlFor="login-username"
@@ -116,7 +182,7 @@ export const LoginPage: React.FC = () => {
                 autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
+                placeholder={isRegistering ? "Choose a username" : "Enter your username"}
                 className="w-full px-3.5 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-colors"
               />
             </div>
@@ -159,11 +225,11 @@ export const LoginPage: React.FC = () => {
               {isSubmitting ? (
                 <>
                   <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                  <span>Signing in...</span>
+                  <span>{isRegistering ? "Signing up..." : "Signing in..."}</span>
                 </>
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <span>{isRegistering ? "Sign Up" : "Sign In"}</span>
                   <MoveRight className="w-4 h-4" />
                 </>
               )}

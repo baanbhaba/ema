@@ -1,4 +1,5 @@
 {
+  "name": "project-alchemi",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "headers": [
