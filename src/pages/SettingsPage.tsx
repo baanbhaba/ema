@@ -3,9 +3,11 @@ import { Microchip, KeyRound, SquareTerminal, Code, Zap, CheckCircle } from "luc
 import { Card } from "../components/common/Card";
 import { useAuthStore } from "../store/useAuthStore";
 import { useUiStore } from "../store/useUiStore";
+import { usePermissions } from "../lib/usePermissions";
 
 export const SettingsPage: React.FC = () => {
-  const { isDevMode, devApiKey, devBaseUrl, setDevApiConfig } = useAuthStore();
+  const { devApiKey, devBaseUrl, setDevApiConfig } = useAuthStore();
+  const { isSuperDev } = usePermissions();
   const { addNotification } = useUiStore();
 
   const [inputDevKey, setInputDevKey] = useState(devApiKey);
@@ -41,8 +43,8 @@ export const SettingsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Developer API Sandbox — only for dev mode */}
-      {isDevMode && (
+      {/* Developer API Sandbox — only for super dev */}
+      {isSuperDev && (
         <Card
           title={
             <div className="flex items-center justify-between w-full">

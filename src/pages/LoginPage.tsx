@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, Eye, EyeOff, MoveRight, Sun, Moon } from "lucide-react";
+import { toast } from "sonner";
 import { useAuthStore } from "../store/useAuthStore";
 import { useUiStore } from "../store/useUiStore";
 
@@ -52,12 +53,15 @@ export const LoginPage: React.FC = () => {
       } else {
         const success = await login(username, password);
         if (success) {
+          toast.success("Successfully logged in");
           navigate("/");
         } else {
+          toast.error("Invalid username or password");
           setErrorMsg("Invalid username or password. Please try again.");
         }
       }
     } catch {
+      toast.error("An error occurred during authentication");
       setErrorMsg("An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);

@@ -1,22 +1,28 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Plus, MoveRight, GitFork, Clock, FolderGit, ServerCog, Code, Microchip, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { Plus, MoveRight, GitFork, Clock, FolderGit, ServerCog, Code, Microchip, Trash2, Archive, Loader2 } from "lucide-react";
 import { getProjects, createProject, deleteProject } from "../api/client";
 import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
 import { Modal } from "../components/common/Modal";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
 import { ErrorState } from "../components/common/ErrorState";
-import { useAuthStore } from "../store/useAuthStore";
+import { FileTreeView } from "../components/common/FileTreeView";
+import { extractZip, type ZipExtractionResult } from "../lib/zipExtractor";
+import { usePermissions } from "../lib/usePermissions";
 
 export const DashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
-  const { isDevMode } = useAuthStore();
+  const { can } = usePermissions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [repoUrlInput, setRepoUrlInput] = useState("");
   const [javaCodeInput, setJavaCodeInput] = useState("");
+  const [zipResult, setZipResult] = useState<ZipExtractionResult | null>(null);
+  const [selectedZipFile, setSelectedZipFile] = useState<string | null>(null);
+  const [isExtractingZip, setIsExtractingZip] = useState(false);
 
   const {
     data: projects,
@@ -33,44 +39,76 @@ export const DashboardPage: React.FC = () => {
     mutationFn: createProject,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      setIsModalOpen(false);
-      setNameInput("");
-      setRepoUrlInput("");
-      setJavaCodeInput("");
+      resetModal();
+      toast.success("Project created successfully");
     },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to create project");
+    }
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteProject,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast.success("Project removed successfully");
     },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to remove project");
+    }
   });
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nameInput.trim()) return;
+    const code = zipResult?.combinedJavaCode || javaCodeInput.trim();
     createMutation.mutate({
       name: nameInput.trim(),
       repo_url: repoUrlInput.trim() || "github.com/acme/new-service",
-      javaCode: javaCodeInput.trim() || undefined,
+      javaCode: code || undefined,
     });
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const resetModal = () => {
+    setIsModalOpen(false);
+    setNameInput("");
+    setRepoUrlInput("");
+    setJavaCodeInput("");
+    setZipResult(null);
+    setSelectedZipFile(null);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const content = event.target?.result as string;
-      if (content) {
-        setJavaCodeInput(content);
+
+    if (file.name.endsWith(".zip")) {
+      setIsExtractingZip(true);
+      try {
+        const result = await extractZip(file);
+        setZipResult(result);
+        setJavaCodeInput(result.combinedJavaCode);
         if (!nameInput) {
-          setNameInput(file.name.replace(/\.[^/.]+$/, ""));
+          setNameInput(file.name.replace(/\.zip$/i, ""));
         }
+        toast.success(`Extracted ${result.javaFileCount} Java file${result.javaFileCount !== 1 ? "s" : ""} from ZIP (${result.projectType} project)`);
+      } catch (err) {
+        toast.error("Failed to extract ZIP file. Please ensure it is a valid Java project archive.");
+      } finally {
+        setIsExtractingZip(false);
       }
-    };
-    reader.readAsText(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        if (content) {
+          setJavaCodeInput(content);
+          setZipResult(null);
+          if (!nameInput) setNameInput(file.name.replace(/\.[^/.]+$/, ""));
+        }
+      };
+      reader.readAsText(file);
+    }
   };
 
   return (
@@ -111,16 +149,18 @@ export const DashboardPage: React.FC = () => {
       )}
 
       {!isLoading && !isError && projects && projects.length === 0 && (
-        <Card className="text-center py-16">
-          <FolderGit className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-4" />
-          <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 font-mono mb-1">No Projects Yet</h3>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-md mx-auto mt-1 mb-5 font-sans">
-            Upload a <code className="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded">.java</code> file to start real-time AST parsing and automated migration analysis.
+        <Card className="text-center py-20 flex flex-col items-center justify-center border-dashed bg-zinc-50/50 dark:bg-zinc-900/20 animate-fade-in">
+          <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900 rounded-full flex items-center justify-center mb-5 shadow-inner border border-zinc-200 dark:border-zinc-800">
+            <FolderGit className="w-8 h-8 text-amber-500" />
+          </div>
+          <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-200 font-mono mb-2">No Projects Yet</h3>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-md mx-auto mb-6 font-sans leading-relaxed">
+            Upload a <code className="bg-zinc-200/50 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 px-1.5 py-0.5 rounded font-mono text-[11px] border border-zinc-200 dark:border-zinc-700">.java</code> file or a full <code className="bg-zinc-200/50 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 px-1.5 py-0.5 rounded font-mono text-[11px] border border-zinc-200 dark:border-zinc-700">.zip</code> archive to kickstart the AST parsing and automated Rust migration analysis.
           </p>
           <button
             id="dashboard-empty-new-project"
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-lg text-sm font-bold font-mono transition-colors"
+            className="inline-flex items-center space-x-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black rounded-lg text-sm font-bold font-mono transition-all hover:-translate-y-0.5 shadow-md hover:shadow-lg"
           >
             <Plus className="w-4 h-4" />
             <span>Upload Your First Project</span>
@@ -133,13 +173,14 @@ export const DashboardPage: React.FC = () => {
           {projects.map((project) => (
             <div
               key={project.id}
-              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 rounded-md p-5 transition-all flex flex-col justify-between"
+              className="group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 rounded-xl p-5 transition-all duration-300 flex flex-col justify-between hover:shadow-[0_8px_24px_-12px_rgba(245,158,11,0.2)] hover:-translate-y-1 relative overflow-hidden animate-slide-up"
             >
-              <div className="space-y-3 font-mono">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+              <div className="space-y-3 font-mono relative z-10">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-2.5">
-                    <div className="w-8 h-8 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-amber-500">
-                      <ServerCog className="w-4 h-4" />
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-lg bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-amber-500 shadow-inner group-hover:bg-amber-500/10 transition-colors">
+                      <ServerCog className="w-5 h-5" />
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
@@ -247,15 +288,50 @@ export const DashboardPage: React.FC = () => {
 
           <div>
             <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-              Upload `.java` File
+              Upload Java File or ZIP Archive
             </label>
             <input
               type="file"
               accept=".java,.txt,.xml,.zip"
               onChange={handleFileUpload}
-              className="block w-full text-xs text-zinc-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-zinc-200 dark:file:bg-zinc-800 file:text-zinc-800 dark:file:text-zinc-200 hover:file:bg-zinc-300"
+              disabled={isExtractingZip}
+              className="block w-full text-xs text-zinc-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-zinc-200 dark:file:bg-zinc-800 file:text-zinc-800 dark:file:text-zinc-200 hover:file:bg-zinc-300 disabled:opacity-50"
             />
+            {isExtractingZip && (
+              <div className="flex items-center space-x-2 mt-2 text-xs text-amber-600 font-mono">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Extracting ZIP archive...</span>
+              </div>
+            )}
           </div>
+
+          {/* ZIP File Tree Preview */}
+          {zipResult && (
+            <div className="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-700">
+                <div className="flex items-center space-x-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 font-mono">
+                  <Archive className="w-3.5 h-3.5 text-amber-500" />
+                  <span>{zipResult.projectType.toUpperCase()} Project</span>
+                  <span className="text-zinc-400">·</span>
+                  <span className="text-amber-500">{zipResult.javaFileCount} Java files</span>
+                </div>
+                <span className="text-[10px] text-zinc-400">
+                  {Object.keys(zipResult.files).length} total files
+                </span>
+              </div>
+              <div className="h-48 overflow-hidden">
+                <FileTreeView
+                  tree={zipResult.tree}
+                  files={zipResult.files}
+                  selectedPath={selectedZipFile ?? undefined}
+                  onSelectFile={(path, content) => {
+                    setSelectedZipFile(path);
+                    setJavaCodeInput(content);
+                  }}
+                />
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1 flex items-center space-x-1">
@@ -277,7 +353,7 @@ export const DashboardPage: React.FC = () => {
                 <Microchip className="w-3.5 h-3.5" />
                 <span>Target Engine: Java OOP → Rust Axum</span>
               </div>
-              {isDevMode && (
+              {can("use_live_ai_engine") && (
                 <span className="text-[10px] bg-amber-500 text-black font-bold px-2 py-0.5 rounded">
                   LIVE ENGINE ACTIVE
                 </span>

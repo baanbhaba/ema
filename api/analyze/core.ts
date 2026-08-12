@@ -3,8 +3,9 @@ import { prisma } from "../../src/lib/prisma";
 import { detectJavaStack, detectJavaDeprecatedUsages } from "../../src/lib/analysis";
 import { completeJson } from "../../src/server/llm";
 import { refreshProjectReadiness } from "../../src/server/auditMapping";
+import { authorizeTenant } from "../utils/tenant";
 
-const CORE_SYSTEM_PROMPT = `
+const getCoreSystemPrompt = (targetStack: string) => `
 You are the Core Analysis Agent in ALCHEMI (Automated Legacy Code Transformation Engine).
 Analyze the provided Java source and return ONLY valid JSON matching this exact schema:
 {
@@ -12,10 +13,10 @@ Analyze the provided Java source and return ONLY valid JSON matching this exact 
   "detected_stack": [{ "technology": "Java 8", "version": "1.8.0", "status": "eol" }],
   "deprecated_usages": [{ "file": "Sample.java", "line": 5, "pattern": "System.out.println()", "recommended_replacement": "println!()" }],
   "dependency_graph": { "nodes": ["SampleClass"], "edges": [] },
-  "diagrams": [{ "type": "component", "format": "mermaid", "content": "graph TD\\n Java --> Rust" }],
+  "diagrams": [{ "type": "component", "format": "mermaid", "content": "graph TD\\n Java --> target stack" }],
   "confidence": 0.95
 }
-status must be one of: current | deprecated | eol.`;
+status must be one of: current | deprecated | eol. Target stack to recommend against: ${targetStack}`;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -23,11 +24,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: `Method ${req.method} not allowed. Use POST.` });
   }
 
-  const { project_id, code, ingestion_manifest } = req.body || {};
+  const auth = await authorizeTenant(req, res);
+  if (!auth) return;
+
+  const { project_id, code, ingestion_manifest, targetStack: reqTargetStack } = req.body || {};
 
   try {
     let fileName = "Main.java";
     let javaCode = typeof code === "string" ? code : "";
+    let targetStack = reqTargetStack || "Rust with Axum and Tokio";
 
     // Load from DB if no code provided
     if (project_id && !javaCode) {
@@ -40,6 +45,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       fileName = project.uploadedSources[0]?.fileName || `${project.name}.java`;
       javaCode = project.uploadedSources[0]?.rawCode || "";
+      if (project.targetStack) {
+        targetStack = project.targetStack;
+      }
     }
 
     if (!javaCode && typeof ingestion_manifest === "string") {
@@ -55,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ── Tier 1: AI analysis ────────────────────────────────────────────────
     let audit: any = null;
 
-    audit = await completeJson(CORE_SYSTEM_PROMPT, javaCode, { maxTokens: 1800 });
+    audit = await completeJson(getCoreSystemPrompt(targetStack), javaCode, { maxTokens: 1800, userApiKey: auth.user.devApiKey || undefined });
     if (audit && (!audit.architecture_summary || !Array.isArray(audit.detected_stack))) {
       audit = null;
     }
@@ -71,7 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         : [];
 
       audit = {
-        architecture_summary: `Static analysis of '${fileName}'. Detected ${classNames.length} class(es), ${detectedUsages.length} deprecated pattern(s). ${!process.env.NVIDIA_API_KEY && !process.env.AIML_API_KEY ? "Note: AI analysis unavailable — configure NVIDIA_API_KEY or AIML_API_KEY for deeper insights." : "AI analysis returned no result — falling back to static scan."}`,
+        architecture_summary: `Static analysis of '${fileName}'. Detected ${classNames.length} class(es), ${detectedUsages.length} deprecated pattern(s). ${!auth.user.devApiKey && !process.env.NVIDIA_API_KEY && !process.env.AIML_API_KEY ? "Note: AI analysis unavailable — configure NVIDIA_API_KEY or AIML_API_KEY for deeper insights." : "AI analysis returned no result — falling back to static scan."}`,
         detected_stack: detectedStack,
         deprecated_usages: detectedUsages,
         dependency_graph: { nodes, edges },
@@ -80,7 +88,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           format: "mermaid",
           content: classNames.length > 0
             ? `graph TD\n${classNames.map((c: string, i: number) => i === 0 ? `  ${c}["${c}"]` : `  ${classNames[i - 1]} --> ${c}["${c}"]`).join("\n")}`
-            : `graph TD\n  Source["${fileName}"] --> Target["Java 21 / Rust Axum"]`,
+            : `graph TD\n  Source["${fileName}"] --> Target["${targetStack}"]`,
         }],
         confidence: 0.72,
       };

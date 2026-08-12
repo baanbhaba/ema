@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MonitorPlay, FileScan, Bolt, SquareCheckBig, GitPullRequestArrow, ScanText, SlidersHorizontal, CircuitBoard, Cable, FolderGit, ChevronDown, CloudDownload, FileTerminal, RefreshCcw, Sparkles, Lock } from "lucide-react";
+import { MonitorPlay, FileScan, Bolt, SquareCheckBig, GitPullRequestArrow, ScanText, SlidersHorizontal, CircuitBoard, Cable, FolderGit, ChevronDown, CloudDownload, FileTerminal, RefreshCcw, Sparkles, Lock, User } from "lucide-react";
 import { getProjects, getBlueprint, getProjectDetails } from "../../api/client";
 import { useUiStore } from "../../store/useUiStore";
 import { downloadCombinedRustProject, downloadCargoToml } from "../../utils/exportRustCode";
+import { logger } from "../../lib/logger";
+import { useAuthStore } from "../../store/useAuthStore";
+import { usePermissions } from "../../lib/usePermissions";
 
 export const Sidebar: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +15,8 @@ export const Sidebar: React.FC = () => {
   const location = useLocation();
   const queryClient = useQueryClient();
   const [isExporting, setIsExporting] = useState(false);
+  const { username } = useAuthStore();
+  const { role } = usePermissions();
 
   const { data: projects } = useQuery({
     queryKey: ["projects"],
@@ -49,8 +54,8 @@ export const Sidebar: React.FC = () => {
     try {
       const blueprint = await getBlueprint(selectedProjectId);
       downloadCombinedRustProject(selectedProjectId, selectedProject?.name || selectedProjectId, blueprint.steps || []);
-    } catch {
-      console.warn("Failed to download Rust code; fallback export.");
+    } catch (err) {
+      logger.warn("sidebar", "Failed to download Rust code; fallback export.", {}, err as Error);
     } finally {
       setIsExporting(false);
     }
@@ -138,9 +143,9 @@ export const Sidebar: React.FC = () => {
           <NavLink
             to="/"
             className={({ isActive }) =>
-              `flex items-center space-x-2 px-2.5 py-1.5 rounded transition-all ${
+              `flex items-center space-x-2 px-2.5 py-1.5 rounded-md transition-all duration-200 hover:translate-x-0.5 relative overflow-hidden ${
                 isActive && !id
-                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold border-l-2 border-amber-500"
+                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold before:absolute before:left-0 before:top-1 before:bottom-1 before:w-1 before:bg-amber-500 before:rounded-r-full"
                   : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100"
               }`
             }
@@ -156,14 +161,14 @@ export const Sidebar: React.FC = () => {
               <FolderGit className="w-3 h-3 text-amber-500" />
             </div>
 
-            <div className="relative">
+            <div className="relative group">
               <select
                 value={selectedProjectId}
                 onChange={handleProjectSelect}
-                className="w-full bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded px-2 py-1 text-xs text-zinc-900 dark:text-zinc-100 font-mono focus:outline-none focus:border-amber-500 appearance-none cursor-pointer pr-6"
+                className="w-full bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-md px-2 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 font-mono focus:outline-none focus:border-amber-500 appearance-none cursor-pointer pr-6 shadow-sm group-hover:border-zinc-400 dark:group-hover:border-zinc-600 transition-colors"
               >
                 {activeProjects.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
+                  <option key={p.id} value={p.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 py-1">
                     {p.name}
                   </option>
                 ))}
@@ -215,9 +220,9 @@ export const Sidebar: React.FC = () => {
                 key={item.label}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center space-x-2 px-2.5 py-1.5 rounded transition-all ${
+                  `flex items-center space-x-2 px-2.5 py-1.5 rounded-md transition-all duration-200 hover:translate-x-0.5 relative overflow-hidden ${
                     isActive
-                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold border-l-2 border-amber-500 shadow-2xs"
+                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold shadow-sm before:absolute before:left-0 before:top-1 before:bottom-1 before:w-1 before:bg-amber-500 before:rounded-r-full"
                       : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900/80 hover:text-zinc-900 dark:hover:text-zinc-100"
                   }`
                 }
@@ -281,9 +286,9 @@ export const Sidebar: React.FC = () => {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center space-x-2 px-2.5 py-1.5 rounded transition-all ${
+                `flex items-center space-x-2 px-2.5 py-1.5 rounded-md transition-all duration-200 hover:translate-x-0.5 relative overflow-hidden ${
                   isActive
-                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold border-l-2 border-amber-500"
+                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold before:absolute before:left-0 before:top-1 before:bottom-1 before:w-1 before:bg-amber-500 before:rounded-r-full"
                     : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900/60 hover:text-zinc-900 dark:hover:text-zinc-100"
                 }`
               }
@@ -293,6 +298,25 @@ export const Sidebar: React.FC = () => {
             </NavLink>
           );
         })}
+      </div>
+      {/* User Profile Mini-card */}
+      <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 border border-amber-500/30 shadow-sm">
+            <User className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+              {username || "Guest"}
+            </span>
+            <div className="flex items-center space-x-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0 shadow-[0_0_4px_rgba(34,197,94,0.6)]"></span>
+              <span className="text-[10px] text-zinc-500 dark:text-zinc-400 uppercase tracking-wide truncate">
+                {role ? role.replace('_', ' ') : "Viewer"}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
   );

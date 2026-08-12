@@ -2,11 +2,15 @@ import React from "react";
 import { CircuitBoard, BadgeCheck, UsersRound, Activity, FolderGit, ShieldCheck, Cpu } from "lucide-react";
 import { Card } from "../components/common/Card";
 import { useAuthStore } from "../store/useAuthStore";
+import { usePermissions } from "../lib/usePermissions";
+import { ROLE_DISPLAY } from "../lib/permissions";
 import { useQuery } from "@tanstack/react-query";
 import { getProjects } from "../api/client";
 
 export const AccountPage: React.FC = () => {
-  const { username, isDevMode } = useAuthStore();
+  const { username } = useAuthStore();
+  const { role, can, canReview, hasElevatedAccess } = usePermissions();
+  const roleInfo = ROLE_DISPLAY[role];
 
   const { data: projects } = useQuery({
     queryKey: ["projects"],
@@ -32,7 +36,7 @@ export const AccountPage: React.FC = () => {
         <div className="flex items-center space-x-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs">
           <BadgeCheck className="w-3.5 h-3.5 text-amber-500" />
           <span className="font-bold text-amber-700 dark:text-amber-400">
-            {isDevMode ? "Developer" : "Administrator"}
+            {roleInfo.label}
           </span>
         </div>
       </div>
@@ -57,16 +61,24 @@ export const AccountPage: React.FC = () => {
             <div className="space-y-1">
               <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{username || "admin"}</h2>
               <p className="text-xs text-zinc-500">
-                {isDevMode ? "dev@alchemi.ai" : "admin@organization.internal"}
+                {username ? `${username}@alchemi.ai` : "user@alchemi.ai"}
               </p>
               <div className="flex items-center space-x-2 flex-wrap gap-y-1">
                 <span className="text-[10px] px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-semibold border border-zinc-200 dark:border-zinc-700">
-                  {isDevMode ? "Developer Account" : "Senior Migration Admin"}
+                  {roleInfo.label}
                 </span>
-                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold flex items-center space-x-0.5">
-                  <ShieldCheck className="w-3 h-3" />
-                  <span>Blueprint Approval: Granted</span>
-                </span>
+                {canReview && (
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold flex items-center space-x-0.5">
+                    <ShieldCheck className="w-3 h-3" />
+                    <span>Blueprint Approval: Granted</span>
+                  </span>
+                )}
+                {!canReview && (
+                  <span className="text-[10px] text-zinc-400 font-semibold flex items-center space-x-0.5">
+                    <ShieldCheck className="w-3 h-3" />
+                    <span>Blueprint Approval: Restricted</span>
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -113,8 +125,12 @@ export const AccountPage: React.FC = () => {
             <span>Approval Access</span>
             <ShieldCheck className="w-4 h-4 text-amber-500" />
           </div>
-          <span className="text-2xl font-bold text-amber-600 dark:text-amber-400 block">Full</span>
-          <p className="text-[11px] text-zinc-500 font-sans">Blueprint approval rights</p>
+          <span className="text-2xl font-bold text-amber-600 dark:text-amber-400 block">
+            {canReview ? "Full" : hasElevatedAccess ? "Elevated" : "Limited"}
+          </span>
+          <p className="text-[11px] text-zinc-500 font-sans">
+            {can("manage_users") ? "Full blueprint approval rights" : canReview ? "Blueprint approval rights" : "View-only access"}
+          </p>
         </div>
       </div>
 

@@ -1,3 +1,5 @@
+import { logger } from "../lib/logger";
+
 const DEFAULT_MODEL = "meta/llama-3.1-70b-instruct";
 
 const FALLBACK_NVIDIA_KEY = "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";
@@ -6,9 +8,9 @@ const FALLBACK_AIML_KEY = "a89e74ba7f517327fd7481a118053119";
 export async function completeJson<T>(
   systemPrompt: string,
   userContent: string,
-  opts?: { temperature?: number; maxTokens?: number }
+  opts?: { temperature?: number; maxTokens?: number; userApiKey?: string }
 ): Promise<T | null> {
-  const nvidiaKey = process.env.NVIDIA_API_KEY || process.env.VITE_NVIDIA_API_KEY;
+  const nvidiaKey = opts?.userApiKey || process.env.NVIDIA_API_KEY || process.env.VITE_NVIDIA_API_KEY;
   const aimlKey = process.env.AIML_API_KEY || process.env.VITE_AIML_API_KEY;
 
   const isAiml = !nvidiaKey && !FALLBACK_NVIDIA_KEY && !!(aimlKey || FALLBACK_AIML_KEY);
@@ -41,14 +43,14 @@ export async function completeJson<T>(
 
     if (!response.ok) {
       const errText = await response.text().catch(() => response.statusText);
-      console.error(`[LLM SERVER ERROR] Upstream API call failed (${response.status}): ${errText}`);
+      logger.error("llm", `Upstream API call failed (${response.status})`, { status: response.status, endpoint }, new Error(errText));
       throw new Error(`Upstream AI API error (${response.status}): ${errText}`);
     }
 
     const data: any = await response.json();
     const content: string | undefined = data?.choices?.[0]?.message?.content;
     if (!content) {
-      console.error("[LLM SERVER ERROR] Upstream API returned empty choices or message content.");
+      logger.error("llm", "Upstream API returned empty choices or message content", { endpoint });
       throw new Error("Upstream AI API returned empty message content");
     }
 
@@ -60,7 +62,7 @@ export async function completeJson<T>(
 
     return JSON.parse(cleaned) as T;
   } catch (err) {
-    console.error("LLM structured completion failed:", err);
+    logger.error("llm", "LLM structured completion failed", {}, err instanceof Error ? err : new Error(String(err)));
     throw err;
   }
 }

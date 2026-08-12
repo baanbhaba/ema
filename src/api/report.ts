@@ -5,13 +5,22 @@ import { getCoreAudit, getImpactAudit, getProjectSourceCode } from "./project";
 import { getBlueprint } from "./review";
 import { generateRustCodeFromJava, getTransformedCode } from "./transform";
 import { sanitizeRustCode } from "../utils/exportRustCode";
+import { logger } from "../lib/logger";
+import { getAllProjectTransformations } from "../lib/transformCache";
 
 export const getMigrationReport = async (projectId: string): Promise<MigrationReport> => {
   try {
     const data = await fetchApi<MigrationReport>(`/projects/${projectId}/report`);
     return MigrationReportSchema.parse(data);
   } catch {
-    console.warn(`[MOCK_FALLBACK] Backend /projects/${projectId}/report endpoint unavailable; building synced report from domain APIs.`);
+    logger.warn("report", `Backend /projects/${projectId}/report unavailable — building synced report from domain APIs`, { projectId });
+
+    // ── Hydrate from DB-persisted transformations first ────────────────────────
+    // This is the key change for #5: instead of relying on getTransformedCode()
+    // which loses data on refresh, we pull all persisted transformations from DB.
+    const dbTransformations = await getAllProjectTransformations(projectId);
+    const transformationByStep = new Map(dbTransformations.map((t) => [t.stepId, t.rustCode]));
+    logger.info("report", `Loaded ${dbTransformations.length} persisted transformations from cache`, { projectId });
 
     let coreAudit: CoreAudit | null = null;
     let impactAudit: ImpactAudit | null = null;
@@ -19,17 +28,21 @@ export const getMigrationReport = async (projectId: string): Promise<MigrationRe
     try {
       coreAudit = await getCoreAudit(projectId);
     } catch {
-      console.warn("Unable to fetch core audit for report, using baseline.");
+      logger.warn("report", "Unable to fetch core audit for report, using baseline", { projectId });
     }
 
     try {
       impactAudit = await getImpactAudit(projectId);
     } catch {
-      console.warn("Unable to fetch impact audit for report, using baseline.");
+      logger.warn("report", "Unable to fetch impact audit for report, using baseline", { projectId });
     }
 
     const blueprint = await getBlueprint(projectId);
-    const srcMap = getProjectSourceCode(projectId);
+    if (!blueprint || blueprint.steps.length === 0) {
+      throw new Error("No approved blueprint available for migration report");
+    }
+
+    const srcMap = await getProjectSourceCode(projectId);
     const codeFiles = Object.keys(srcMap);
     const projName = codeFiles[0] ? codeFiles[0].split("/").pop() || projectId : projectId;
 
@@ -53,7 +66,11 @@ export const getMigrationReport = async (projectId: string): Promise<MigrationRe
 
     const reportEntries = blueprint.steps.map((s) => {
       const rawJava = srcMap[s.file_or_module] || Object.values(srcMap)[0] || `public class ${s.file_or_module.replace(/[^a-zA-Z0-9]/g, "")} {}`;
-      const accumulatedCode = getTransformedCode(projectId, s.id);
+
+      // Priority: DB-persisted → in-memory → blueprint pattern → local generation
+      const dbCode = transformationByStep.get(s.id);
+      const memCode = getTransformedCode(projectId, s.id);
+      const accumulatedCode = dbCode || memCode;
 
       const isGenericPlaceholder =
         !s.target_pattern ||

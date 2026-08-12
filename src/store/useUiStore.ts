@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { updateUserPreference } from "../lib/userPreferences";
 
 export interface ToastNotification {
   id: string;
@@ -46,6 +47,7 @@ export const useUiStore = create<UiState>((set, get) => ({
       } else {
         document.documentElement.classList.remove("dark");
       }
+      updateUserPreference({ theme: next ? "dark" : "light" }).catch(() => {});
       return { isDarkMode: next };
     }),
   setDarkMode: (isDark) => {
@@ -54,6 +56,7 @@ export const useUiStore = create<UiState>((set, get) => ({
     } else {
       document.documentElement.classList.remove("dark");
     }
+    updateUserPreference({ theme: isDark ? "dark" : "light" }).catch(() => {});
     set({ isDarkMode: isDark });
   },
 

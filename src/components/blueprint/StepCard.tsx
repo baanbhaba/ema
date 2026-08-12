@@ -33,8 +33,12 @@ export const StepCard: React.FC<StepCardProps> = ({
   const [transformedRustCode, setTransformedRustCode] = useState<string | null>(null);
   const [isTransforming, setIsTransforming] = useState(false);
   const [transformError, setTransformError] = useState<string | null>(null);
+  const [sourceCodeMap, setSourceCodeMap] = useState<Record<string, string>>({});
 
-  const sourceCodeMap = getProjectSourceCode(projectId);
+  useEffect(() => {
+    getProjectSourceCode(projectId).then(setSourceCodeMap).catch(() => {});
+  }, [projectId]);
+
   const codeEntries = Object.entries(sourceCodeMap);
   let rawJavaCode = sourceCodeMap[step.file_or_module];
   if (!rawJavaCode && codeEntries.length > 0) {

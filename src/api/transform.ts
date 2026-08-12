@@ -2,6 +2,11 @@ import { fetchApi } from "./client";
 import { getProjectSourceCode } from "./project";
 import { updateBlueprintStep } from "./review";
 import { sanitizeRustCode } from "../utils/exportRustCode";
+import { logger } from "../lib/logger";
+import {
+  getCachedTransformation,
+  setCachedTransformation,
+} from "../lib/transformCache";
 
 export interface TransformationResponse {
   step_id: string;
@@ -13,27 +18,27 @@ let liveTransformations: Record<string, Record<string, string>> = {};
 
 export const getTransformedCode = (projectId: string, stepId?: string): string => {
   try {
-    const key = `ema_transformed_${projectId}`;
-    const raw = localStorage.getItem(key) || sessionStorage.getItem(key) || "{}";
-    const existing = JSON.parse(raw);
-    if (stepId) return existing[stepId] || liveTransformations[projectId]?.[stepId] || "";
-    return Object.values(existing).join("\n\n") || Object.values(liveTransformations[projectId] || {}).join("\n\n");
-  } catch {
+    if (stepId) {
+      return liveTransformations[projectId]?.[stepId] ?? "";
+    }
     return Object.values(liveTransformations[projectId] || {}).join("\n\n");
+  } catch {
+    return "";
   }
 };
 
 export const saveTransformedCode = (projectId: string, stepId: string, code: string) => {
   if (!liveTransformations[projectId]) liveTransformations[projectId] = {};
   liveTransformations[projectId][stepId] = code;
-  try {
-    const key = `ema_transformed_${projectId}`;
-    const raw = localStorage.getItem(key) || sessionStorage.getItem(key) || "{}";
-    const existing = JSON.parse(raw);
-    existing[stepId] = code;
-    localStorage.setItem(key, JSON.stringify(existing));
-    sessionStorage.setItem(key, JSON.stringify(existing));
-  } catch {}
+  // Fire-and-forget: persist to all cache tiers asynchronously
+  setCachedTransformation(projectId, {
+    stepId,
+    rustCode: code,
+    javaCode: "",
+    modelUsed: "unknown",
+    createdAt: new Date().toISOString(),
+    persisted: false,
+  }).catch(() => {});
 };
 
 export const isJavaSourceCode = (code: string): boolean => {
@@ -42,7 +47,7 @@ export const isJavaSourceCode = (code: string): boolean => {
   return javaPattern.test(code);
 };
 
-export const generateRustCodeFromJava = (javaCode: string, _stepId: string): string => {
+export const generateRustCodeFromJava = (javaCode: string, _stepId: string, targetStack: string = "rust-axum"): string => {
   if (!javaCode || javaCode.trim().length === 0 || !isJavaSourceCode(javaCode)) {
     return `// ERROR: Invalid input. Please provide valid Java source code for legacy migration.`;
   }
@@ -53,7 +58,11 @@ export const generateRustCodeFromJava = (javaCode: string, _stepId: string): str
   const isMainApp = javaCode.includes("static void main") || javaCode.includes("public static void main");
 
   if (isMainApp) {
-    return `use std::io::{self, Write};
+    return `// =========================================================================
+// ALCHEMI MIGRATION: [${className}] -> [${targetStack}]
+// =========================================================================
+
+use std::io::{self, Write};
 
 pub struct ${className}Service {
     pub name: String,
@@ -121,7 +130,10 @@ fn main() {
       ? fields.map((f) => `    pub ${f.name}: ${f.rustType},`).join("\n")
       : `    pub request_id: String,\n    pub status: String,`;
 
-    return `use axum::{routing::{get, post}, Router, Json, response::IntoResponse};
+    return `// =========================================================================
+// ALCHEMI MIGRATION: [${className}] -> [${targetStack}]
+// =========================================================================
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -185,9 +197,10 @@ ${rustMethods || `    pub async fn execute_${className.toLowerCase()}_task(&mut 
 export const triggerTransformation = async (
   projectId: string,
   stepId: string,
-  fileOrCode?: string
+  fileOrCode?: string,
+  targetStack: string = "rust-axum"
 ): Promise<TransformationResponse> => {
-  const sourceCodeMap = getProjectSourceCode(projectId);
+  const sourceCodeMap = await getProjectSourceCode(projectId);
   let javaCode = "";
   if (fileOrCode && sourceCodeMap[fileOrCode]) {
     javaCode = sourceCodeMap[fileOrCode];
@@ -216,6 +229,16 @@ export const triggerTransformation = async (
     };
   }
 
+  // ── Tier 0: Check three-tier cache first — avoid redundant AI calls ─────────
+  const cached = await getCachedTransformation(projectId, stepId);
+  if (cached?.rustCode) {
+    logger.info("transform", "Cache HIT — skipping AI call", { projectId, stepId, persisted: cached.persisted });
+    // Sync to in-memory store for downstream getTransformedCode() calls
+    if (!liveTransformations[projectId]) liveTransformations[projectId] = {};
+    liveTransformations[projectId][stepId] = cached.rustCode;
+    return { step_id: stepId, transformed_code: cached.rustCode, status: "completed" };
+  }
+
   // Try the server-side AI proxy first (key lives on the server)
   try {
     const res = await fetch("/api/v1/ai/chat", {
@@ -227,7 +250,7 @@ export const triggerTransformation = async (
           {
             role: "system",
             content:
-              "You are the EMA Code Migration Engine. Your sole purpose is to convert valid Java source code into modern, production-ready, highly idiomatic Rust code.\n\nSTRICT INPUT VALIDATION & GUARDRAILS:\n0. INPUT MUST BE JAVA SOURCE CODE: Inspect the user input. IF THE INPUT IS NOT VALID JAVA SOURCE CODE (e.g. conversational English, general questions, random text, or non-Java programming languages), YOU MUST IMMEDIATELY REJECT IT AND OUTPUT EXACTLY:\n   `// ERROR: Invalid input. Please provide valid Java source code for legacy migration.`\n   DO NOT answer general questions or process non-Java input.\n\nSTRICT MIGRATION & DOMAIN MODELING RULES:\n1. Output ONLY pure, compilable Rust source code.\n2. DO NOT include markdown code blocks or fences (no ```rust or ```).\n3. DO NOT include any introductory text, explanation, summary, or commentary.\n4. DO NOT include ANY comments (no //, /* */, ///, or //! comments) in the code body.\n5. DO NOT emit non-existent macro calls such as 'import_axum_prelude!()'.\n6. IDIOMATIC RUST CLI & STDIN BEST PRACTICES:\n   - When prompting with `print!()` before `stdin().read_line(...)`, ALWAYS import `std::io::Write` and explicitly flush standard output via `io::stdout().flush().unwrap();` to prevent buffered prompt display issues.\n   - DO NOT mark `io::stdin()` bindings as mutable (`let mut stdin` is unnecessary; use `io::stdin().read_line(&mut buf)` directly).\n   - ALWAYS use `.trim()` or `.trim_end()` on string input read from stdin to strip trailing newlines.\n   - Model Java classes with clean `struct + impl` patterns, explicitly using `&self` for read operations and `&mut self` for state mutations.\n7. SEMANTIC & DOMAIN PRESERVATION:\n   - If migrating a Console/CLI application or class without HTTP web annotations: preserve exact CLI behavior (`struct`, `fn main`, `println!`), instantiating objects and exiting immediately WITHOUT creating HTTP routers or TCP listeners.\n   - If migrating a REST Controller / Web Service to Axum: model all Java domain classes/structs (e.g. `struct Bike;`) and execute object instantiations inside the async request handler before returning responses.\n8. Use modern Axum 0.7 syntax (`tokio::net::TcpListener::bind` + `axum::serve`) if Axum is used.\n9. Use clean 4-space indentation for all code block bodies.",
+              `You are the EMA Code Migration Engine. Your sole purpose is to convert valid Java source code into modern, production-ready, highly idiomatic code for the following target stack: ${targetStack}.\n\nSTRICT INPUT VALIDATION & GUARDRAILS:\n0. INPUT MUST BE JAVA SOURCE CODE: Inspect the user input. IF THE INPUT IS NOT VALID JAVA SOURCE CODE (e.g. conversational English, general questions, random text, or non-Java programming languages), YOU MUST IMMEDIATELY REJECT IT AND OUTPUT EXACTLY:\n   \`// ERROR: Invalid input. Please provide valid Java source code for legacy migration.\`\n   DO NOT answer general questions or process non-Java input.\n\nSTRICT MIGRATION & DOMAIN MODELING RULES:\n1. Output ONLY pure, compilable source code for the target stack.\n2. DO NOT include markdown code blocks or fences (no \`\`\`rust or \`\`\`).\n3. DO NOT include any introductory text, explanation, summary, or commentary.\n4. DO NOT include ANY comments (no //, /* */, ///, or //! comments) in the code body.\n5. DO NOT emit non-existent macro calls such as 'import_axum_prelude!()'.\n6. IDIOMATIC RUST CLI & STDIN BEST PRACTICES (if targeting Rust):\n   - When prompting with \`print!()\` before \`stdin().read_line(...)\`, ALWAYS import \`std::io::Write\` and explicitly flush standard output via \`io::stdout().flush().unwrap();\` to prevent buffered prompt display issues.\n   - DO NOT mark \`io::stdin()\` bindings as mutable (\`let mut stdin\` is unnecessary; use \`io::stdin().read_line(&mut buf)\` directly).\n   - ALWAYS use \`.trim()\` or \`.trim_end()\` on string input read from stdin to strip trailing newlines.\n   - Model Java classes with clean \`struct + impl\` patterns, explicitly using \`&self\` for read operations and \`&mut self\` for state mutations.\n7. SEMANTIC & DOMAIN PRESERVATION:\n   - If migrating a Console/CLI application or class without HTTP web annotations: preserve exact CLI behavior (\`struct\`, \`fn main\`, \`println!\`), instantiating objects and exiting immediately WITHOUT creating HTTP routers or TCP listeners.\n   - If migrating a REST Controller / Web Service to Axum: model all Java domain classes/structs (e.g. \`struct Bike;\`) and execute object instantiations inside the async request handler before returning responses.\n8. Use modern Axum 0.7 syntax (\`tokio::net::TcpListener::bind\` + \`axum::serve\`) if Axum is used.\n9. Use clean 4-space indentation for all code block bodies.`,
           },
           {
             role: "user",
@@ -244,11 +267,20 @@ export const triggerTransformation = async (
       const rawCode = data.choices?.[0]?.message?.content || "";
       const cleanCode = sanitizeRustCode(rawCode);
       saveTransformedCode(projectId, stepId, cleanCode);
+      // Persist to full cache with java context
+      await setCachedTransformation(projectId, {
+        stepId,
+        rustCode: cleanCode,
+        javaCode,
+        modelUsed: "meta/llama-3.1-70b-instruct",
+        createdAt: new Date().toISOString(),
+        persisted: false,
+      }).catch(() => {});
       updateBlueprintStep(projectId, stepId, { target_pattern: cleanCode }).catch(() => {});
       return { step_id: stepId, transformed_code: cleanCode, status: "completed" };
     }
   } catch (err) {
-    console.warn("[TRANSFORM] AI proxy unavailable, falling back to Vercel function or local engine:", err);
+    logger.warn("transform", "AI proxy unavailable — trying Vercel function", { projectId, stepId }, err instanceof Error ? err : undefined);
   }
 
   // Try Vercel serverless function
@@ -262,12 +294,28 @@ export const triggerTransformation = async (
     );
     if (backendResult?.transformed_code) {
       saveTransformedCode(projectId, stepId, backendResult.transformed_code);
+      await setCachedTransformation(projectId, {
+        stepId,
+        rustCode: backendResult.transformed_code,
+        javaCode,
+        modelUsed: "server",
+        createdAt: new Date().toISOString(),
+        persisted: true,
+      }).catch(() => {});
       updateBlueprintStep(projectId, stepId, { target_pattern: backendResult.transformed_code }).catch(() => {});
     }
     return backendResult;
   } catch {
-    const mockTransformed = generateRustCodeFromJava(javaCode, stepId);
+    const mockTransformed = generateRustCodeFromJava(javaCode, stepId, targetStack);
     saveTransformedCode(projectId, stepId, mockTransformed);
+    await setCachedTransformation(projectId, {
+      stepId,
+      rustCode: mockTransformed,
+      javaCode,
+      modelUsed: "local-static",
+      createdAt: new Date().toISOString(),
+      persisted: false,
+    }).catch(() => {});
     updateBlueprintStep(projectId, stepId, { target_pattern: mockTransformed }).catch(() => {});
     return { step_id: stepId, transformed_code: mockTransformed, status: "completed" };
   }

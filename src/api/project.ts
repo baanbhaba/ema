@@ -23,6 +23,8 @@ import {
   calculateReadinessScore,
   calculateConsensus,
 } from "../lib/analysis";
+import { logger } from "../lib/logger";
+import { storeSourceCode, getSourceCode, removeSourceCode } from "../lib/secureStorage";
 
 export {
   detectJavaStack,
@@ -37,30 +39,25 @@ let sourceCodeStore: Record<string, string> = {};
 let liveCoreAudits: Record<string, CoreAudit> = {};
 let liveImpactAudits: Record<string, ImpactAudit> = {};
 
-const getPersistedSourceCode = (projectId: string): string => {
+const getPersistedSourceCode = async (projectId: string): Promise<string> => {
   if (sourceCodeStore[projectId]) return sourceCodeStore[projectId];
-  try {
-    const raw = localStorage.getItem("ema_source_code_store") || sessionStorage.getItem("ema_source_code_store");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed[projectId]) {
-        sourceCodeStore[projectId] = parsed[projectId];
-        return parsed[projectId];
-      }
+  // Try IndexedDB first
+  const idbMap = await getSourceCode(projectId).catch(() => null);
+  if (idbMap) {
+    const code = Object.values(idbMap).join("\n\n");
+    if (code) {
+      sourceCodeStore[projectId] = code;
+      return code;
     }
-  } catch {}
+  }
   return "";
 };
 
-const savePersistedSourceCode = (projectId: string, code: string) => {
+const savePersistedSourceCode = (projectId: string, sourceMap: Record<string, string>) => {
+  const code = Object.values(sourceMap).join("\n\n");
   sourceCodeStore[projectId] = code;
-  try {
-    const raw = localStorage.getItem("ema_source_code_store") || sessionStorage.getItem("ema_source_code_store") || "{}";
-    const parsed = JSON.parse(raw);
-    parsed[projectId] = code;
-    localStorage.setItem("ema_source_code_store", JSON.stringify(parsed));
-    sessionStorage.setItem("ema_source_code_store", JSON.stringify(parsed));
-  } catch {}
+  // Persist to IndexedDB asynchronously (non-blocking)
+  storeSourceCode(projectId, sourceMap).catch(() => {});
 };
 
 export const getProjects = async (): Promise<ProjectSummary[]> => {
@@ -71,7 +68,7 @@ export const getProjects = async (): Promise<ProjectSummary[]> => {
       return data.map((item) => ProjectSummarySchema.parse(item));
     }
   } catch {
-    console.warn("[OFFLINE] Backend /projects unavailable — returning local store.");
+    logger.warn("project", "Backend /projects unavailable — returning local store");
   }
   return Object.values(localProjectsStore).map((p) => ProjectSummarySchema.parse(p));
 };
@@ -80,17 +77,27 @@ export const getProjectDetails = async (projectId: string): Promise<any> => {
   try {
     const details = await fetchApi<any>(`/projects/${projectId}`);
     if (details && details.uploaded_sources && Array.isArray(details.uploaded_sources)) {
-      const primary = details.uploaded_sources[0];
-      if (primary && primary.rawCode) {
-        savePersistedSourceCode(projectId, primary.rawCode);
+      const sourceMap: Record<string, string> = {};
+      details.uploaded_sources.forEach((src: any) => {
+        if (src.fileName && src.rawCode) {
+          sourceMap[src.fileName] = src.rawCode;
+        }
+      });
+      if (Object.keys(sourceMap).length > 0) {
+        savePersistedSourceCode(projectId, sourceMap);
       }
     }
-    return details;
+    return {
+      ...details,
+      core_audit: await getCoreAudit(projectId),
+      impact_audit: await getImpactAudit(projectId),
+      uploaded_sources: await getProjectSourceCode(projectId),
+    };
   } catch {
-    console.warn(`[OFFLINE] Backend GET /projects/${projectId} unavailable.`);
+    logger.warn("project", `Backend GET /projects/${projectId} unavailable`, { projectId });
     return {
       ...localProjectsStore[projectId],
-      uploaded_sources: getProjectSourceCode(projectId),
+      uploaded_sources: await getProjectSourceCode(projectId),
       core_audit: liveCoreAudits[projectId] || null,
       impact_audit: liveImpactAudits[projectId] || null,
       blueprint: null,
@@ -139,11 +146,12 @@ export const createProject = async (data: {
   localProjectsStore[id] = newSummary;
 
   if (codeToSave) {
-    savePersistedSourceCode(id, codeToSave);
+    const fileName = `${data.name.replace(/[^a-zA-Z0-9_]/g, "")}.java`;
+    savePersistedSourceCode(id, { [fileName]: codeToSave });
   } else {
     // Save minimal placeholder structure
     const defaultPlaceholder = `public class ${data.name.replace(/\s+/g, "")} {\n    public static void main(String[] args) {\n        System.out.println("Executing ${data.name}");\n    }\n}`;
-    savePersistedSourceCode(id, defaultPlaceholder);
+    savePersistedSourceCode(id, { "Main.java": defaultPlaceholder });
   }
 
   try {
@@ -153,11 +161,14 @@ export const createProject = async (data: {
     });
     if (res && res.id) {
       localProjectsStore[res.id] = res;
-      if (codeToSave) savePersistedSourceCode(res.id, codeToSave);
+      if (codeToSave) {
+        const fileName = `${data.name.replace(/[^a-zA-Z0-9_]/g, "")}.java`;
+        savePersistedSourceCode(res.id, { [fileName]: codeToSave });
+      }
       return ProjectSummarySchema.parse(res);
     }
   } catch {
-    console.warn("[OFFLINE] Backend /projects POST unavailable — creating in local store.");
+    logger.warn("project", "Backend /projects POST unavailable — creating in local store");
   }
   return ProjectSummarySchema.parse(newSummary);
 };
@@ -169,6 +180,8 @@ export const deleteProject = async (projectId: string): Promise<boolean> => {
   delete sourceCodeStore[projectId];
   delete liveCoreAudits[projectId];
   delete liveImpactAudits[projectId];
+  // Clean up IndexedDB source code store
+  removeSourceCode(projectId).catch(() => {});
 
   if (isDevMode) return true;
 
@@ -176,26 +189,26 @@ export const deleteProject = async (projectId: string): Promise<boolean> => {
     await fetchApi<{ success: boolean }>(`/projects/${projectId}`, { method: "DELETE" });
     return true;
   } catch {
-    console.warn(`[OFFLINE] Backend DELETE /projects/${projectId} unavailable — removed from local store.`);
+    logger.warn("project", `Backend DELETE /projects/${projectId} unavailable — removed from local store`, { projectId });
     return true;
   }
 };
 
 export const uploadProjectSourceCode = async (projectId: string, code: string): Promise<boolean> => {
-  savePersistedSourceCode(projectId, code);
+  savePersistedSourceCode(projectId, { "Main.java": code });
   try {
     await fetchApi(`/projects/${projectId}/upload`, {
       method: "POST",
       body: JSON.stringify({ rawCode: code }),
     });
   } catch {
-    console.warn(`[STORAGE] Upload to backend DB failed for ${projectId}, saved in local storage fallback.`);
+    logger.warn("project", `Upload to backend DB failed for ${projectId}, saved in memory fallback`, { projectId });
   }
   return true;
 };
 
-export const getProjectSourceCode = (projectId: string): Record<string, string> => {
-  const code = getPersistedSourceCode(projectId);
+export const getProjectSourceCode = async (projectId: string): Promise<Record<string, string>> => {
+  const code = await getPersistedSourceCode(projectId);
   if (code) return { "Main.java": code };
   return {};
 };
@@ -210,14 +223,14 @@ export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
   // Return in-memory cache
   if (liveCoreAudits[projectId]) return liveCoreAudits[projectId];
 
-  const javaCode = getPersistedSourceCode(projectId);
+  const javaCode = await getPersistedSourceCode(projectId);
   const transformedRust = getTransformedCode(projectId);
   const combinedContext = transformedRust
     ? `LEGACY JAVA SOURCE CODE:\n${javaCode}\n\nTRANSFORMED RUST MODULES FROM BLUEPRINT REVIEW:\n${transformedRust}`
     : javaCode;
 
   const proj = localProjectsStore[projectId];
-  const srcMap = getProjectSourceCode(projectId);
+  const srcMap = await getProjectSourceCode(projectId);
   const fileName = Object.keys(srcMap)[0] || `${proj?.name || "Main"}.java`;
 
   // ── Tier 1: Dev mode — direct NVIDIA NIM call ──────────────────────────────
@@ -242,7 +255,7 @@ export const getCoreAudit = async (projectId: string): Promise<CoreAudit> => {
   } catch {
     // ── Tier 3: Real local static analysis — NO fake predefined data ──────────
     // Uses the actual uploaded Java code, not hardcoded Spring Boot placeholders.
-    console.warn(`[OFFLINE] Backend /analyze/core unavailable — running local static analysis on uploaded code.`);
+    logger.warn("project", "Backend /analyze/core unavailable — running local static analysis", { projectId });
 
     const detectedStack = javaCode.trim()
       ? detectJavaStack(javaCode)
@@ -290,14 +303,14 @@ export const getImpactAudit = async (projectId: string): Promise<ImpactAudit> =>
 
   if (liveImpactAudits[projectId]) return liveImpactAudits[projectId];
 
-  const javaCode = getPersistedSourceCode(projectId);
+  const javaCode = await getPersistedSourceCode(projectId);
   const transformedRust = getTransformedCode(projectId);
   const combinedContext = transformedRust
     ? `LEGACY JAVA SOURCE CODE:\n${javaCode}\n\nTRANSFORMED RUST MODULES FROM BLUEPRINT REVIEW:\n${transformedRust}`
     : javaCode;
 
   const proj = localProjectsStore[projectId];
-  const srcMap = getProjectSourceCode(projectId);
+  const srcMap = await getProjectSourceCode(projectId);
   const fileName = Object.keys(srcMap)[0] || `${proj?.name || "Main"}.java`;
 
   // ── Tier 1: Dev mode — direct NVIDIA NIM call ──────────────────────────────
@@ -321,7 +334,7 @@ export const getImpactAudit = async (projectId: string): Promise<ImpactAudit> =>
     return parsed;
   } catch {
     // ── Tier 3: Real local static analysis ────────────────────────────────────
-    console.warn(`[OFFLINE] Backend /analyze/impact unavailable — running local static analysis on uploaded code.`);
+    logger.warn("project", "Backend /analyze/impact unavailable — running local static analysis", { projectId });
 
     if (javaCode.trim()) {
       const dynamicImpact = detectJavaImpactAudit(javaCode, fileName);
@@ -372,7 +385,7 @@ export const getConsensusResult = async (projectId: string): Promise<ConsensusRe
       const data = await fetchApi<ConsensusResult>(`/projects/${projectId}/consensus`);
       return ConsensusResultSchema.parse(data);
     } catch {
-      console.warn(`[OFFLINE] Backend /projects/${projectId}/consensus unavailable — computing from local audits.`);
+      logger.warn("project", `Backend /projects/${projectId}/consensus unavailable — computing from local audits`, { projectId });
     }
   }
 
@@ -398,7 +411,7 @@ export const getReadinessScore = async (projectId: string): Promise<ReadinessSco
       const data = await fetchApi<ReadinessScore>(`/projects/${projectId}/readiness`);
       return ReadinessScoreSchema.parse(data);
     } catch {
-      console.warn(`[OFFLINE] Backend /projects/${projectId}/readiness unavailable — computing from local audits.`);
+      logger.warn("project", `Backend /projects/${projectId}/readiness unavailable — computing from local audits`, { projectId });
     }
   }
 

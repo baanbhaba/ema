@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Layout } from "./components/layout/Layout";
 import { useAuthStore } from "./store/useAuthStore";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
+import { Toaster } from "sonner";
 
 // Lazy-loaded pages to optimize initial bundle size & load times
 const LoginPage = lazy(() => import("./pages/LoginPage").then(m => ({ default: m.LoginPage })));
@@ -70,6 +71,7 @@ const RouterComponent = isElectron ? HashRouter : BrowserRouter;
 export const App: React.FC = () => {
   return (
     <ErrorBoundary>
+      <Toaster position="bottom-right" richColors closeButton theme="system" />
       <QueryClientProvider client={queryClient}>
         <RouterComponent>
           <Suspense fallback={<PageFallback />}>

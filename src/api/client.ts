@@ -7,6 +7,7 @@ export const setSimulateApiError = (enable: boolean) => {
 export const getSimulateApiError = () => simulateErrorsGlobal;
 
 import { env } from "../config/env";
+import { getAuthToken, getAuthUsername } from "../lib/secureStorage";
 
 export const BASE_URL = env.VITE_API_BASE_URL;
 
@@ -41,8 +42,8 @@ export async function fetchApi<T>(
     : `${BASE_URL.replace(/\/$/, "")}/${endpoint.replace(/^\//, "")}`;
 
   const authState = (window as any).__EMA_AUTH_STATE__ || {};
-  const token = sessionStorage.getItem("ema_token") || localStorage.getItem("ema_token") || authState.token;
-  const username = sessionStorage.getItem("ema_username") || localStorage.getItem("ema_username") || authState.username;
+  const token = getAuthToken() || authState.token;
+  const username = getAuthUsername() || authState.username;
 
   const headers = {
     "Content-Type": "application/json",
