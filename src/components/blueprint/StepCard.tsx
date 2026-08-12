@@ -36,7 +36,7 @@ export const StepCard: React.FC<StepCardProps> = ({
   const [sourceCodeMap, setSourceCodeMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    getProjectSourceCode(projectId).then(setSourceCodeMap).catch(() => {});
+    setSourceCodeMap(getProjectSourceCode(projectId));
   }, [projectId]);
 
   const codeEntries = Object.entries(sourceCodeMap);

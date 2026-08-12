@@ -65,7 +65,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       username: user.username,
       role: user.role,
       token: `alchemi-${randomUUID()}`,
-      devApiKey: user.devApiKey,
     });
   } catch (error) {
     console.error("POST /api/auth/login error:", error);

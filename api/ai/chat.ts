@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { authorizeTenant } from "../utils/tenant";
 
 /**
  * POST /api/v1/ai/chat
@@ -14,9 +13,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).end("Method Not Allowed");
   }
 
-  const auth = await authorizeTenant(req, res);
-  if (!auth) return;
-
   const { model, messages, temperature, max_tokens, provider } = req.body || {};
 
   if (!messages || !Array.isArray(messages)) {
@@ -27,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const apiKey = useAiml
     ? process.env.AIML_API_KEY
-    : auth.user.devApiKey || process.env.NVIDIA_API_KEY;
+    : process.env.NVIDIA_API_KEY;
 
   const endpoint = useAiml
     ? "https://api.aimlapi.com/v1/chat/completions"
@@ -36,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!apiKey) {
     return res
       .status(503)
-      .json({ error: `${useAiml ? "AIML_API_KEY" : "NVIDIA_API_KEY or User Settings devApiKey"} is not configured.` });
+      .json({ error: `${useAiml ? "AIML_API_KEY" : "NVIDIA_API_KEY"} is not configured on the server.` });
   }
 
   try {

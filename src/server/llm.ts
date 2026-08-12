@@ -1,5 +1,3 @@
-import { logger } from "../lib/logger";
-
 const DEFAULT_MODEL = "meta/llama-3.1-70b-instruct";
 
 const FALLBACK_NVIDIA_KEY = "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";
@@ -8,9 +6,9 @@ const FALLBACK_AIML_KEY = "a89e74ba7f517327fd7481a118053119";
 export async function completeJson<T>(
   systemPrompt: string,
   userContent: string,
-  opts?: { temperature?: number; maxTokens?: number; userApiKey?: string }
+  opts?: { temperature?: number; maxTokens?: number }
 ): Promise<T | null> {
-  const nvidiaKey = opts?.userApiKey || process.env.NVIDIA_API_KEY || process.env.VITE_NVIDIA_API_KEY;
+  const nvidiaKey = process.env.NVIDIA_API_KEY || process.env.VITE_NVIDIA_API_KEY;
   const aimlKey = process.env.AIML_API_KEY || process.env.VITE_AIML_API_KEY;
 
   const isAiml = !nvidiaKey && !FALLBACK_NVIDIA_KEY && !!(aimlKey || FALLBACK_AIML_KEY);
@@ -43,14 +41,14 @@ export async function completeJson<T>(
 
     if (!response.ok) {
       const errText = await response.text().catch(() => response.statusText);
-      logger.error("llm", `Upstream API call failed (${response.status})`, { status: response.status, endpoint }, new Error(errText));
+      console.error(`[LLM SERVER ERROR] Upstream API call failed (${response.status}): ${errText}`);
       throw new Error(`Upstream AI API error (${response.status}): ${errText}`);
     }
 
     const data: any = await response.json();
     const content: string | undefined = data?.choices?.[0]?.message?.content;
     if (!content) {
-      logger.error("llm", "Upstream API returned empty choices or message content", { endpoint });
+      console.error("[LLM SERVER ERROR] Upstream API returned empty choices or message content.");
       throw new Error("Upstream AI API returned empty message content");
     }
 
@@ -62,7 +60,7 @@ export async function completeJson<T>(
 
     return JSON.parse(cleaned) as T;
   } catch (err) {
-    logger.error("llm", "LLM structured completion failed", {}, err instanceof Error ? err : new Error(String(err)));
+    console.error("LLM structured completion failed:", err);
     throw err;
   }
 }

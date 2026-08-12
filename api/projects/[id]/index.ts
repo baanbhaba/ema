@@ -4,7 +4,6 @@ import { mapProjectToSummary } from "../../../src/server/projectMapping";
 import { calculateReadinessScore, calculateConsensus } from "../../../src/lib/analysis";
 import { normalizeCoreAudit, normalizeImpactAudit, refreshProjectReadiness } from "../../../src/server/auditMapping";
 import { generateRustCodeFromJava } from "../../../src/api/transform";
-import { authorizeTenant } from "../../utils/tenant";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id, route, stepId } = req.query;
@@ -12,9 +11,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!id || typeof id !== "string") {
     return res.status(400).json({ error: "Invalid or missing project id" });
   }
-
-  const auth = await authorizeTenant(req, res, id);
-  if (!auth) return; // Response handled
 
   try {
     // ── ROUTE: upload ────────────────────────────────────────────────────────
@@ -257,7 +253,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const primarySource = project.uploadedSources[0];
       const rawJavaCode = primarySource ? primarySource.rawCode : "public class Main {}";
-      const targetRustCode = generateRustCodeFromJava(rawJavaCode, transformStepId || "step-1", project.targetStack);
+      const targetRustCode = generateRustCodeFromJava(rawJavaCode, transformStepId || "step-1");
 
       const transformation = await prisma.transformation.create({
         data: {
@@ -338,9 +334,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         {
           id: "step-1",
           fileOrModule: primaryFile,
-          whatChanges: `Migrate REST Controller and domain model to ${project.targetStack || 'Rust'}`,
-          why: `Modernize to ${project.targetStack || 'Rust Tokio / Axum'}`,
-          targetPattern: generateRustCodeFromJava(rawJava, "step-1", project.targetStack),
+          whatChanges: "Migrate REST Controller and domain model",
+          why: "Modernize to Rust Tokio / Axum",
+          targetPattern: generateRustCodeFromJava(rawJava, "step-1"),
           riskLevel: "medium",
           status: "pending",
         },
@@ -354,7 +350,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           pattern.includes("Click 'Transform Step'") ||
           (pattern.includes("pub struct ") && pattern.includes("Handler {\n"));
 
-        const rustCode = !isGenericPlaceholder ? pattern : generateRustCodeFromJava(rawJava, s.id || "step-1", project.targetStack);
+        const rustCode = !isGenericPlaceholder ? pattern : generateRustCodeFromJava(rawJava, s.id || "step-1");
         const javaLines = rawJava.split("\n");
         const rustLines = rustCode.split("\n");
 

@@ -1,11 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { prisma } from "../../src/lib/prisma";
 import { detectJavaImpactAudit } from "../../src/lib/analysis";
-import { authorizeTenant } from "../utils/tenant";
 import { completeJson } from "../../src/server/llm";
 import { refreshProjectReadiness } from "../../src/server/auditMapping";
 
-const getImpactSystemPrompt = (targetStack: string) => `
+const IMPACT_SYSTEM_PROMPT = `
 You are the Impact Analysis Agent in ALCHEMI (Automated Legacy Code Transformation Engine).
 Analyze the provided Java source and return ONLY valid JSON matching this exact schema:
 {
@@ -16,7 +15,7 @@ Analyze the provided Java source and return ONLY valid JSON matching this exact 
   "blast_radius": [{ "change": "Modernize Controller.java", "affected_files": ["Controller.java"], "severity": "medium" }],
   "confidence": 0.92
 }
-breaking_change_risk and severity must be one of: low | medium | high. Target stack to migrate to: ${targetStack}`;
+breaking_change_risk and severity must be one of: low | medium | high.`;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -24,15 +23,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: `Method ${req.method} not allowed. Use POST.` });
   }
 
-  const auth = await authorizeTenant(req, res);
-  if (!auth) return;
-
-  const { project_id, code, ingestion_manifest, targetStack: reqTargetStack } = req.body || {};
+  const { project_id, code, ingestion_manifest } = req.body || {};
 
   try {
     let fileName = "Main.java";
     let javaCode = typeof code === "string" ? code : "";
-    let targetStack = reqTargetStack || "Rust with Axum and Tokio";
 
     if (project_id && !javaCode) {
       const project = await prisma.project.findUnique({
@@ -44,9 +39,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       fileName = project.uploadedSources[0]?.fileName || `${project.name}.java`;
       javaCode = project.uploadedSources[0]?.rawCode || "";
-      if (project.targetStack) {
-        targetStack = project.targetStack;
-      }
     }
 
     if (!javaCode && typeof ingestion_manifest === "string") {
@@ -62,7 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ── Tier 1: AI analysis ────────────────────────────────────────────────
     let audit: any = null;
 
-    audit = await completeJson(getImpactSystemPrompt(targetStack), javaCode, { maxTokens: 1800, userApiKey: auth.user.devApiKey || undefined });
+    audit = await completeJson(IMPACT_SYSTEM_PROMPT, javaCode, { maxTokens: 1800 });
     if (audit && !Array.isArray(audit.api_surface)) {
       audit = null;
     }

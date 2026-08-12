@@ -8,25 +8,11 @@ import {
   detectJavaImpactAudit,
   calculateReadinessScore,
 } from "../../src/lib/analysis";
-import { authorizeTenant } from "../utils/tenant";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const auth = await authorizeTenant(req, res);
-  if (!auth) return; // Response handled
-
   if (req.method === "GET") {
     try {
       const projects = await prisma.project.findMany({
-        where: auth.isSuperDev ? undefined : {
-          OR: [
-            { userId: auth.user.id },
-            {
-              organization: {
-                members: { some: { userId: auth.user.id } }
-              }
-            }
-          ]
-        },
         orderBy: { updatedAt: "desc" },
         include: {
           coreAudit: true,
@@ -43,7 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === "POST") {
     try {
-      const { id, name, repoUrl, repo_url, stage, javaCode, organizationId, targetStack } = req.body || {};
+      const { id, name, repoUrl, repo_url, stage, javaCode } = req.body || {};
 
       if (!name) {
         return res.status(400).json({ error: "Project name is required" });
@@ -79,11 +65,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         data: {
           id: id || undefined,
           name,
-          userId: organizationId ? undefined : auth.user.id,
-          organizationId: organizationId || undefined,
           repoUrl: repoUrl || repo_url || "",
           stage: stage || (javaCode ? "analyzing" : "ingesting"),
-          targetStack: targetStack || "rust-axum",
           readinessScore: initialReadiness,
           uploadedSources: javaCode
             ? {
@@ -104,9 +87,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                   {
                     stepNumber: 1,
                     fileOrModule: `${name.replace(/[^a-zA-Z0-9_]/g, "")}.java`,
-                    whatChanges: `Upgrade bytecode & convert REST controller logic to ${targetStack || 'Axum'} router`,
-                    why: `Modernize Java application to ${targetStack || 'Rust Tokio'} runtime`,
-                    targetPattern: generateRustCodeFromJava(javaCode || `public class ${name.replace(/[^a-zA-Z0-9_]/g, "")} {}`, "step-1", targetStack || "rust-axum"),
+                    whatChanges: "Upgrade bytecode & convert REST controller logic to Axum router",
+                    why: "Modernize Java application to Rust Tokio runtime",
+                    targetPattern: generateRustCodeFromJava(javaCode || `public class ${name.replace(/[^a-zA-Z0-9_]/g, "")} {}`, "step-1"),
                     riskLevel: "medium",
                     status: "pending",
                   },

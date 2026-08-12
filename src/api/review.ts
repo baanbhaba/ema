@@ -4,7 +4,6 @@ import { fetchApi } from "./client";
 import { useAuthStore } from "../store/useAuthStore";
 import { generateBlueprintWithNvidia } from "./nvidiaEngine";
 import { getProjectSourceCode } from "./project";
-import { logger } from "../lib/logger";
 
 let localBlueprintsStore: Record<string, Blueprint> = {};
 
@@ -16,7 +15,7 @@ export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
       return BlueprintSchema.parse(data);
     }
   } catch {
-    logger.warn("review", `Backend GET /projects/${projectId}/blueprint unavailable — building local blueprint`, { projectId });
+    console.warn(`[OFFLINE] Backend GET /projects/${projectId}/blueprint unavailable — building local blueprint.`);
   }
 
   if (localBlueprintsStore[projectId]) {
@@ -28,9 +27,7 @@ export const getBlueprint = async (projectId: string): Promise<Blueprint> => {
     localBlueprintsStore[projectId] = data;
     return BlueprintSchema.parse(data);
   } catch {
-    logger.warn("review", "Backend /blueprint unavailable — generating local fallback", { projectId });
-
-    const srcMap = await getProjectSourceCode(projectId);
+    const srcMap = getProjectSourceCode(projectId);
     const codeFiles = Object.keys(srcMap);
     const primaryFile = codeFiles[0] || "src/Main.java";
 
