@@ -40,6 +40,14 @@
   ],
   "rewrites": [
     {
+      "source": "/nvidia-api/:path*",
+      "destination": "https://integrate.api.nvidia.com/v1/:path*"
+    },
+    {
+      "source": "/aiml-api/:path*",
+      "destination": "https://api.aimlapi.com/v1/:path*"
+    },
+    {
       "source": "/api/v1/ai/chat",
       "destination": "/api/ai/chat"
     },
@@ -125,10 +133,6 @@
     },
     {
       "source": "/api/v1/:path*",
-      "destination": "/api/404"
-    },
-    {
-      "source": "/api/:path*",
       "destination": "/api/404"
     },
     {
