@@ -108,6 +108,22 @@
       "destination": "/api/projects"
     },
     {
+      "source": "/api/v1/auth/oauth/google",
+      "destination": "/api/auth/oauth/google"
+    },
+    {
+      "source": "/api/auth/oauth/google",
+      "destination": "/api/auth/oauth/google"
+    },
+    {
+      "source": "/api/v1/auth/oauth/callback",
+      "destination": "/api/auth/oauth/callback"
+    },
+    {
+      "source": "/api/auth/oauth/callback",
+      "destination": "/api/auth/oauth/callback"
+    },
+    {
       "source": "/api/v1/:path*",
       "destination": "/api/404"
     },
