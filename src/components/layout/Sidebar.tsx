@@ -80,11 +80,17 @@ export const Sidebar: React.FC = () => {
 
   const isRouteUnlocked = (label: string): boolean => {
     if (label.includes("Blueprint")) return true;
-    if (label.includes("Core")) return true;
 
+    const manualCore = sessionStorage.getItem("ema_unlocked_core-audit") === "true";
     const manualImpact = sessionStorage.getItem("ema_unlocked_impact-audit") === "true";
     const manualReadiness = sessionStorage.getItem("ema_unlocked_readiness") === "true";
     const manualReport = sessionStorage.getItem("ema_unlocked_report") === "true";
+
+    if (label.includes("Core")) {
+      const blueprintSteps = projectDetails?.blueprint?.steps || [];
+      const hasApprovedSteps = blueprintSteps.length > 0 && blueprintSteps.some((s: any) => s.status === "approved");
+      return manualCore || manualImpact || manualReadiness || manualReport || hasApprovedSteps;
+    }
 
     if (label.includes("Impact")) {
       return manualImpact || manualReadiness || manualReport || !!projectDetails?.core_audit;
@@ -136,59 +142,62 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-56 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col justify-between shrink-0 min-h-[calc(100vh-3.5rem)] font-mono text-xs hidden md:flex transition-colors text-zinc-900 dark:text-zinc-100">
+    <aside className="w-60 bg-[#ffffff] dark:bg-[#161b22] border-r-2 border-[#181c24] dark:border-[#30363d] flex flex-col justify-between shrink-0 min-h-[calc(100vh-3.5rem)] font-sans text-xs hidden md:flex transition-colors text-[#181c24] dark:text-[#f0f6fc]">
       <div className="space-y-3">
         {/* Project Selector & Overview Header */}
-        <div className="p-3 border-b border-zinc-200 dark:border-zinc-800 space-y-2">
+        <div className="p-3 border-b-2 border-[#181c24] dark:border-[#30363d] space-y-2.5">
           <NavLink
             to="/"
             className={({ isActive }) =>
-              `flex items-center space-x-2 px-2.5 py-1.5 rounded-md transition-all duration-200 hover:translate-x-0.5 relative overflow-hidden ${
+              `flex items-center space-x-2 px-3 py-2 border-2 border-[#181c24] dark:border-[#30363d] rounded-xs transition-all font-bold ${
                 isActive && !id
-                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold before:absolute before:left-0 before:top-1 before:bottom-1 before:w-1 before:bg-amber-500 before:rounded-r-full"
-                  : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  ? "bg-amber-500 text-black shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409]"
+                  : "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-800 dark:text-zinc-200 shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409] hover:bg-zinc-200 dark:hover:bg-zinc-700"
               }`
             }
           >
-            <MonitorPlay className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-            <span>Dashboard</span>
+            <MonitorPlay className="w-4 h-4 text-zinc-900 dark:text-amber-400 shrink-0" />
+            <span className="tracking-wide">Dashboard</span>
           </NavLink>
 
           {/* Active Project Switcher Dropdown */}
-          <div className="bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 rounded p-2 space-y-1 shadow-xs">
-            <div className="flex items-center justify-between text-[10px] text-zinc-500 dark:text-zinc-400 uppercase font-bold tracking-wider">
+          <div className="bg-zinc-50 dark:bg-zinc-900 border-2 border-[#181c24] dark:border-[#30363d] p-2.5 space-y-1.5 shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409]">
+            <div className="flex items-center justify-between text-[11px] text-zinc-600 dark:text-zinc-400 uppercase font-bold tracking-wider">
               <span>Active Project</span>
-              <FolderGit className="w-3 h-3 text-amber-500" />
+              <FolderGit className="w-3.5 h-3.5 text-amber-500" />
             </div>
 
             <div className="relative group">
               <select
                 value={selectedProjectId}
                 onChange={handleProjectSelect}
-                className="w-full bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-md px-2 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 font-mono focus:outline-none focus:border-amber-500 appearance-none cursor-pointer pr-6 shadow-sm group-hover:border-zinc-400 dark:group-hover:border-zinc-600 transition-colors"
+                className="w-full bg-white dark:bg-zinc-800 border-2 border-[#181c24] dark:border-[#30363d] px-2 py-1.5 text-xs text-[#181c24] dark:text-[#f0f6fc] font-medium focus:outline-none appearance-none cursor-pointer pr-6 shadow-xs"
               >
                 {activeProjects.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 py-1">
+                  <option key={p.id} value={p.id} className="bg-white dark:bg-zinc-800 text-[#181c24] dark:text-[#f0f6fc]">
                     {p.name}
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute right-1.5 top-2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-zinc-500 absolute right-2 top-2.5 pointer-events-none" />
             </div>
             {selectedProject && (
-              <div className="text-[10px] text-zinc-500 truncate pt-0.5">
-                Stage: <span className="text-amber-600 dark:text-amber-400 font-bold uppercase">{selectedProject.stage.replace("_", " ")}</span>
+              <div className="text-[11px] text-zinc-600 dark:text-zinc-400 truncate pt-0.5 flex items-center justify-between font-semibold">
+                <span>Stage</span>
+                <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-500/40 text-[10px] uppercase font-bold rounded-xs">
+                  {selectedProject.stage.replace("_", " ")}
+                </span>
               </div>
             )}
           </div>
         </div>
 
         {/* Streamlined Project Navigation Menu */}
-        <div className="px-2 space-y-0.5">
-          <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-500 flex items-center justify-between">
+        <div className="px-2.5 space-y-1">
+          <div className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center justify-between">
             <span>Analysis Pipeline</span>
           </div>
-          {navItems.map((item) => {
+          {navItems.map((item, index) => {
             const Icon = item.icon;
             const unlocked = isRouteUnlocked(item.label);
             const { addNotification } = useUiStore.getState();
@@ -200,17 +209,18 @@ export const Sidebar: React.FC = () => {
                   type="button"
                   onClick={() =>
                     addNotification(
-                      `Stage Locked: Please complete the previous pipeline views in order: 1. Blueprint Review -> 2. Core Audit -> 3. Impact Audit -> 4. Readiness & Consensus -> 5. Migration Report.`,
+                      `Stage Locked: Complete previous pipeline views: 1. Blueprint Review -> 2. Core Audit -> 3. Impact Audit -> 4. Readiness -> 5. Migration Report.`,
                       "warning"
                     )
                   }
-                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded transition-all text-zinc-400 dark:text-zinc-600 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/40 cursor-pointer text-left font-mono text-xs border-0 bg-transparent"
+                  className="w-full flex items-center justify-between px-2.5 py-1.5 text-zinc-400 dark:text-zinc-600 opacity-60 cursor-not-allowed text-left text-xs border border-dashed border-zinc-300 dark:border-zinc-700 bg-transparent"
                 >
                   <div className="flex items-center space-x-2">
-                    <Icon className="w-3.5 h-3.5 shrink-0 opacity-40 text-zinc-400 dark:text-zinc-600" />
-                    <span>{item.label}</span>
+                    <span className="text-[10px] font-bold opacity-60">{index + 1}.</span>
+                    <Icon className="w-3.5 h-3.5 shrink-0 opacity-40" />
+                    <span className="truncate">{item.label}</span>
                   </div>
-                  <Lock className="w-3 h-3 text-zinc-400 dark:text-zinc-600 shrink-0" />
+                  <Lock className="w-3 h-3 shrink-0" />
                 </button>
               );
             }
@@ -220,100 +230,104 @@ export const Sidebar: React.FC = () => {
                 key={item.label}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center space-x-2 px-2.5 py-1.5 rounded-md transition-all duration-200 hover:translate-x-0.5 relative overflow-hidden ${
+                  `flex items-center space-x-2 px-2.5 py-2 border-2 transition-all font-semibold rounded-xs ${
                     isActive
-                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold shadow-sm before:absolute before:left-0 before:top-1 before:bottom-1 before:w-1 before:bg-amber-500 before:rounded-r-full"
-                      : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900/80 hover:text-zinc-900 dark:hover:text-zinc-100"
+                      ? "bg-amber-500 text-black border-[#181c24] dark:border-[#30363d] shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409]"
+                      : "border-transparent text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:border-[#181c24] dark:hover:border-[#30363d] hover:text-[#181c24] dark:hover:text-white hover:shadow-[2px_2px_0px_#181c24] dark:hover:shadow-[2px_2px_0px_#010409]"
                   }`
                 }
               >
-                <Icon className="w-3.5 h-3.5 shrink-0 text-amber-500" />
-                <span>{item.label}</span>
+                <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">{index + 1}.</span>
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{item.label}</span>
               </NavLink>
             );
           })}
         </div>
 
         {/* Sidebar Export & Download Quick Utilities */}
-        <div className="px-2 pt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-1">
-          <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center justify-between">
-            <span>Exports & Downloads</span>
-            <Sparkles className="w-3 h-3 text-amber-500/70" />
+        <div className="px-2.5 pt-2 border-t-2 border-[#181c24] dark:border-[#30363d] space-y-1.5">
+          <div className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center justify-between">
+            <span>Exports & Code</span>
+            <Sparkles className="w-3 h-3 text-amber-500" />
           </div>
 
           <button
             type="button"
             onClick={handleDownloadRustCode}
             disabled={isExporting}
-            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 text-zinc-800 dark:text-zinc-200 hover:text-amber-600 dark:hover:text-amber-400 text-xs transition-all cursor-pointer text-left"
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 bg-zinc-50 dark:bg-zinc-900 border-2 border-[#181c24] dark:border-[#30363d] shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409] hover:bg-amber-500 hover:text-black dark:hover:bg-amber-500 dark:hover:text-black text-zinc-800 dark:text-zinc-200 font-bold text-xs active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer text-left"
             title="Download complete Rust Axum migrated source code"
           >
-            <FileTerminal className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+            <FileTerminal className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
             <span className="truncate">Download Rust (.rs)</span>
           </button>
 
           <button
             type="button"
             onClick={handleDownloadCargoToml}
-            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 text-zinc-800 dark:text-zinc-200 hover:text-amber-600 dark:hover:text-amber-400 text-xs transition-all cursor-pointer text-left"
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 bg-zinc-50 dark:bg-zinc-900 border-2 border-[#181c24] dark:border-[#30363d] shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409] hover:bg-amber-500 hover:text-black dark:hover:bg-amber-500 dark:hover:text-black text-zinc-800 dark:text-zinc-200 font-bold text-xs active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer text-left"
             title="Download Cargo.toml dependencies file"
           >
-            <CloudDownload className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+            <CloudDownload className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
             <span className="truncate">Download Cargo.toml</span>
           </button>
 
           <button
             type="button"
             onClick={handleResyncAnalysis}
-            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 text-zinc-800 dark:text-zinc-200 hover:text-amber-600 dark:hover:text-amber-400 text-xs transition-all cursor-pointer text-left"
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 bg-zinc-50 dark:bg-zinc-900 border-2 border-[#181c24] dark:border-[#30363d] shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409] hover:bg-rose-600 hover:text-white dark:hover:bg-rose-600 dark:hover:text-white text-zinc-800 dark:text-zinc-200 font-bold text-xs active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer text-left"
             title="Refresh analysis cache"
           >
-            <RefreshCcw className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+            <RefreshCcw className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
             <span className="truncate">Re-Sync Analysis</span>
           </button>
         </div>
       </div>
 
       {/* Settings & Admin Bottom Links */}
-      <div className="p-2 border-t border-zinc-200 dark:border-zinc-800 space-y-0.5">
-        <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-          Settings & Admin
-        </div>
-        {enterpriseItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `flex items-center space-x-2 px-2.5 py-1.5 rounded-md transition-all duration-200 hover:translate-x-0.5 relative overflow-hidden ${
-                  isActive
-                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold before:absolute before:left-0 before:top-1 before:bottom-1 before:w-1 before:bg-amber-500 before:rounded-r-full"
-                    : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900/60 hover:text-zinc-900 dark:hover:text-zinc-100"
-                }`
-              }
-            >
-              <Icon className="w-3.5 h-3.5 shrink-0 text-amber-500" />
-              <span>{item.label}</span>
-            </NavLink>
-          );
-        })}
-      </div>
-      {/* User Profile Mini-card */}
-      <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 border border-amber-500/30 shadow-sm">
-            <User className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+      <div>
+        <div className="p-2.5 border-t-2 border-[#181c24] dark:border-[#30363d] space-y-1">
+          <div className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            Settings & Admin
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-              {username || "Guest"}
-            </span>
-            <div className="flex items-center space-x-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0 shadow-[0_0_4px_rgba(34,197,94,0.6)]"></span>
-              <span className="text-[10px] text-zinc-500 dark:text-zinc-400 uppercase tracking-wide truncate">
-                {role ? role.replace('_', ' ') : "Viewer"}
+          {enterpriseItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center space-x-2 px-2.5 py-1.5 border-2 transition-all font-semibold rounded-xs ${
+                    isActive
+                      ? "bg-amber-500 text-black border-[#181c24] dark:border-[#30363d] shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409]"
+                      : "border-transparent text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:border-[#181c24] dark:hover:border-[#30363d] hover:text-[#181c24] dark:hover:text-white hover:shadow-[2px_2px_0px_#181c24] dark:hover:shadow-[2px_2px_0px_#010409]"
+                  }`
+                }
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
+                <span className="truncate">{item.label}</span>
+              </NavLink>
+            );
+          })}
+        </div>
+
+        {/* User Profile Mini-card */}
+        <div className="p-3 border-t-2 border-[#181c24] dark:border-[#30363d] bg-zinc-50 dark:bg-zinc-900">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-7 h-7 bg-amber-500 text-black border-2 border-[#181c24] dark:border-[#30363d] shadow-xs flex items-center justify-center shrink-0 font-bold">
+              <User className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-bold text-[#181c24] dark:text-[#f0f6fc] truncate">
+                {username || "Guest"}
               </span>
+              <div className="flex items-center space-x-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 uppercase font-bold tracking-wide truncate">
+                  {role ? role.replace('_', ' ') : "Viewer"}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -321,3 +335,4 @@ export const Sidebar: React.FC = () => {
     </aside>
   );
 };
+

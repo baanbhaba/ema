@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ScanSearch, RadioTower, Microchip, Globe, FileTerminal, Check, MoveRight } from "lucide-react";
-import { getCoreAudit } from "../api/client";
+import { getCoreAudit, getProjectDetails } from "../api/client";
 import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
 import { TopologyGraph } from "../components/common/TopologyGraph";
@@ -15,6 +15,12 @@ export const CoreAuditPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"file" | "pattern">("file");
+
+  const { data: projectDetails } = useQuery({
+    queryKey: ["project-details", id],
+    queryFn: () => getProjectDetails(id || ""),
+    enabled: !!id,
+  });
 
   const {
     data: audit,
@@ -35,6 +41,21 @@ export const CoreAuditPage: React.FC = () => {
   }, [isError, error, navigate]);
 
   if (isLoading) return <LoadingSkeleton rows={4} />;
+
+  const blueprintSteps = projectDetails?.blueprint?.steps || [];
+  const blueprintApprovedOrUnlocked =
+    sessionStorage.getItem("ema_unlocked_core-audit") === "true" ||
+    (blueprintSteps.length > 0 && blueprintSteps.some((s: any) => s.status === "approved"));
+
+  if (projectDetails && !blueprintApprovedOrUnlocked) {
+    return (
+      <ErrorState
+        title="Stage Locked"
+        message="Blueprint Review must be approved or unlocked before access to Core Audit is granted."
+      />
+    );
+  }
+
   if (isError) {
     return (
       <ErrorState

@@ -314,14 +314,17 @@ export const BlueprintPage: React.FC = () => {
         </div>
       </Card>
 
-      <div className="pt-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-center font-mono">
-        <span className="text-[10px] text-zinc-500">Step 1 of 5: Blueprint Review Complete</span>
+      <div className="pt-6 border-t-2 border-[#181c24] dark:border-[#30363d] flex justify-between items-center font-mono">
+        <span className="text-xs text-zinc-500">Step 1 of 5: Blueprint Review Complete</span>
         <button
-          onClick={() => navigate(`/projects/${id}/core-audit`)}
-          className="inline-flex items-center space-x-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 rounded font-bold text-xs transition-colors"
+          onClick={() => {
+            sessionStorage.setItem("ema_unlocked_core-audit", "true");
+            navigate(`/projects/${id}/core-audit`);
+          }}
+          className="inline-flex items-center space-x-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black border-2 border-[#181c24] dark:border-[#30363d] shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409] active:translate-x-0.5 active:translate-y-0.5 font-bold text-xs rounded-xs transition-all cursor-pointer"
         >
-          <span>Proceed to Core Audit</span>
-          <MoveRight className="w-3.5 h-3.5" />
+          <span>Proceed & Unlock Core Audit</span>
+          <MoveRight className="w-3.5 h-3.5 stroke-[2.5]" />
         </button>
       </div>
 

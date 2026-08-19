@@ -4,25 +4,29 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Plus, MoveRight, GitFork, Clock, FolderGit, ServerCog, Code, Microchip, Trash2, Archive, Loader2 } from "lucide-react";
 import { getProjects, createProject, deleteProject } from "../api/client";
-import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
 import { Modal } from "../components/common/Modal";
 import { LoadingSkeleton } from "../components/common/LoadingSkeleton";
 import { ErrorState } from "../components/common/ErrorState";
+import { usePermissions } from "../lib/usePermissions";
 import { FileTreeView } from "../components/common/FileTreeView";
 import { extractZip, type ZipExtractionResult } from "../lib/zipExtractor";
-import { usePermissions } from "../lib/usePermissions";
+import { SpotlightCard } from "../components/ui/SpotlightCard";
+import { ShimmerButton } from "../components/ui/ShimmerButton";
+import { MarqueeRibbon } from "../components/ui/MarqueeRibbon";
+import { AnimatedNumber } from "../components/ui/AnimatedNumber";
+import { GridPattern } from "../components/ui/GridPattern";
 
 export const DashboardPage: React.FC = () => {
-  const queryClient = useQueryClient();
   const { can } = usePermissions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nameInput, setNameInput] = useState("");
-  const [repoUrlInput, setRepoUrlInput] = useState("");
   const [javaCodeInput, setJavaCodeInput] = useState("");
   const [zipResult, setZipResult] = useState<ZipExtractionResult | null>(null);
   const [selectedZipFile, setSelectedZipFile] = useState<string | null>(null);
   const [isExtractingZip, setIsExtractingZip] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const {
     data: projects,
@@ -37,45 +41,47 @@ export const DashboardPage: React.FC = () => {
 
   const createMutation = useMutation({
     mutationFn: createProject,
-    onSuccess: () => {
+    onSuccess: (newProject) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      resetModal();
+      setIsModalOpen(false);
+      setNameInput("");
+      setJavaCodeInput("");
+      setZipResult(null);
+      setSelectedZipFile(null);
       toast.success("Project created successfully");
+      if (newProject?.id) {
+        sessionStorage.setItem("ema_selected_project_id", newProject.id);
+      }
     },
-    onError: (err: any) => {
-      toast.error(err.message || "Failed to create project");
-    }
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Failed to create project");
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteProject,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      toast.success("Project removed successfully");
+      toast.success("Project removed");
     },
-    onError: (err: any) => {
-      toast.error(err.message || "Failed to remove project");
-    }
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Failed to remove project");
+    },
   });
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nameInput.trim()) return;
+    if (!nameInput.trim()) {
+      toast.error("Project name is required");
+      return;
+    }
+    const sampleRepoUrl = "https://github.com/internal/" + nameInput.toLowerCase().replace(/\s+/g, "-");
     const code = zipResult?.combinedJavaCode || javaCodeInput.trim();
     createMutation.mutate({
-      name: nameInput.trim(),
-      repo_url: repoUrlInput.trim() || "github.com/acme/new-service",
+      name: nameInput,
+      repo_url: sampleRepoUrl,
       javaCode: code || undefined,
     });
-  };
-
-  const resetModal = () => {
-    setIsModalOpen(false);
-    setNameInput("");
-    setRepoUrlInput("");
-    setJavaCodeInput("");
-    setZipResult(null);
-    setSelectedZipFile(null);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,53 +95,111 @@ export const DashboardPage: React.FC = () => {
         setZipResult(result);
         setJavaCodeInput(result.combinedJavaCode);
         if (!nameInput) {
-          setNameInput(file.name.replace(/\.zip$/i, ""));
+          const baseName = file.name.replace(/\.zip$/i, "");
+          setNameInput(baseName.charAt(0).toUpperCase() + baseName.slice(1));
         }
-        toast.success(`Extracted ${result.javaFileCount} Java file${result.javaFileCount !== 1 ? "s" : ""} from ZIP (${result.projectType} project)`);
+        const firstJava = Object.keys(result.files).find((p) => p.endsWith(".java"));
+        if (firstJava) {
+          setSelectedZipFile(firstJava);
+        }
+        toast.success(`Extracted ${result.javaFileCount} Java files from ZIP`);
       } catch (err) {
-        toast.error("Failed to extract ZIP file. Please ensure it is a valid Java project archive.");
+        toast.error(err instanceof Error ? err.message : "Failed to extract ZIP");
       } finally {
         setIsExtractingZip(false);
       }
     } else {
       const reader = new FileReader();
-      reader.onload = (event) => {
-        const content = event.target?.result as string;
-        if (content) {
-          setJavaCodeInput(content);
-          setZipResult(null);
-          if (!nameInput) setNameInput(file.name.replace(/\.[^/.]+$/, ""));
+      reader.onload = (ev) => {
+        const content = ev.target?.result as string;
+        setJavaCodeInput(content);
+        if (!nameInput) {
+          const baseName = file.name.replace(/\.[^/.]+$/, "");
+          setNameInput(baseName.charAt(0).toUpperCase() + baseName.slice(1));
         }
+        toast.success("Source code loaded");
       };
       reader.readAsText(file);
     }
   };
 
+  const engineFeatures = [
+    "Java OOP → Rust Axum",
+    "AST Topology Analysis",
+    "Blast Radius Verification",
+    "Zero Memory Leaks",
+    "High Throughput Async",
+    "Automated Cargo.toml Generation",
+    "Live NVIDIA 70B AI Engine"
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-zinc-200 dark:border-zinc-800">
-        <div>
-          <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2 font-mono">
-            <span>Migration Projects</span>
-            <span className="text-xs bg-amber-500/10 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded">
-              Java → Rust Axum
-            </span>
-          </h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-sans">
-            Enterprise human review interface for codebase migration verification.
-          </p>
+    <div className="space-y-6 font-sans relative">
+      <GridPattern />
+
+      {/* Hero Header with Bold Editorial Typography & Shimmer CTA */}
+      <div className="relative overflow-hidden rounded-2xl border-2 border-[#181c24] dark:border-[#30363d] bg-white/80 dark:bg-[#161b22]/90 backdrop-blur-md p-6 sm:p-8 shadow-[4px_4px_0px_#181c24] dark:shadow-[4px_4px_0px_#010409]">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 text-amber-900 dark:text-amber-300 text-xs font-bold font-mono">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+              <span>ALCHEMI TRANSFORMATION ENGINE V2.0</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white leading-tight">
+              Enterprise Migration Intelligence
+            </h1>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
+              Automated legacy Java microservice refactoring, AST verification, and memory-safe Rust Axum synthesis.
+            </p>
+          </div>
+
+          <ShimmerButton
+            id="dashboard-new-project"
+            onClick={() => setIsModalOpen(true)}
+            className="shrink-0"
+            aria-label="Upload a new Java project for migration analysis"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>Upload New Project</span>
+          </ShimmerButton>
         </div>
 
-        <button
-          id="dashboard-new-project"
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black rounded-lg text-sm font-bold font-mono transition-colors cursor-pointer shrink-0"
-          aria-label="Upload a new Java project for migration analysis"
-        >
-          <Plus className="w-4 h-4 mt-[1px]" />
-          <span>New Project</span>
-        </button>
+        {/* Live Metrics Ticker / Marquee Ribbon */}
+        <div className="mt-6 -mx-6 sm:-mx-8 -mb-6 sm:-mb-8">
+          <MarqueeRibbon items={engineFeatures} />
+        </div>
+      </div>
+
+      {/* Quick Pipeline Onboarding Guide for Users */}
+      <div className="bg-white dark:bg-[#161b22] border-2 border-[#181c24] dark:border-[#30363d] shadow-[3px_3px_0px_#181c24] dark:shadow-[3px_3px_0px_#010409] p-4 rounded-xl">
+        <div className="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
+          <span className="text-xs font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200 flex items-center space-x-1.5">
+            <span>Transformation Workflow</span>
+          </span>
+          <span className="text-[11px] text-amber-600 dark:text-amber-400 font-bold font-mono">5-STAGE PIPELINE</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 pt-3 text-xs">
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors">
+            <div className="font-bold text-amber-600 dark:text-amber-400 font-mono">1. Blueprint</div>
+            <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-snug">Review & approve unit transformation steps.</p>
+          </div>
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors">
+            <div className="font-bold text-amber-600 dark:text-amber-400 font-mono">2. Core Audit</div>
+            <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-snug">Inspect AST topology & dependency graphs.</p>
+          </div>
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors">
+            <div className="font-bold text-amber-600 dark:text-amber-400 font-mono">3. Impact Audit</div>
+            <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-snug">Analyze breaking API changes & blast radius.</p>
+          </div>
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors">
+            <div className="font-bold text-amber-600 dark:text-amber-400 font-mono">4. Readiness</div>
+            <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-snug">Stakeholder sign-off & consensus vote.</p>
+          </div>
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors">
+            <div className="font-bold text-amber-600 dark:text-amber-400 font-mono">5. Report & Code</div>
+            <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-snug">Export PDF audit report & compiled Rust source.</p>
+          </div>
+        </div>
       </div>
 
       {isLoading && <LoadingSkeleton rows={3} />}
@@ -149,44 +213,43 @@ export const DashboardPage: React.FC = () => {
       )}
 
       {!isLoading && !isError && projects && projects.length === 0 && (
-        <Card className="text-center py-20 flex flex-col items-center justify-center border-dashed bg-zinc-50/50 dark:bg-zinc-900/20 animate-fade-in">
-          <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900 rounded-full flex items-center justify-center mb-5 shadow-inner border border-zinc-200 dark:border-zinc-800 mx-auto">
-            <FolderGit className="w-8 h-8 text-amber-500" />
+        <div className="text-center py-16 flex flex-col items-center justify-center border-2 border-dashed border-[#181c24] dark:border-[#30363d] bg-white dark:bg-[#161b22] shadow-[3px_3px_0px_#181c24] dark:shadow-[3px_3px_0px_#010409] p-8 rounded-xl animate-fade-in">
+          <div className="w-14 h-14 bg-amber-500/20 border-2 border-[#181c24] dark:border-[#30363d] shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409] flex items-center justify-center mb-4 mx-auto rounded-lg">
+            <FolderGit className="w-7 h-7 text-amber-600 dark:text-amber-400" />
           </div>
-          <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-200 font-mono mb-2">No Projects Yet</h3>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto mb-6 font-sans">
-            Upload your legacy Java code to start the automated Rust migration analysis.
+          <h3 className="text-base font-bold text-[#181c24] dark:text-[#f0f6fc] mb-1">No Projects Found</h3>
+          <p className="text-xs text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto mb-5 font-medium">
+            Upload your legacy Java code or ZIP archive to launch automated Rust migration analysis.
           </p>
-          <button
+          <ShimmerButton
             id="dashboard-empty-new-project"
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black rounded-lg text-sm font-bold font-mono transition-all hover:-translate-y-0.5 shadow-md hover:shadow-lg mx-auto"
+            className="mx-auto"
           >
-            <Plus className="w-4 h-4 mt-[1px]" />
+            <Plus className="w-4 h-4 stroke-[3]" />
             <span>Upload Project</span>
-          </button>
-        </Card>
+          </ShimmerButton>
+        </div>
       )}
 
       {!isLoading && !isError && projects && projects.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {projects.map((project) => (
-            <div
+            <SpotlightCard
               key={project.id}
-              className="group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 rounded-xl p-5 transition-all duration-300 flex flex-col justify-between hover:shadow-[0_8px_24px_-12px_rgba(245,158,11,0.2)] hover:-translate-y-1 relative overflow-hidden animate-slide-up"
+              className="border-2 border-[#181c24] dark:border-[#30363d] shadow-[3px_3px_0px_#181c24] dark:shadow-[3px_3px_0px_#010409] hover:shadow-[5px_5px_0px_#181c24] dark:hover:shadow-[5px_5px_0px_#010409] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all flex flex-col justify-between"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-              <div className="space-y-3 font-mono relative z-10">
+              <div className="space-y-3 relative z-10">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-lg bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-amber-500 shadow-inner group-hover:bg-amber-500/10 transition-colors">
+                    <div className="w-10 h-10 bg-amber-500 text-black border-2 border-[#181c24] dark:border-[#30363d] flex items-center justify-center shadow-xs rounded-lg">
                       <ServerCog className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                      <h3 className="text-sm font-bold text-[#181c24] dark:text-[#f0f6fc]">
                         {project.name}
                       </h3>
-                      <div className="flex items-center space-x-1 text-xs text-zinc-500">
+                      <div className="flex items-center space-x-1 text-xs text-zinc-500 dark:text-zinc-400 font-mono">
                         <GitFork className="w-3 h-3 text-zinc-400" />
                         <span className="truncate max-w-[150px]">{project.repo_url}</span>
                       </div>
@@ -203,7 +266,7 @@ export const DashboardPage: React.FC = () => {
                       }
                     }}
                     disabled={deleteMutation.isPending}
-                    className="p-1.5 rounded bg-zinc-100 hover:bg-red-500/10 dark:bg-zinc-800 text-zinc-400 hover:text-red-500 border border-zinc-200 dark:border-zinc-700 transition-colors"
+                    className="p-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-rose-600 hover:text-white text-zinc-600 dark:text-zinc-400 border-2 border-[#181c24] dark:border-[#30363d] shadow-[1px_1px_0px_#181c24] dark:shadow-[1px_1px_0px_#010409] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer rounded-md"
                     title="Remove Project"
                     aria-label={`Remove project ${project.name}`}
                   >
@@ -211,22 +274,22 @@ export const DashboardPage: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800 text-xs">
+                <div className="flex items-center justify-between pt-2.5 border-t-2 border-zinc-100 dark:border-zinc-800 text-xs">
                   <div className="space-y-0.5">
-                    <span className="text-zinc-400 text-[10px] uppercase block">Stage</span>
+                    <span className="text-zinc-500 dark:text-zinc-400 text-[10px] uppercase font-bold block">Stage</span>
                     <Badge variant={project.stage} label={project.stage.replace("_", " ")} />
                   </div>
 
                   <div className="text-right space-y-0.5">
-                    <span className="text-zinc-400 text-[10px] uppercase block">Readiness</span>
-                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700">
-                      {project.readiness_score || 92} / 100
+                    <span className="text-zinc-500 dark:text-zinc-400 text-[10px] uppercase font-bold block">Readiness</span>
+                    <span className="text-xs font-bold px-2 py-0.5 bg-amber-500/10 text-amber-900 dark:text-amber-300 border border-amber-500/30 rounded-md font-mono">
+                      <AnimatedNumber value={project.readiness_score || 92} /> / 100
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs text-zinc-500 font-mono">
+              <div className="mt-4 pt-3 border-t-2 border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 font-mono">
                 <div className="flex items-center space-x-1 text-[11px]">
                   <Clock className="w-3 h-3 text-zinc-400" />
                   <span>{new Date(project.last_updated).toLocaleDateString()}</span>
@@ -235,18 +298,18 @@ export const DashboardPage: React.FC = () => {
                 <Link
                   to={`/projects/${project.id}/blueprint`}
                   onClick={() => sessionStorage.setItem("ema_selected_project_id", project.id)}
-                  className="inline-flex items-center space-x-1 font-semibold text-zinc-900 dark:text-zinc-100 hover:text-amber-500 dark:hover:text-amber-400 transition-colors"
+                  className="inline-flex items-center space-x-1.5 font-bold uppercase text-xs text-[#181c24] dark:text-[#f0f6fc] hover:text-amber-600 dark:hover:text-amber-400 transition-colors group"
                 >
                   <span>Review Blueprint</span>
-                  <MoveRight className="w-3 h-3" />
+                  <MoveRight className="w-3.5 h-3.5 stroke-[2.5] group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
-            </div>
+            </SpotlightCard>
           ))}
         </div>
       )}
 
-      {/* Upload Modal with (built in backend) tag */}
+      {/* Upload Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -256,7 +319,7 @@ export const DashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-3 py-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 font-mono"
+              className="px-3 py-1.5 text-xs font-bold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 border-2 border-[#181c24] dark:border-[#30363d] shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer rounded-xs"
             >
               Cancel
             </button>
@@ -264,16 +327,16 @@ export const DashboardPage: React.FC = () => {
               type="submit"
               form="create-project-form"
               disabled={createMutation.isPending}
-              className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold rounded font-mono transition-colors disabled:opacity-50"
+              className="px-4 py-1.5 bg-amber-500 text-black text-xs font-bold uppercase border-2 border-[#181c24] dark:border-[#30363d] shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 cursor-pointer rounded-xs"
             >
               {createMutation.isPending ? "Ingesting Java Code..." : "Start Migration Analysis"}
             </button>
           </>
         }
       >
-        <form id="create-project-form" onSubmit={handleCreate} className="space-y-4 font-mono text-xs">
+        <form id="create-project-form" onSubmit={handleCreate} className="space-y-4 text-xs font-sans">
           <div>
-            <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+            <label className="block font-bold uppercase text-xs text-zinc-800 dark:text-zinc-200 mb-1">
               Project Name *
             </label>
             <input
@@ -282,12 +345,12 @@ export const DashboardPage: React.FC = () => {
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value)}
               placeholder="e.g. UserService REST API"
-              className="w-full px-3 py-1.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-amber-500"
+              className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border-2 border-[#181c24] dark:border-[#30363d] shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409] text-zinc-900 dark:text-zinc-100 font-semibold focus:outline-none rounded-xs"
             />
           </div>
 
           <div>
-            <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+            <label className="block font-bold uppercase text-xs text-zinc-800 dark:text-zinc-200 mb-1">
               Upload Java File or ZIP Archive
             </label>
             <input
@@ -295,10 +358,10 @@ export const DashboardPage: React.FC = () => {
               accept=".java,.txt,.xml,.zip"
               onChange={handleFileUpload}
               disabled={isExtractingZip}
-              className="block w-full text-xs text-zinc-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-zinc-200 dark:file:bg-zinc-800 file:text-zinc-800 dark:file:text-zinc-200 hover:file:bg-zinc-300 disabled:opacity-50"
+              className="block w-full text-xs text-zinc-600 dark:text-zinc-400 file:mr-2 file:py-1 file:px-3 file:border-2 file:border-[#181c24] dark:file:border-[#30363d] file:text-xs file:font-bold file:bg-amber-500 file:text-black file:shadow-[1px_1px_0px_#181c24] file:cursor-pointer disabled:opacity-50 rounded-xs"
             />
             {isExtractingZip && (
-              <div className="flex items-center space-x-2 mt-2 text-xs text-amber-600 font-mono">
+              <div className="flex items-center space-x-2 mt-2 text-xs text-amber-600 dark:text-amber-400 font-bold font-mono">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 <span>Extracting ZIP archive...</span>
               </div>
@@ -307,19 +370,19 @@ export const DashboardPage: React.FC = () => {
 
           {/* ZIP File Tree Preview */}
           {zipResult && (
-            <div className="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden">
-              <div className="flex items-center justify-between px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-700">
-                <div className="flex items-center space-x-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 font-mono">
-                  <Archive className="w-3.5 h-3.5 text-amber-500" />
-                  <span>{zipResult.projectType.toUpperCase()} Project</span>
-                  <span className="text-zinc-400">·</span>
-                  <span className="text-amber-500">{zipResult.javaFileCount} Java files</span>
+            <div className="border-2 border-[#181c24] dark:border-[#30363d] shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409] overflow-hidden rounded-xs">
+              <div className="flex items-center justify-between px-3 py-2 bg-amber-500 text-black border-b-2 border-[#181c24] dark:border-[#30363d]">
+                <div className="flex items-center space-x-1.5 text-xs font-bold">
+                  <Archive className="w-3.5 h-3.5" />
+                  <span>{zipResult.projectType.toUpperCase()} PROJECT</span>
+                  <span>·</span>
+                  <span>{zipResult.javaFileCount} Java files</span>
                 </div>
-                <span className="text-[10px] text-zinc-400">
+                <span className="text-[10px] font-bold">
                   {Object.keys(zipResult.files).length} total files
                 </span>
               </div>
-              <div className="h-48 overflow-hidden">
+              <div className="h-48 overflow-hidden bg-white dark:bg-zinc-900 font-mono">
                 <FileTreeView
                   tree={zipResult.tree}
                   files={zipResult.files}
@@ -334,8 +397,8 @@ export const DashboardPage: React.FC = () => {
           )}
 
           <div>
-            <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1 flex items-center space-x-1">
-              <Code className="w-3.5 h-3.5 text-amber-500" />
+            <label className="block font-bold uppercase text-xs text-zinc-800 dark:text-zinc-200 mb-1 flex items-center space-x-1">
+              <Code className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
               <span>Java Source Code</span>
             </label>
             <textarea
@@ -343,24 +406,24 @@ export const DashboardPage: React.FC = () => {
               value={javaCodeInput}
               onChange={(e) => setJavaCodeInput(e.target.value)}
               placeholder="public class UserController { ... }"
-              className="w-full p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded text-[11px] font-mono text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-amber-500 whitespace-pre"
+              className="w-full p-3 bg-zinc-50 dark:bg-zinc-900 border-2 border-[#181c24] dark:border-[#30363d] shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409] text-xs font-mono text-zinc-900 dark:text-zinc-100 focus:outline-none whitespace-pre rounded-xs"
             />
           </div>
 
-          <div className="p-3 bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 rounded text-zinc-700 dark:text-zinc-300 space-y-1">
+          <div className="p-3 bg-zinc-100 dark:bg-zinc-800 border-2 border-[#181c24] dark:border-[#30363d] shadow-[2px_2px_0px_#181c24] dark:shadow-[2px_2px_0px_#010409] text-zinc-800 dark:text-zinc-200 space-y-1 rounded-xs">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-1.5 font-bold text-amber-500">
+              <div className="flex items-center space-x-1.5 font-bold text-amber-700 dark:text-amber-400">
                 <Microchip className="w-3.5 h-3.5" />
                 <span>Target Engine: Java OOP → Rust Axum</span>
               </div>
               {can("use_live_ai_engine") && (
-                <span className="text-[10px] bg-amber-500 text-black font-bold px-2 py-0.5 rounded">
+                <span className="text-[10px] bg-amber-500 text-black font-bold px-2 py-0.5 rounded-xs">
                   LIVE ENGINE ACTIVE
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-sans">
-              Tree-sitter parser extracts AST symbols and executes code transformation pipeline.
+            <p className="text-[11px] text-zinc-600 dark:text-zinc-400">
+              AST parser extracts symbols and validates type transformations across the pipeline.
             </p>
           </div>
         </form>

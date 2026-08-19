@@ -1,2 +1,36 @@
-/* ALCHEMI — App-level utility styles */
-/* All component styles are handled via Tailwind utility classes */
+/* ALCHEMI — Neo-Brutalist Folk-Hacker Fusion Design System */
+
+.tilt-left {
+  transform: rotate(-1.5deg);
+}
+
+.tilt-right {
+  transform: rotate(1.5deg);
+}
+
+.tilt-left-sm {
+  transform: rotate(-0.75deg);
+}
+
+.tilt-right-sm {
+  transform: rotate(0.75deg);
+}
+
+.sticker-frame {
+  border: 2px solid #231917;
+  background: #fff8f6;
+  box-shadow: 4px 4px 0px #231917;
+}
+
+.dark .sticker-frame {
+  border: 2px solid #f4a300;
+  background: #231917;
+  box-shadow: 4px 4px 0px #f4a300;
+}
+
+.truck-art-banner {
+  background: linear-gradient(90deg, #f4a300, #9b3f27, #a43152, #d4a017);
+  padding: 4px;
+  border-bottom: 2px solid #231917;
+}
+
