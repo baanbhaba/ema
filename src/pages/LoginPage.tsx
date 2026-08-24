@@ -89,7 +89,7 @@ export const LoginPage: React.FC = () => {
           className="text-center space-y-2"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
         >
           <div className="flex items-center justify-center">
             <motion.div
@@ -116,7 +116,7 @@ export const LoginPage: React.FC = () => {
           className="bg-[#fff8f6] dark:bg-[#231917] border-2 border-[#231917] dark:border-[#f4a300] p-6 shadow-[6px_6px_0px_#231917] dark:shadow-[6px_6px_0px_#f4a300] space-y-5 transition-colors"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as [number, number, number, number], delay: 0.15 }}
         >
 
           <div className="flex bg-[#fdf8f0] dark:bg-[#181211] p-1 border-2 border-[#231917] dark:border-[#f4a300] shadow-[2px_2px_0px_#231917]">
