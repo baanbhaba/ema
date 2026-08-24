@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -179,23 +180,23 @@ export const DashboardPage: React.FC = () => {
           <span className="text-[11px] text-amber-600 dark:text-amber-400 font-bold font-mono">5-STAGE PIPELINE</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 pt-3 text-xs">
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors">
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors animate-slide-up stagger-1 opacity-0" style={{ animationFillMode: "forwards" }}>
             <div className="font-bold text-amber-600 dark:text-amber-400 font-mono">1. Blueprint</div>
             <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-snug">Review & approve unit transformation steps.</p>
           </div>
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors">
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors animate-slide-up stagger-2 opacity-0" style={{ animationFillMode: "forwards" }}>
             <div className="font-bold text-amber-600 dark:text-amber-400 font-mono">2. Core Audit</div>
             <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-snug">Inspect AST topology & dependency graphs.</p>
           </div>
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors">
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors animate-slide-up stagger-3 opacity-0" style={{ animationFillMode: "forwards" }}>
             <div className="font-bold text-amber-600 dark:text-amber-400 font-mono">3. Impact Audit</div>
             <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-snug">Analyze breaking API changes & blast radius.</p>
           </div>
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors">
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors animate-slide-up stagger-4 opacity-0" style={{ animationFillMode: "forwards" }}>
             <div className="font-bold text-amber-600 dark:text-amber-400 font-mono">4. Readiness</div>
             <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-snug">Stakeholder sign-off & consensus vote.</p>
           </div>
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors">
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg space-y-1 hover:border-amber-500 transition-colors animate-slide-up stagger-5 opacity-0" style={{ animationFillMode: "forwards" }}>
             <div className="font-bold text-amber-600 dark:text-amber-400 font-mono">5. Report & Code</div>
             <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-snug">Export PDF audit report & compiled Rust source.</p>
           </div>
@@ -233,12 +234,27 @@ export const DashboardPage: React.FC = () => {
       )}
 
       {!isLoading && !isError && projects && projects.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+          }}
+        >
           {projects.map((project) => (
-            <SpotlightCard
+            <motion.div
               key={project.id}
-              className="border-2 border-[#181c24] dark:border-[#30363d] shadow-[3px_3px_0px_#181c24] dark:shadow-[3px_3px_0px_#010409] hover:shadow-[5px_5px_0px_#181c24] dark:hover:shadow-[5px_5px_0px_#010409] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all flex flex-col justify-between"
+              variants={{
+                hidden: { opacity: 0, y: 20, scale: 0.97 },
+                visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 320, damping: 28 } },
+              }}
             >
+              <SpotlightCard
+                className="border-2 border-[#181c24] dark:border-[#30363d] shadow-[3px_3px_0px_#181c24] dark:shadow-[3px_3px_0px_#010409] hover:shadow-[5px_5px_0px_#181c24] dark:hover:shadow-[5px_5px_0px_#010409] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all flex flex-col justify-between"
+              >
+
               <div className="space-y-3 relative z-10">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
@@ -305,9 +321,11 @@ export const DashboardPage: React.FC = () => {
                 </Link>
               </div>
             </SpotlightCard>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
+
 
       {/* Upload Modal */}
       <Modal

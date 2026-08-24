@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, Eye, EyeOff, MoveRight, Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
@@ -84,11 +85,21 @@ export const LoginPage: React.FC = () => {
 
       <div className="w-full max-w-sm space-y-6">
         {/* Brand */}
-        <div className="text-center space-y-2">
+        <motion.div
+          className="text-center space-y-2"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        >
           <div className="flex items-center justify-center">
-            <div className="p-2 bg-[#f4a300] border-2 border-[#231917] shadow-[3px_3px_0px_#231917] -rotate-2">
+            <motion.div
+              className="p-2 bg-[#f4a300] border-2 border-[#231917] shadow-[3px_3px_0px_#231917] -rotate-2"
+              initial={{ scale: 0.6, rotate: -12 }}
+              animate={{ scale: 1, rotate: -2 }}
+              transition={{ type: "spring", stiffness: 360, damping: 22, delay: 0.1 }}
+            >
               <img src="/cpu.png" alt="ALCHEMI" className="w-10 h-10 object-cover" />
-            </div>
+            </motion.div>
           </div>
           <div>
             <h1 className="text-3xl font-display uppercase tracking-wider text-[#231917] dark:text-[#fdf8f0]">
@@ -98,10 +109,16 @@ export const LoginPage: React.FC = () => {
               "Automated Legacy Code Transformation Engine"
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Login Card */}
-        <div className="bg-[#fff8f6] dark:bg-[#231917] border-2 border-[#231917] dark:border-[#f4a300] p-6 shadow-[6px_6px_0px_#231917] dark:shadow-[6px_6px_0px_#f4a300] space-y-5 transition-colors">
+        <motion.div
+          className="bg-[#fff8f6] dark:bg-[#231917] border-2 border-[#231917] dark:border-[#f4a300] p-6 shadow-[6px_6px_0px_#231917] dark:shadow-[6px_6px_0px_#f4a300] space-y-5 transition-colors"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+        >
+
           <div className="flex bg-[#fdf8f0] dark:bg-[#181211] p-1 border-2 border-[#231917] dark:border-[#f4a300] shadow-[2px_2px_0px_#231917]">
             <button
               type="button"
@@ -239,12 +256,17 @@ export const LoginPage: React.FC = () => {
               )}
             </button>
           </form>
-        </div>
+        </motion.div>
 
         {/* Footer */}
-        <p className="text-center text-[10px] font-bold text-[#5c4a45] dark:text-[#dcc0ba]">
+        <motion.p
+          className="text-center text-[10px] font-bold text-[#5c4a45] dark:text-[#dcc0ba]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.4 }}
+        >
           ALCHEMI Code Transformation Engine • Secured Session
-        </p>
+        </motion.p>
       </div>
     </div>
   );

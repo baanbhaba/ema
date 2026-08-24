@@ -1,5 +1,7 @@
 import React, { lazy, Suspense } from "react";
-import { HashRouter, BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import { PageTransition } from "./components/common/PageTransition";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Layout } from "./components/layout/Layout";
 import { useAuthStore } from "./store/useAuthStore";
@@ -39,6 +41,7 @@ const queryClient = new QueryClient({
 
 const ProtectedLayout: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
+  const location = useLocation();
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -46,20 +49,22 @@ const ProtectedLayout: React.FC = () => {
   return (
     <Layout>
       <Suspense fallback={<PageFallback />}>
-        <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/projects/:id/core-audit" element={<CoreAuditPage />} />
-          <Route path="/projects/:id/impact-audit" element={<ImpactAuditPage />} />
-          <Route path="/projects/:id/readiness" element={<ReadinessPage />} />
-          <Route path="/projects/:id/blueprint" element={<BlueprintPage />} />
-          <Route path="/projects/:id/report" element={<ReportPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/account" element={<AccountPage />} />
-          <Route path="/integrations" element={<IntegrationsPage />} />
-          <Route path="/privacy-security" element={<PrivacySecurityPage />} />
-          {/* Custom 404 inside protected area */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+        <AnimatePresence mode="wait" initial={false}>
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<PageTransition><DashboardPage /></PageTransition>} />
+            <Route path="/projects/:id/core-audit" element={<PageTransition><CoreAuditPage /></PageTransition>} />
+            <Route path="/projects/:id/impact-audit" element={<PageTransition><ImpactAuditPage /></PageTransition>} />
+            <Route path="/projects/:id/readiness" element={<PageTransition><ReadinessPage /></PageTransition>} />
+            <Route path="/projects/:id/blueprint" element={<PageTransition><BlueprintPage /></PageTransition>} />
+            <Route path="/projects/:id/report" element={<PageTransition><ReportPage /></PageTransition>} />
+            <Route path="/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
+            <Route path="/account" element={<PageTransition><AccountPage /></PageTransition>} />
+            <Route path="/integrations" element={<PageTransition><IntegrationsPage /></PageTransition>} />
+            <Route path="/privacy-security" element={<PageTransition><PrivacySecurityPage /></PageTransition>} />
+            {/* Custom 404 inside protected area */}
+            <Route path="*" element={<PageTransition><NotFoundPage /></PageTransition>} />
+          </Routes>
+        </AnimatePresence>
       </Suspense>
     </Layout>
   );

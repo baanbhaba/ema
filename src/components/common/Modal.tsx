@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ModalProps {
   isOpen: boolean;
@@ -32,8 +33,6 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   const widthClasses = {
     sm: "max-w-sm",
     md: "max-w-md",
@@ -43,31 +42,45 @@ export const Modal: React.FC<ModalProps> = ({
   }[maxWidth];
 
   return (
-    <div className="fixed inset-0 z-[999] overflow-y-auto bg-[#231917]/70 backdrop-blur-xs">
-      <div className="flex min-h-full items-center justify-center p-4 text-center">
-        <div
-          className={`bg-[#fdf8f0] dark:bg-[#181211] border-2 border-[#231917] dark:border-[#f4a300] shadow-[6px_6px_0px_#231917] dark:shadow-[6px_6px_0px_#f4a300] w-full text-left inline-block ${widthClasses} overflow-hidden align-middle font-mono`}
-          role="dialog"
-          aria-modal="true"
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-[999] overflow-y-auto bg-[#231917]/70 backdrop-blur-xs"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
         >
-          <div className="px-5 py-3.5 border-b-2 border-[#231917] dark:border-[#f4a300] flex items-center justify-between bg-[#fff8f6] dark:bg-[#231917]">
-            <h3 className="font-display text-sm uppercase tracking-wider text-[#231917] dark:text-[#fdf8f0]">{title}</h3>
-            <button
-              onClick={onClose}
-              className="p-1 bg-[#fff8f6] dark:bg-[#181211] border border-[#231917] dark:border-[#f4a300] text-[#231917] dark:text-[#fdf8f0] shadow-[1px_1px_0px_#231917] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer"
-              aria-label="Close modal"
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <motion.div
+              className={`bg-[#fdf8f0] dark:bg-[#181211] border-2 border-[#231917] dark:border-[#f4a300] shadow-[6px_6px_0px_#231917] dark:shadow-[6px_6px_0px_#f4a300] w-full text-left inline-block ${widthClasses} overflow-hidden align-middle font-mono`}
+              role="dialog"
+              aria-modal="true"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              transition={{ type: "spring", stiffness: 380, damping: 30 }}
             >
-              <X className="w-4 h-4" />
-            </button>
+              <div className="px-5 py-3.5 border-b-2 border-[#231917] dark:border-[#f4a300] flex items-center justify-between bg-[#fff8f6] dark:bg-[#231917]">
+                <h3 className="font-display text-sm uppercase tracking-wider text-[#231917] dark:text-[#fdf8f0]">{title}</h3>
+                <button
+                  onClick={onClose}
+                  className="p-1 bg-[#fff8f6] dark:bg-[#181211] border border-[#231917] dark:border-[#f4a300] text-[#231917] dark:text-[#fdf8f0] shadow-[1px_1px_0px_#231917] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer"
+                  aria-label="Close modal"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-5 text-[#231917] dark:text-[#fdf8f0] text-xs max-h-[75vh] overflow-y-auto">{children}</div>
+              {footer && (
+                <div className="px-5 py-3 border-t-2 border-[#231917] dark:border-[#f4a300] bg-[#fff8f6] dark:bg-[#231917] flex items-center justify-end space-x-2">
+                  {footer}
+                </div>
+              )}
+            </motion.div>
           </div>
-          <div className="p-5 text-[#231917] dark:text-[#fdf8f0] text-xs max-h-[75vh] overflow-y-auto">{children}</div>
-          {footer && (
-            <div className="px-5 py-3 border-t-2 border-[#231917] dark:border-[#f4a300] bg-[#fff8f6] dark:bg-[#231917] flex items-center justify-end space-x-2">
-              {footer}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
